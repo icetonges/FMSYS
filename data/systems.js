@@ -4361,6 +4361,431 @@ const starsSources = [
   { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
 ];
 
+const sabrsLayers = [
+  { id: 'source', label: 'USMC Source / Interface Events', short: 'Source', description: 'Budget, contract, logistics, payroll, travel, disbursing, reimbursable, and Navy/DON partner events that drive Marine Corps accounting.' },
+  { id: 'base', label: 'SABRS Processing', short: 'SABRS', description: 'Standard Accounting, Budgeting, and Reporting System processing for budget execution, accounting, reimbursables, suspense, JVs, close, and reporting support.' },
+  { id: 'detail', label: 'Transaction and Support Detail', short: 'Detail', description: 'Fund cite, document, obligation, expenditure, reimbursable, JV, suspense, and archive detail that preserves the Universe of Transactions.' },
+  { id: 'accounting', label: 'Accounting and Control Layer', short: 'Accounting', description: 'Budgetary and proprietary accounting, funds control, AP/AR, FBWT, Navy ERP/DON bridge, and reconciliation controls.' },
+  { id: 'reporting', label: 'Execution and External Reporting', short: 'Reporting', description: 'Funds status, ULO, command reports, trial balance, DDRS, GTAS, AFR schedules, and audit package support.' },
+  { id: 'statements', label: 'USMC / DON Statement Support', short: 'Statements', description: 'SBR, net cost, balance sheet, FBWT, reimbursable, ULO, note, and audit assertions supported by SABRS lineage.' }
+];
+
+const sabrsNodes = [
+  {
+    id: 'sabrs-budget-source',
+    layer: 'source',
+    title: 'Budget / P&R / Funding Inputs',
+    subtitle: 'Allotment, allocation, execution authority',
+    icon: 'BUD',
+    tags: ['budget', 'funding', 'allocation', 'pandr'],
+    summary: 'Captures funding authority, allotments, allocations, apportionment-related attributes, fiscal year controls, and command-level budget execution inputs.',
+    examples: ['Funding authorization', 'Allotment', 'Command allocation', 'Fiscal-year control'],
+    auditQuestions: ['Is budget authority valid and traceable?', 'Are allotments and allocations recorded in the right period?', 'Are fund cites complete before execution?'],
+    keyFields: ['TAS', 'fund', 'fiscal year', 'appropriation', 'allotment', 'organization', 'amount'],
+    risks: ['Invalid fund cite', 'Execution exceeds authority', 'Budget authority not tied to source support']
+  },
+  {
+    id: 'sabrs-contract-piee-source',
+    layer: 'source',
+    title: 'Contracts / PIEE-WAWF',
+    subtitle: 'Awards, invoices, receipts, acceptance',
+    icon: 'P2P',
+    tags: ['contract', 'vendor', 'invoice', 'receipt'],
+    summary: 'Represents contract award, modification, invoice, receipt, acceptance, and payment-support evidence affecting obligations, expenses, accruals, and outlays.',
+    examples: ['Contract award', 'Modification', 'Receiving report', 'Invoice', 'Acceptance'],
+    auditQuestions: ['Does every invoice tie to contract and receipt/acceptance evidence?', 'Do modifications reconcile to obligation changes?', 'Are unmatched items resolved?'],
+    keyFields: ['PIID', 'CLIN', 'invoice', 'receipt', 'vendor', 'obligation document', 'amount'],
+    risks: ['Unsupported payment', 'Obligation not updated for modification', 'Receipt/invoice mismatch']
+  },
+  {
+    id: 'sabrs-gcss-mc-source',
+    layer: 'source',
+    title: 'GCSS-MC / Logistics Sources',
+    subtitle: 'Supply, maintenance, property, inventory impacts',
+    icon: 'GCSS',
+    tags: ['gcss-mc', 'logistics', 'supply', 'maintenance'],
+    summary: 'Provides logistics events that may drive obligations, expenses, inventory or asset support, reimbursable activity, and audit evidence in SABRS or reporting packages.',
+    examples: ['Supply demand', 'Maintenance parts', 'Inventory issue', 'Property adjustment'],
+    auditQuestions: ['Do logistics events with financial impact reach accounting?', 'Can accounting samples trace back to GCSS-MC evidence?', 'Are interface rejects researched?'],
+    keyFields: ['document number', 'DoDAAC/UIC', 'NSN/material', 'fund cite', 'quantity', 'amount', 'interface batch'],
+    risks: ['Logistics-to-finance break', 'Unsupported accounting event', 'Interface suspense not cleared']
+  },
+  {
+    id: 'sabrs-payroll-travel-source',
+    layer: 'source',
+    title: 'Payroll / Labor / DTS',
+    subtitle: 'Personnel cost, labor, travel, entitlement feeds',
+    icon: 'PAY',
+    tags: ['payroll', 'labor', 'travel', 'dts'],
+    summary: 'Represents payroll, labor distribution, travel authorization/voucher, entitlement, and accrual activity that requires budgetary and proprietary accounting.',
+    examples: ['Civilian payroll', 'Labor distribution', 'Travel authorization', 'Travel voucher', 'Accrual'],
+    auditQuestions: ['Do labor and travel costs trace to approved source populations?', 'Are accruals complete and reversed as needed?', 'Are stale travel obligations reviewed?'],
+    keyFields: ['employee/traveler ID', 'pay period', 'authorization/voucher', 'LOA', 'organization', 'amount'],
+    risks: ['Unsupported labor cost', 'Travel obligation not cleared', 'Accrual cutoff error']
+  },
+  {
+    id: 'sabrs-disbursing-treasury-source',
+    layer: 'source',
+    title: 'Disbursing / Treasury / IPAC',
+    subtitle: 'Payments, collections, intragovernmental settlement',
+    icon: 'DSB',
+    tags: ['disbursing', 'treasury', 'ipac', 'collections'],
+    summary: 'Feeds payment, collection, IPAC, Treasury, trading-partner, and fund balance activity requiring reconciliation to SABRS accounting records.',
+    examples: ['Disbursement', 'Collection', 'IPAC settlement', 'Treasury confirmation'],
+    auditQuestions: ['Do disbursements and collections tie to accounting documents?', 'Are trading partner attributes complete?', 'Do FBWT tie-outs clear differences?'],
+    keyFields: ['voucher', 'TAS', 'BETC', 'trading partner', 'disbursing station', 'document number', 'amount'],
+    risks: ['FBWT mismatch', 'Trading partner mismatch', 'Unmatched payment or collection']
+  },
+  {
+    id: 'sabrs-navy-erp-partner',
+    layer: 'source',
+    title: 'Navy ERP / DON Reporting Partner',
+    subtitle: 'DON reporting, transition, and reconciliation bridge',
+    icon: 'ERP',
+    tags: ['navy erp', 'don', 'reporting', 'transition'],
+    summary: 'Represents DON ERP/reporting relationships for consolidation, transition, archive, or reconciliation where SABRS activity supports Marine Corps and Department of the Navy reporting.',
+    examples: ['DON reporting tie-out', 'Transition bridge', 'Archive lookup', 'Crosswalk reconciliation'],
+    auditQuestions: ['Do SABRS balances reconcile to DON reporting outputs?', 'Are transition adjustments approved?', 'Can archived support be retrieved?'],
+    keyFields: ['SABRS document', 'DON/ERP reference', 'fund', 'USSGL', 'period', 'amount', 'bridge batch'],
+    risks: ['DON reporting bridge break', 'Transition adjustment unsupported', 'Archive gap']
+  },
+  {
+    id: 'sabrs-budget-execution',
+    layer: 'base',
+    title: 'Budget Execution',
+    subtitle: 'Funds availability, commitments, obligations, status',
+    icon: 'FM',
+    tags: ['budget execution', 'funds control', 'commitment', 'obligation'],
+    summary: 'Controls funding availability, commitments, obligations, fiscal-year rules, command execution status, and budgetary classification before financial reporting.',
+    examples: ['Funds check', 'Commitment', 'Obligation', 'Reprogramming/update', 'Status of funds'],
+    auditQuestions: ['Are commitments and obligations within available authority?', 'Are fiscal-year and purpose rules enforced?', 'Are open commitments reviewed?'],
+    keyFields: ['fund cite', 'appropriation', 'organization', 'commitment', 'obligation', 'available balance', 'period'],
+    risks: ['Anti-deficiency exposure', 'Invalid purpose/time/amount', 'Open commitment not cleared']
+  },
+  {
+    id: 'sabrs-core-accounting',
+    layer: 'base',
+    title: 'Core Accounting',
+    subtitle: 'Obligation, expenditure, expense, collection, outlay',
+    icon: 'ACC',
+    tags: ['accounting', 'obligation', 'expense', 'outlay'],
+    summary: 'Records budgetary and proprietary accounting events for obligations, expenditures, expenses, payables, receivables, collections, outlays, and adjustments.',
+    examples: ['Obligation posting', 'Expense posting', 'Collection', 'Outlay', 'Adjustment'],
+    auditQuestions: ['Do postings trace to source documents?', 'Are budgetary and proprietary impacts consistent?', 'Are period-end accruals complete?'],
+    keyFields: ['document number', 'transaction code', 'USSGL/crosswalk', 'fund', 'organization', 'amount', 'posting period'],
+    risks: ['Unsupported accounting posting', 'Budgetary/proprietary mismatch', 'Cutoff error']
+  },
+  {
+    id: 'sabrs-reimbursables',
+    layer: 'base',
+    title: 'Reimbursables / IGT',
+    subtitle: 'Orders, billings, collections, trading partner support',
+    icon: 'RMB',
+    tags: ['reimbursable', 'igt', 'billing', 'collections'],
+    summary: 'Supports reimbursable authority, customer orders, performance, billing, collections, IPAC/G-Invoicing support, and trading-partner reconciliation.',
+    examples: ['Customer order', 'Reimbursable billing', 'Collection', 'IPAC settlement', 'Trading partner tie-out'],
+    auditQuestions: ['Do reimbursable orders have valid authority?', 'Are billings tied to performance?', 'Do buyer/seller and IPAC records reconcile?'],
+    keyFields: ['agreement/order', 'customer', 'trading partner', 'TAS', 'BETC', 'billing document', 'amount'],
+    risks: ['Unbilled reimbursable activity', 'Trading partner mismatch', 'Collection not applied']
+  },
+  {
+    id: 'sabrs-suspense-close',
+    layer: 'base',
+    title: 'Suspense, JV, and Close',
+    subtitle: 'Rejects, unmatched items, manual adjustments, trial balance',
+    icon: 'CLS',
+    tags: ['suspense', 'jv', 'close', 'trial balance'],
+    summary: 'Manages rejected records, suspense, unmatched payments/collections, manual JVs, accruals, reversals, close adjustments, and trial-balance preparation.',
+    examples: ['Reject correction', 'Suspense clearing', 'JV', 'Accrual', 'Trial balance close'],
+    auditQuestions: ['Are suspense items aged and owned?', 'Are JVs supported and approved?', 'Do close balances reconcile to detail?'],
+    keyFields: ['reject code', 'suspense account', 'JV number', 'trial balance account', 'owner', 'amount', 'period'],
+    risks: ['Aged suspense', 'Unsupported JV', 'Close balance not tied to source detail']
+  },
+  {
+    id: 'sabrs-fund-cite-detail',
+    layer: 'detail',
+    title: 'Fund Cite / LOA Detail',
+    subtitle: 'TAS, appropriation, fiscal year, organization, program',
+    icon: 'LOA',
+    tags: ['fund cite', 'loa', 'tas', 'appropriation'],
+    summary: 'Preserves the accounting classification string and fund-control attributes needed to validate budget execution, posting, reporting, and audit lineage.',
+    examples: ['Line of accounting', 'TAS', 'Appropriation', 'Organization', 'Object class'],
+    auditQuestions: ['Are required LOA elements complete?', 'Does classification align to purpose and reporting?', 'Are changes approved?'],
+    keyFields: ['TAS', 'fund', 'fiscal year', 'organization', 'object class', 'program', 'cost code'],
+    risks: ['Invalid LOA', 'Misclassification', 'Unsupported fund cite change']
+  },
+  {
+    id: 'sabrs-obligation-detail',
+    layer: 'detail',
+    title: 'Obligation / ULO Detail',
+    subtitle: 'PR, award, modification, liquidation, deobligation',
+    icon: 'ULO',
+    tags: ['obligation', 'ulo', 'contract', 'sbr'],
+    summary: 'Maintains obligation records, modifications, liquidations, delivered orders, open balances, deobligations, and aging used for SBR and ULO review.',
+    examples: ['Purchase request', 'Award obligation', 'Modification', 'Liquidation', 'Deobligation'],
+    auditQuestions: ['Are open obligations valid and supportable?', 'Do modifications reconcile to obligation changes?', 'Are deobligations timely?'],
+    keyFields: ['obligation document', 'PIID', 'CLIN', 'fund cite', 'obligated amount', 'liquidated amount', 'open balance'],
+    risks: ['Unsupported ULO', 'Stale obligation', 'Liquidation mismatch']
+  },
+  {
+    id: 'sabrs-expenditure-detail',
+    layer: 'detail',
+    title: 'Expenditure / Payment Detail',
+    subtitle: 'Invoice, receipt, acceptance, disbursement, outlay',
+    icon: 'EXP',
+    tags: ['expenditure', 'payment', 'invoice', 'outlay'],
+    summary: 'Preserves invoice, receipt, acceptance, disbursement, liquidation, outlay, and payment details tied to source evidence and reporting.',
+    examples: ['Invoice', 'Receipt/acceptance', 'Payment voucher', 'Liquidation', 'Outlay'],
+    auditQuestions: ['Do expenditures tie to valid obligations?', 'Are receipt and acceptance retained?', 'Do outlays reconcile to Treasury/disbursing?'],
+    keyFields: ['invoice', 'receipt', 'voucher', 'obligation document', 'TAS', 'BETC', 'amount'],
+    risks: ['Improper payment', 'Unmatched disbursement', 'Outlay/Treasury mismatch']
+  },
+  {
+    id: 'sabrs-reimbursable-detail',
+    layer: 'detail',
+    title: 'Reimbursable / Customer Order Detail',
+    subtitle: 'Agreement, order, performance, billing, collection',
+    icon: 'IGT',
+    tags: ['reimbursable', 'customer order', 'billing', 'collection'],
+    summary: 'Captures reimbursable agreement/order, customer, performance, billing, collection, IPAC, and trading-partner detail.',
+    examples: ['Customer order', 'Performance support', 'Billing', 'Collection', 'IPAC'],
+    auditQuestions: ['Is reimbursable activity supported by agreement/order authority?', 'Can billings trace to performance?', 'Are collections applied to the right order?'],
+    keyFields: ['agreement/order', 'customer', 'trading partner', 'billing document', 'collection', 'TAS', 'amount'],
+    risks: ['Unbilled performance', 'Collection not applied', 'Trading partner mismatch']
+  },
+  {
+    id: 'sabrs-jv-suspense-detail',
+    layer: 'detail',
+    title: 'JV / Suspense / Reject Detail',
+    subtitle: 'Manual entry, root cause, approval, clearing',
+    icon: 'JV',
+    tags: ['jv', 'suspense', 'reject', 'manual adjustment'],
+    summary: 'Documents reject records, suspense items, manual adjustments, accruals, corrections, approvals, posting impact, clearing, and reversal evidence.',
+    examples: ['Reject record', 'Suspense aging', 'Correction JV', 'Accrual JV', 'Reversal'],
+    auditQuestions: ['Does every JV have source support?', 'Are suspense clearings tied to root cause?', 'Are approvals complete before posting?'],
+    keyFields: ['JV number', 'reject code', 'suspense account', 'source document', 'approver', 'amount', 'clearing date'],
+    risks: ['Unsupported manual adjustment', 'Aged suspense', 'Missing reversal']
+  },
+  {
+    id: 'sabrs-budgetary-gl',
+    layer: 'accounting',
+    title: 'Budgetary Accounting',
+    subtitle: 'Authority, commitments, obligations, expenditures, outlays',
+    icon: 'SBR',
+    tags: ['budgetary', 'sbr', 'ussgl', 'outlay'],
+    summary: 'Classifies and controls budgetary activity from authority through commitments, obligations, delivered orders, expenditures, outlays, recoveries, and ULO balances.',
+    examples: ['Budget authority', 'Commitment', 'Obligation', 'Delivered order', 'Outlay'],
+    auditQuestions: ['Do budgetary balances tie to supported transactions?', 'Are ULOs valid?', 'Are outlays recorded in the correct period?'],
+    keyFields: ['TAS', 'fund', 'USSGL/crosswalk', 'document', 'amount', 'period'],
+    risks: ['SBR misstatement', 'Unsupported ULO', 'Outlay cutoff error']
+  },
+  {
+    id: 'sabrs-proprietary-gl',
+    layer: 'accounting',
+    title: 'Proprietary Accounting',
+    subtitle: 'Expense, AP, AR, assets, FBWT support',
+    icon: 'GL',
+    tags: ['proprietary', 'expense', 'ap', 'ar', 'fbwt'],
+    summary: 'Records proprietary effects for expenses, payables, receivables, collections, assets, FBWT, and other balances needed for financial-statement support.',
+    examples: ['Expense', 'AP accrual', 'AR billing', 'Collection', 'FBWT tie-out'],
+    auditQuestions: ['Do proprietary impacts reconcile to budgetary/source detail?', 'Are AP/AR balances aged and supportable?', 'Does FBWT reconcile to Treasury?'],
+    keyFields: ['USSGL/crosswalk', 'document', 'vendor/customer', 'TAS', 'amount', 'period'],
+    risks: ['Budgetary/proprietary mismatch', 'Unsupported AP/AR', 'FBWT reconciliation break']
+  },
+  {
+    id: 'sabrs-navy-erp-bridge',
+    layer: 'accounting',
+    title: 'Navy ERP / DON Reporting Bridge',
+    subtitle: 'Consolidation, transition, crosswalk, reconciliation',
+    icon: 'BRG',
+    tags: ['navy erp', 'don', 'bridge', 'crosswalk'],
+    summary: 'Controls SABRS-to-DON reporting or transition relationships, crosswalks, bridge files, archive support, and reconciliation to reporting outputs.',
+    examples: ['DON reporting bridge', 'Crosswalk', 'Archive extract', 'Conversion adjustment'],
+    auditQuestions: ['Do bridge totals reconcile?', 'Are crosswalks governed?', 'Can DON-reported amounts trace to SABRS detail?'],
+    keyFields: ['SABRS document', 'DON reference', 'fund', 'USSGL', 'bridge batch', 'amount', 'period'],
+    risks: ['Bridge mismatch', 'Crosswalk error', 'Conversion adjustment unsupported']
+  },
+  {
+    id: 'sabrs-control-reconciliation',
+    layer: 'accounting',
+    title: 'Control and Reconciliation',
+    subtitle: 'Approvals, suspense, tie-outs, audit trail',
+    icon: 'REC',
+    tags: ['reconciliation', 'control', 'approval', 'audit'],
+    summary: 'Maintains approval, suspense, batch, tie-out, trial balance, interface, and audit-trail controls over SABRS source-to-reporting lineage.',
+    examples: ['Batch control', 'Reject report', 'Suspense aging', 'Trial balance tie-out', 'Approval log'],
+    auditQuestions: ['Do control totals reconcile?', 'Are rejects and suspense cleared?', 'Are approvals and evidence retained?'],
+    keyFields: ['batch', 'control total', 'reject code', 'owner', 'approval ID', 'reconciliation ID', 'amount'],
+    risks: ['Control total mismatch', 'Unresolved reject', 'Missing approval/evidence']
+  },
+  {
+    id: 'sabrs-funds-reporting',
+    layer: 'reporting',
+    title: 'Funds Status / Command Reporting',
+    subtitle: 'Execution, ULO, budget status, management reports',
+    icon: 'RPT',
+    tags: ['funds status', 'command', 'ulo', 'execution'],
+    summary: 'Provides USMC users with funds status, execution, obligation, ULO, reimbursable, suspense, and management reporting for command decision support.',
+    examples: ['Status of funds', 'ULO report', 'Execution report', 'Reimbursable aging', 'Suspense aging'],
+    auditQuestions: ['Do reports tie to controlled populations?', 'Are filters and as-of dates documented?', 'Are exceptions assigned owners?'],
+    keyFields: ['report ID', 'as-of date', 'fund', 'organization', 'document', 'status', 'amount'],
+    risks: ['Report not reproducible', 'Unowned exception', 'Management report not tied to accounting detail']
+  },
+  {
+    id: 'sabrs-ddrs-gtas',
+    layer: 'reporting',
+    title: 'Trial Balance / DDRS / GTAS',
+    subtitle: 'External reporting, Treasury, USSGL/TAS support',
+    icon: 'GTAS',
+    tags: ['trial balance', 'ddrs', 'gtas', 'treasury'],
+    summary: 'Supports trial balance, DDRS, GTAS, TAS/USSGL crosswalks, Treasury reporting, AFR schedules, and statement-line mapping.',
+    examples: ['Trial balance', 'DDRS feed', 'GTAS support', 'Treasury tie-out', 'AFR schedule'],
+    auditQuestions: ['Do trial balances reconcile to source detail?', 'Are TAS/USSGL attributes complete?', 'Are crosswalks approved and current?'],
+    keyFields: ['TAS', 'USSGL', 'fund', 'period', 'amount', 'statement line', 'trading partner'],
+    risks: ['Crosswalk error', 'Unsupported reporting amount', 'TAS/USSGL mismatch']
+  },
+  {
+    id: 'sabrs-audit-package',
+    layer: 'reporting',
+    title: 'Audit / AFR Support Package',
+    subtitle: 'UoT, samples, schedules, reconciliations',
+    icon: 'AUD',
+    tags: ['audit', 'afr', 'evidence', 'uott'],
+    summary: 'Assembles source documents, transaction extracts, approvals, JVs, suspense research, trial balance tie-outs, AFR schedules, and sample-support packages.',
+    examples: ['UoT extract', 'Sample package', 'AFR schedule', 'Reconciliation', 'Approval evidence'],
+    auditQuestions: ['Can samples trace from statement to source?', 'Is the UoT complete?', 'Are schedules tied to controlled populations?'],
+    keyFields: ['sample ID', 'source document', 'accounting document', 'report line', 'evidence link', 'reconciliation ID'],
+    risks: ['Incomplete UoT', 'Evidence unavailable', 'Schedule not tied to source population']
+  },
+  {
+    id: 'sabrs-sbr',
+    layer: 'statements',
+    title: 'Statement of Budgetary Resources',
+    subtitle: 'Authority, obligations, expenditures, outlays, ULOs',
+    icon: 'SBR',
+    tags: ['sbr', 'budgetary', 'ulo', 'outlay'],
+    summary: 'Supports SBR assertions for USMC budget authority, obligations, delivered orders, expenditures, outlays, recoveries, and ULOs.',
+    examples: ['Obligation support', 'ULO aging', 'Outlay support', 'Deobligation'],
+    auditQuestions: ['Are budgetary amounts complete and valid?', 'Are ULOs supported?', 'Do outlays tie to Treasury/disbursing evidence?'],
+    keyFields: ['TAS', 'fund', 'USSGL/crosswalk', 'document', 'obligation amount', 'outlay amount'],
+    risks: ['Unsupported ULO', 'Outlay mismatch', 'Budgetary classification error']
+  },
+  {
+    id: 'sabrs-net-cost-balance',
+    layer: 'statements',
+    title: 'Net Cost / Balance Sheet Support',
+    subtitle: 'Expense, AP, AR, FBWT, assets, accruals',
+    icon: 'NCT',
+    tags: ['net cost', 'balance sheet', 'expense', 'fbwt'],
+    summary: 'Connects USMC expenses, accruals, AP, AR, assets, collections, and fund balance activity to net cost and balance-sheet assertions.',
+    examples: ['Expense support', 'AP/AR aging', 'FBWT tie-out', 'Accrual support'],
+    auditQuestions: ['Can expenses trace to supported events?', 'Are AP/AR balances supportable?', 'Does FBWT reconcile to Treasury?'],
+    keyFields: ['USSGL/crosswalk', 'document', 'vendor/customer', 'TAS', 'amount', 'period'],
+    risks: ['Expense unsupported', 'AP/AR aging weakness', 'FBWT unreconciled']
+  },
+  {
+    id: 'sabrs-notes-reimbursables',
+    layer: 'statements',
+    title: 'Notes / Reimbursables / Suspense',
+    subtitle: 'Disclosure, trading partner, cleanup, audit schedules',
+    icon: 'NTE',
+    tags: ['notes', 'reimbursable', 'suspense', 'disclosure'],
+    summary: 'Supports note schedules for reimbursables, trading partner activity, suspense, ULOs, FBWT, adjustments, and other audit-sensitive disclosures.',
+    examples: ['Reimbursable schedule', 'Suspense note', 'Trading partner schedule', 'ULO schedule'],
+    auditQuestions: ['Are note schedules tied to controlled populations?', 'Are suspense and reimbursables aged and governed?', 'Do trading partner balances reconcile?'],
+    keyFields: ['schedule ID', 'agreement/order', 'trading partner', 'suspense account', 'owner', 'amount', 'status'],
+    risks: ['Unsupported note schedule', 'Aged suspense not resolved', 'Trading partner mismatch']
+  }
+];
+
+const sabrsLineageScenarios = [
+  {
+    id: 'sabrs-funds-to-sbr',
+    short: 'funds to SBR',
+    title: 'Funds Authorization to Obligation and SBR',
+    description: 'Traces Marine Corps budget authority and execution from funding inputs through SABRS funds control, obligation detail, budgetary accounting, reporting, and SBR support.',
+    path: ['sabrs-budget-source', 'sabrs-budget-execution', 'sabrs-fund-cite-detail', 'sabrs-obligation-detail', 'sabrs-budgetary-gl', 'sabrs-sbr'],
+    steps: [
+      'Funding authority and allocation data establish the available budget and execution limits.',
+      'SABRS budget execution validates fund cite, fiscal year, organization, and availability before commitment or obligation.',
+      'Fund cite and obligation detail preserve the transaction population and open-balance history.',
+      'Budgetary accounting classifies authority, obligations, delivered orders, expenditures, and outlays.',
+      'SBR support traces reported resources and ULO balances back to SABRS source transactions.'
+    ],
+    exceptionTests: ['invalid LOA', 'obligation exceeds availability', 'stale ULO', 'deobligation unsupported', 'SBR amount not tied to detail']
+  },
+  {
+    id: 'sabrs-procure-to-pay',
+    short: 'procure to pay',
+    title: 'Contract Invoice to Payment, GL, and Net Cost',
+    description: 'Connects contract, receipt, invoice, payment, expenditure detail, proprietary accounting, and net cost or balance-sheet support.',
+    path: ['sabrs-contract-piee-source', 'sabrs-core-accounting', 'sabrs-expenditure-detail', 'sabrs-proprietary-gl', 'sabrs-ddrs-gtas', 'sabrs-net-cost-balance'],
+    steps: [
+      'Contract, receipt, acceptance, invoice, and payment evidence enters the accounting support trail.',
+      'SABRS records obligation, expense, payable, liquidation, and outlay effects where applicable.',
+      'Expenditure detail ties the payment to source contract, receipt, acceptance, and obligation records.',
+      'Proprietary accounting supports expense, AP, FBWT, and related balances.',
+      'Trial balance, DDRS/GTAS, and statement support reconcile reported amounts to source payment detail.'
+    ],
+    exceptionTests: ['invoice without receipt', 'unmatched disbursement', 'AP cutoff issue', 'payment not tied to obligation', 'Treasury mismatch']
+  },
+  {
+    id: 'sabrs-reimbursable',
+    short: 'reimbursable',
+    title: 'Reimbursable Order to Billing, Collection, and Notes',
+    description: 'Shows reimbursable activity from order authority through SABRS reimbursables, billing, collection, trading partner reconciliation, and note support.',
+    path: ['sabrs-disbursing-treasury-source', 'sabrs-reimbursables', 'sabrs-reimbursable-detail', 'sabrs-proprietary-gl', 'sabrs-audit-package', 'sabrs-notes-reimbursables'],
+    steps: [
+      'A reimbursable order, customer request, or IGT activity establishes authority and trading partner context.',
+      'SABRS reimbursable processing tracks order, performance, billing, collection, and IPAC/G-Invoicing support.',
+      'Reimbursable detail preserves agreement, customer, billing, collection, and settlement evidence.',
+      'Accounting recognizes billing, collections, receivables, and related budgetary/proprietary effects.',
+      'Audit and note schedules support unbilled, billed, collected, and trading partner balances.'
+    ],
+    exceptionTests: ['order lacks authority', 'performance not billed', 'collection not applied', 'trading partner mismatch', 'note schedule not tied to detail']
+  },
+  {
+    id: 'sabrs-jv-suspense-close',
+    short: 'JV close',
+    title: 'Suspense and JV Close Adjustment to AFR Support',
+    description: 'Traces reject/suspense research and manual adjustment controls through close, reporting, audit evidence, and notes.',
+    path: ['sabrs-gcss-mc-source', 'sabrs-suspense-close', 'sabrs-jv-suspense-detail', 'sabrs-control-reconciliation', 'sabrs-audit-package', 'sabrs-notes-reimbursables'],
+    steps: [
+      'A logistics, payment, billing, or reporting exception creates a reject, suspense item, or proposed JV.',
+      'SABRS close processing tracks root cause, owner, correction, approval, and clearing status.',
+      'JV/suspense detail preserves manual-entry support and clearing evidence.',
+      'Control reconciliations verify batch totals, approvals, trial balance impact, and reporting tie-out.',
+      'AFR/audit packages retain the source cause, adjustment, clearing, and note schedule support.'
+    ],
+    exceptionTests: ['aged suspense', 'JV lacks source support', 'approval after posting', 'clearing not tied to root cause', 'manual entry masks interface defect']
+  }
+];
+
+const sabrsSupportServices = [
+  { title: 'Budget Execution Controls', detail: 'Funding authority, LOA validation, allotments, commitments, obligations, fiscal-year controls, availability checks, and status-of-funds reporting.' },
+  { title: 'Procure-to-Pay Accounting', detail: 'Contract award, modification, receipt, acceptance, invoice, AP/accrual, payment, liquidation, outlay, and Treasury/disbursing tie-outs.' },
+  { title: 'Reimbursable and IGT Governance', detail: 'Order authority, customer billing, performance evidence, IPAC/G-Invoicing support, collections, trading partner reconciliation, and note schedules.' },
+  { title: 'Suspense, Reject, and JV Control', detail: 'Reject queues, unmatched payments/collections, suspense aging, owner assignment, manual adjustment support, approvals, reversals, and close-package evidence.' },
+  { title: 'Reporting and DON Bridge', detail: 'Trial balance, DDRS, GTAS, TAS/USSGL crosswalks, Navy ERP/DON reporting bridges, AFR schedules, and statement-line tie-outs.' },
+  { title: 'Audit Evidence', detail: 'Universe of Transactions extracts, source documents, approvals, reconciliations, report parameters, evidence links, and sample-support packages.' }
+];
+
+const sabrsCaveats = [
+  'SABRS-specific public technical documentation is limited. This blueprint models SABRS as a Marine Corps accounting, budgeting, and reporting system, not as a SAP or Oracle ERP implementation.',
+  'Exact SABRS variants, hosting platform, file layouts, interface names, current modernization state, and system-of-record boundaries require authoritative USMC, DFAS, or DON documentation.',
+  'The page is business-process and audit-lineage focused: budget execution, obligations, expenditures, reimbursables, suspense, JVs, trial balance, and AFR support.',
+  'Feeder counts are modeled source/partner categories represented in this blueprint, not a certified production interface inventory.'
+];
+
+const sabrsSources = [
+  { name: 'Marine Corps Programs and Resources', url: 'https://www.pandr.marines.mil/' },
+  { name: 'DoD Financial Management Regulation', url: 'https://comptroller.defense.gov/FMR/' },
+  { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+  { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
+  { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' },
+  { name: 'Procurement Integrated Enterprise Environment', url: 'https://piee.eb.mil/' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -4525,6 +4950,39 @@ export const systems = [
     supportServices: starsSupportServices,
     caveats: starsCaveats,
     sources: starsSources
+  },
+  {
+    slug: 'sabrs',
+    shortName: 'SABRS',
+    name: 'SABRS',
+    longName: 'SABRS / Standard Accounting, Budgeting, and Reporting System Blueprint',
+    agency: 'Marine Corps',
+    eyebrow: 'SABRS blueprint for Marine Corps accounting, budgeting, and reporting',
+    description: 'Explore SABRS as a Marine Corps accounting, budgeting, and reporting system for budget execution, obligations, expenditures, reimbursables, suspense, journal vouchers, trial balances, DON reporting bridges, AFR support, and source-to-statement audit evidence.',
+    metric: '4',
+    metricLabel: 'Core SABRS lineage scenarios',
+    metricDetail: 'Fund cite -> Accounting -> GTAS -> AFR',
+    referenceImage: '/sabrs-blueprint-reference.svg',
+    referenceTitle: 'SABRS static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/sabrs-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'SABRS is modeled as the Marine Corps Standard Accounting, Budgeting, and Reporting System for budget execution, accounting, reimbursables, reporting, and audit-support lineage.',
+      whoUsesIt: 'Marine Corps comptrollers, resource managers, budget execution users, fiscal offices, DFAS/DON reporting partners, reimbursable program owners, close teams, JV/suspense owners, and auditors may rely on SABRS data or outputs.',
+      howItIsUsed: 'It supports funding control, commitments, obligations, expenditures, travel/labor accounting, contract payment impacts, reimbursables, collections, suspense/reject clearing, JVs, trial balance, DDRS/GTAS, and AFR schedules.',
+      currentStatus: 'Modeled as an operational or legacy-core USMC accounting/reporting environment; exact platform, interfaces, variants, and modernization status require authoritative Marine Corps or DON documentation.',
+      whyItIsUsed: 'It gives Marine Corps financial managers a budget-to-reporting transaction trail for controlling appropriated funds, supporting reimbursables, reconciling Treasury/DON reporting, and answering audit samples.',
+      feederCount: 6,
+      feederSystems: ['Budget / P&R / Funding Inputs', 'Contracts / PIEE-WAWF', 'GCSS-MC / Logistics Sources', 'Payroll / Labor / DTS', 'Disbursing / Treasury / IPAC', 'Navy ERP / DON Reporting Partner'],
+      feederNote: 'The blueprint models 6 SABRS source/partner categories; authoritative interface counts require USMC/DON records.'
+    },
+    layers: sabrsLayers,
+    nodes: sabrsNodes,
+    lineageScenarios: sabrsLineageScenarios,
+    supportServices: sabrsSupportServices,
+    caveats: sabrsCaveats,
+    sources: sabrsSources
   },
   {
     slug: 'navy-erp',
