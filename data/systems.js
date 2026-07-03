@@ -2695,6 +2695,420 @@ const dlaEbsSources = [
   { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
 ];
 
+const abssLayers = [
+  { id: 'source', label: 'Source / Requirement Inputs', short: 'Source', description: 'Air Force requirement owners, funding officials, contracting inputs, vendor/payment evidence, card activity, and source documents that initiate business-service requests.' },
+  { id: 'core', label: 'ABSS Workflow / Business Services', short: 'ABSS', description: 'Automated Business Services System workflow for request intake, funding validation, package routing, approval status, procurement handoff, and audit evidence.' },
+  { id: 'detail', label: 'Procurement / Request Detail', short: 'Detail', description: 'Requirement package, purchase request, MIPR, GPC, award, receipt, acceptance, invoice, ULO, deobligation, and closeout detail.' },
+  { id: 'accounting', label: 'Accounting Layer', short: 'Accounting', description: 'Commitment, obligation, expense, accrual, AP, payment, GL, budgetary USSGL, proprietary USSGL, and close accounting, typically downstream in DEAMS or related accounting environments.' },
+  { id: 'reporting', label: 'Reporting / Treasury Layer', short: 'Reporting', description: 'ABSS status reports, acquisition metrics, DEAMS/GL reporting, DDRS, GTAS, Treasury/CARS/FBwT, IPAC/G-Invoicing, and audit extracts.' },
+  { id: 'statements', label: 'Financial Statement Support', short: 'Statements', description: 'SBR, Net Cost, Balance Sheet/AP, ULO, obligation aging, accrual, note schedule, and audit support tied back to request and award evidence.' }
+];
+
+const abssNodes = [
+  {
+    id: 'abss-requirement-owner',
+    layer: 'source',
+    title: 'Requirement Owner',
+    subtitle: 'Mission need, scope, estimate, and package inputs',
+    icon: 'REQ',
+    tags: ['requirement', 'mission owner', 'scope', 'package'],
+    summary: 'Originates the need for goods, services, construction support, IT, professional services, training, logistics support, or other Air Force business-service requirements.',
+    examples: ['requirement description', 'performance work statement', 'statement of work', 'market research', 'independent government cost estimate'],
+    auditQuestions: ['Is the requirement real, approved, and tied to mission need?', 'Does the package contain enough support for contracting and funding decisions?', 'Are split purchases or scope creep visible?'],
+    keyFields: ['request ID', 'organization', 'requirement type', 'scope', 'estimated amount', 'period of performance', 'mission owner'],
+    risks: ['unsupported requirement', 'incomplete package', 'split purchase', 'wrong acquisition path']
+  },
+  {
+    id: 'abss-funding-source',
+    layer: 'source',
+    title: 'Funding / LOA Source',
+    subtitle: 'Fund cite, certification, and accounting classification',
+    icon: 'LOA',
+    tags: ['funding', 'LOA', 'certification', 'budget'],
+    summary: 'Provides funding authority, line of accounting, certification, fiscal-year, purpose, amount, and budgetary control support for the request.',
+    examples: ['fund cite', 'line of accounting', 'fund certification', 'budget approval', 'MIPR funding'],
+    auditQuestions: ['Is funding available, legal, and certified?', 'Does the LOA match purpose, period, and amount?', 'Are changes to funding documented?'],
+    keyFields: ['LOA', 'fund cite', 'TAS', 'fiscal year', 'object class', 'amount', 'certifier'],
+    risks: ['invalid LOA', 'funding not certified', 'purpose/time/amount issue', 'unrecorded funding change']
+  },
+  {
+    id: 'abss-contracting-source',
+    layer: 'source',
+    title: 'Contracting / Market Inputs',
+    subtitle: 'Acquisition strategy, vendor, award, and contract evidence',
+    icon: 'CTR',
+    tags: ['contracting', 'AFICC', 'award', 'vendor'],
+    summary: 'Provides contracting strategy, sourcing, vendor, award, modification, clause, and contracting-officer decision evidence used to move an approved request into procurement execution.',
+    examples: ['acquisition strategy', 'solicitation', 'vendor quote', 'award', 'modification', 'contracting officer approval'],
+    auditQuestions: ['Does the request hand off cleanly to contracting?', 'Are vendor and award decisions supported?', 'Are modifications and funding changes reflected back to the request trail?'],
+    keyFields: ['PIID', 'solicitation', 'vendor', 'CAGE/UEI', 'CLIN', 'contracting office', 'award amount'],
+    risks: ['award not tied to request', 'modification not reflected', 'vendor support missing', 'manual handoff break']
+  },
+  {
+    id: 'abss-piee-wawf',
+    layer: 'source',
+    title: 'PIEE / WAWF',
+    subtitle: 'Invoice, receipt, acceptance, and payment support',
+    icon: 'P2P',
+    tags: ['PIEE', 'WAWF', 'invoice', 'receipt', 'acceptance'],
+    summary: 'Captures invoice, receipt, acceptance, contract reference, and payment-support evidence after the ABSS requirement is awarded and performed.',
+    examples: ['vendor invoice', 'receiving report', 'acceptance record', 'combo document', 'payment request'],
+    auditQuestions: ['Does each invoice trace to the approved request and award?', 'Was receipt and acceptance completed by the right official?', 'Do accepted quantities and amounts match the award?'],
+    keyFields: ['invoice number', 'PIID', 'CLIN', 'receiving report', 'acceptance date', 'vendor', 'amount'],
+    risks: ['payment without acceptance', 'invoice not tied to request', 'quantity/price mismatch', 'duplicate invoice']
+  },
+  {
+    id: 'abss-gpc-bank',
+    layer: 'source',
+    title: 'GPC / Bank / Micro-Purchase',
+    subtitle: 'Government purchase card and bank settlement support',
+    icon: 'GPC',
+    tags: ['GPC', 'bank', 'micro-purchase', 'card'],
+    summary: 'Provides cardholder, approving official, merchant, receipt, statement, and reconciliation evidence for micro-purchase or card-based business-service activity.',
+    examples: ['GPC request', 'merchant receipt', 'card statement', 'approving official review', 'bank settlement'],
+    auditQuestions: ['Is the purchase within cardholder authority and threshold?', 'Is receipt and approving-official review documented?', 'Was the purchase split to avoid competition or threshold rules?'],
+    keyFields: ['cardholder', 'approving official', 'merchant', 'transaction date', 'MCC', 'amount', 'statement'],
+    risks: ['split purchase', 'missing receipt', 'unauthorized merchant', 'statement not reconciled']
+  },
+  {
+    id: 'abss-request-intake',
+    layer: 'core',
+    title: 'ABSS Request Intake',
+    subtitle: 'Requirement capture, category, amount, and package checklist',
+    icon: 'IN',
+    tags: ['intake', 'request', 'workflow', 'package'],
+    summary: 'Captures the business-service request, requirement category, estimated value, organization, funding need, attachments, priority, and package completeness checks.',
+    examples: ['new request', 'package checklist', 'attachment upload', 'category selection', 'estimated value'],
+    auditQuestions: ['Is the request complete before routing?', 'Are required attachments present for the category and amount?', 'Can the request be traced to the mission owner?'],
+    keyFields: ['ABSS request ID', 'request type', 'organization', 'amount', 'attachments', 'priority', 'submitter'],
+    risks: ['incomplete package routed', 'wrong category', 'attachments missing', 'request owner unclear']
+  },
+  {
+    id: 'abss-funds-validation',
+    layer: 'core',
+    title: 'Funds Validation / Certification',
+    subtitle: 'LOA, budgetary availability, commitment, and control',
+    icon: 'FUND',
+    tags: ['funds', 'certification', 'commitment', 'budget'],
+    summary: 'Routes the request for budget review, funds certification, LOA validation, commitment or pre-commitment support, and funding-change controls.',
+    examples: ['funds certification', 'LOA validation', 'commitment request', 'funding revision', 'budget rejection'],
+    auditQuestions: ['Was funding certified before contracting action?', 'Do amounts and periods agree across request, LOA, PR, and award?', 'Are funding changes fully approved?'],
+    keyFields: ['certification date', 'certifier', 'LOA', 'funding amount', 'commitment number', 'fiscal year', 'status'],
+    risks: ['uncertified funds', 'amount mismatch', 'wrong fiscal year', 'unapproved funding change']
+  },
+  {
+    id: 'abss-approval-routing',
+    layer: 'core',
+    title: 'Approval Routing',
+    subtitle: 'Resource, legal, contracting, technical, and leadership review',
+    icon: 'APR',
+    tags: ['approval', 'routing', 'workflow', 'review'],
+    summary: 'Routes the package through resource management, contracting, legal, technical, small business, leadership, or other required reviewers depending on request type and value.',
+    examples: ['resource approval', 'legal review', 'technical review', 'contracting review', 'leadership approval'],
+    auditQuestions: ['Were all required approvals completed in sequence?', 'Are rejections and resubmissions visible?', 'Were approvals made by authorized roles?'],
+    keyFields: ['routing step', 'reviewer', 'role', 'decision', 'date/time', 'comments', 'status'],
+    risks: ['approval skipped', 'unauthorized reviewer', 'stale routing', 'resubmission not tracked']
+  },
+  {
+    id: 'abss-pr-handoff',
+    layer: 'core',
+    title: 'PR / Contracting / GPC Handoff',
+    subtitle: 'Approved request to procurement, MIPR, card, or contract path',
+    icon: 'PR',
+    tags: ['purchase request', 'handoff', 'contracting', 'MIPR', 'GPC'],
+    summary: 'Turns an approved request package into the appropriate downstream procurement path, such as purchase request, MIPR, GPC purchase, contracting action, or interagency support.',
+    examples: ['purchase request', 'MIPR package', 'GPC request', 'contracting handoff', 'routing to SPS/contract writing'],
+    auditQuestions: ['Does the handoff preserve request ID and funding support?', 'Was the correct procurement path selected?', 'Do downstream award records tie back to ABSS?'],
+    keyFields: ['ABSS request ID', 'PR number', 'MIPR number', 'GPC reference', 'contracting office', 'handoff date', 'status'],
+    risks: ['handoff loses lineage', 'wrong path selected', 'PR not created', 'contracting action not tied to request']
+  },
+  {
+    id: 'abss-status-evidence',
+    layer: 'core',
+    title: 'Status / Evidence Repository',
+    subtitle: 'Audit trail, package status, attachments, and closeout',
+    icon: 'DOC',
+    tags: ['status', 'evidence', 'audit trail', 'closeout'],
+    summary: 'Maintains the status trail, comments, attachments, approval history, document versions, and closeout evidence needed to reconstruct the request lifecycle.',
+    examples: ['status history', 'attachment record', 'version history', 'approval comments', 'closeout note'],
+    auditQuestions: ['Can the full request lifecycle be reconstructed?', 'Are documents versioned and retained?', 'Does closeout evidence tie to receipt, acceptance, and final accounting?'],
+    keyFields: ['request ID', 'document version', 'status', 'timestamp', 'owner', 'attachment type', 'closeout date'],
+    risks: ['missing audit trail', 'attachment not retained', 'status not updated', 'closeout unsupported']
+  },
+  {
+    id: 'abss-requirement-package',
+    layer: 'detail',
+    title: 'Requirement Package Detail',
+    subtitle: 'PWS/SOW, IGCE, market research, approvals, acquisition support',
+    icon: 'PKG',
+    tags: ['PWS', 'SOW', 'IGCE', 'market research', 'package'],
+    summary: 'Preserves detailed requirement documentation used to support the acquisition, funding, approval, and later audit trail.',
+    examples: ['PWS', 'SOW', 'IGCE', 'market research', 'brand-name justification', 'sole-source justification'],
+    auditQuestions: ['Does the package support the acquisition decision?', 'Are estimates and scope aligned to funding?', 'Were required justifications completed?'],
+    keyFields: ['request ID', 'document type', 'requirement category', 'estimated amount', 'period of performance', 'approver'],
+    risks: ['unsupported acquisition strategy', 'estimate not documented', 'scope/funding mismatch', 'missing justification']
+  },
+  {
+    id: 'abss-purchase-request',
+    layer: 'detail',
+    title: 'Purchase Request / MIPR / GPC Detail',
+    subtitle: 'Funding, request, and procurement-path detail',
+    icon: 'BUY',
+    tags: ['purchase request', 'MIPR', 'GPC', 'commitment'],
+    summary: 'Captures the downstream request object created from ABSS, including PR, MIPR, card request, commitment support, and procurement-path metadata.',
+    examples: ['PR', 'MIPR', 'GPC request', 'commitment', 'funding document'],
+    auditQuestions: ['Does each PR/MIPR/GPC action trace to the approved ABSS request?', 'Do funding amounts match?', 'Is the procurement path appropriate for value and scope?'],
+    keyFields: ['PR number', 'MIPR number', 'GPC reference', 'commitment', 'LOA', 'amount', 'ABSS request ID'],
+    risks: ['PR amount mismatch', 'request lineage broken', 'GPC threshold issue', 'MIPR not accepted']
+  },
+  {
+    id: 'abss-award-obligation',
+    layer: 'detail',
+    title: 'Award / Obligation Detail',
+    subtitle: 'Contract, modification, funding line, and obligation support',
+    icon: 'AWD',
+    tags: ['award', 'obligation', 'contract', 'SPS', 'EDA'],
+    summary: 'Preserves award, modification, PIID, CLIN, funding line, obligation, and contract writing records that connect ABSS-approved requirements to legal obligation.',
+    examples: ['award', 'modification', 'funding line', 'obligation', 'EDA contract record'],
+    auditQuestions: ['Does the award trace to the approved request and funding?', 'Are modifications reflected in ABSS and accounting?', 'Do CLINs and amounts agree to the obligation?'],
+    keyFields: ['PIID', 'mod number', 'CLIN', 'vendor', 'obligation number', 'funding line', 'amount'],
+    risks: ['award not tied to request', 'modification not reflected', 'obligation amount mismatch', 'line detail lost']
+  },
+  {
+    id: 'abss-receipt-acceptance',
+    layer: 'detail',
+    title: 'Receipt / Acceptance / Invoice Detail',
+    subtitle: 'COR, receiving official, WAWF, invoice, and performance evidence',
+    icon: 'REC',
+    tags: ['receipt', 'acceptance', 'invoice', 'COR', 'WAWF'],
+    summary: 'Documents performance, receiving, acceptance, invoice, COR review, and payment-support data used to validate expense, accrual, AP, and outlay activity.',
+    examples: ['receiving report', 'acceptance record', 'COR approval', 'invoice', 'performance evidence'],
+    auditQuestions: ['Was the good or service actually received and accepted?', 'Does invoice detail agree to award and acceptance?', 'Are partial receipts and accruals handled correctly?'],
+    keyFields: ['receiving report', 'acceptance date', 'invoice', 'COR', 'PIID', 'CLIN', 'amount'],
+    risks: ['payment without receipt', 'acceptance by wrong official', 'invoice mismatch', 'missing performance evidence']
+  },
+  {
+    id: 'abss-closeout-ulo',
+    layer: 'detail',
+    title: 'Closeout / ULO / Deobligation',
+    subtitle: 'Open obligation review and final package closure',
+    icon: 'ULO',
+    tags: ['closeout', 'ULO', 'deobligation', 'aging'],
+    summary: 'Supports review of open commitments, obligations, undelivered orders, accruals, final invoice, deobligation, and request closeout.',
+    examples: ['ULO review', 'final invoice', 'deobligation', 'closeout memo', 'excess funds return'],
+    auditQuestions: ['Are open obligations still valid?', 'Were excess funds deobligated timely?', 'Does closeout tie to final receipt, invoice, and payment?'],
+    keyFields: ['obligation', 'open amount', 'last activity date', 'deobligation', 'closeout status', 'request ID'],
+    risks: ['stale ULO', 'funds not deobligated', 'closeout unsupported', 'aged accrual']
+  },
+  {
+    id: 'abss-commitment-obligation',
+    layer: 'accounting',
+    title: 'Commitment / Obligation Accounting',
+    subtitle: 'Budgetary posting and funds-control impact',
+    icon: 'BUD',
+    tags: ['commitment', 'obligation', 'budgetary', 'SBR'],
+    summary: 'Records or supports downstream budgetary commitment and obligation accounting in DEAMS or related accounting environments.',
+    examples: ['commitment', 'obligation', 'upward adjustment', 'downward adjustment', 'deobligation'],
+    auditQuestions: ['Does accounting trace to certified ABSS funding?', 'Are obligation amounts consistent with award and modifications?', 'Are deobligations timely and supported?'],
+    keyFields: ['commitment', 'obligation', 'LOA', 'TAS', 'USSGL', 'amount', 'period'],
+    risks: ['obligation without certified request', 'amount mismatch', 'late deobligation', 'budgetary misclassification']
+  },
+  {
+    id: 'abss-ap-accrual',
+    layer: 'accounting',
+    title: 'AP / Accrual / Payment Support',
+    subtitle: 'Receipt, invoice, accrual, liability, and outlay',
+    icon: 'AP',
+    tags: ['AP', 'accrual', 'payment', 'expense'],
+    summary: 'Supports downstream AP, accrual, liability, expense, and payment accounting using receipt, acceptance, invoice, and performance evidence.',
+    examples: ['AP liability', 'accrual', 'payment', 'invoice clearing', 'expense recognition'],
+    auditQuestions: ['Do AP and accrual balances trace to received goods/services?', 'Are payments tied to accepted invoices?', 'Are accruals reversed when invoice/payment posts?'],
+    keyFields: ['invoice', 'receipt', 'acceptance', 'AP document', 'payment voucher', 'USSGL', 'amount'],
+    risks: ['unsupported accrual', 'payment without acceptance', 'duplicate liability', 'accrual not reversed']
+  },
+  {
+    id: 'abss-gl-close',
+    layer: 'accounting',
+    title: 'GL / Close Accounting',
+    subtitle: 'USSGL, trial balance, adjustments, and period close',
+    icon: 'GL',
+    tags: ['GL', 'USSGL', 'close', 'trial balance'],
+    summary: 'Represents the GL and close impact of ABSS-supported procurement activity, including budgetary/proprietary posting, adjustments, trial balance, and statement crosswalk support.',
+    examples: ['GL posting', 'trial balance', 'manual adjustment', 'year-end close', 'statement crosswalk'],
+    auditQuestions: ['Do GL balances reconcile to ABSS-related detail?', 'Are manual adjustments tied to source support?', 'Do USSGL accounts crosswalk to statements correctly?'],
+    keyFields: ['GL document', 'USSGL', 'TAS', 'fund', 'period', 'debit', 'credit'],
+    risks: ['GL without source support', 'invalid USSGL', 'trial balance mismatch', 'unsupported manual adjustment']
+  },
+  {
+    id: 'abss-status-reporting',
+    layer: 'reporting',
+    title: 'ABSS Status / Management Reports',
+    subtitle: 'Request status, cycle time, workload, and audit extracts',
+    icon: 'RPT',
+    tags: ['reporting', 'status', 'metrics', 'audit extract'],
+    summary: 'Provides request lifecycle reporting, package aging, routing status, workload, cycle-time, approval bottlenecks, and audit population extracts.',
+    examples: ['open request report', 'approval aging', 'cycle-time dashboard', 'package exception report', 'audit extract'],
+    auditQuestions: ['Do reports reconcile to the ABSS authoritative request population?', 'Are filters and refresh dates documented?', 'Are aged or rejected requests monitored?'],
+    keyFields: ['report ID', 'request ID', 'status', 'owner', 'aging', 'extract date', 'control total'],
+    risks: ['report not reconciled', 'wrong population', 'stale status', 'aging not acted upon']
+  },
+  {
+    id: 'abss-deams-ddrs',
+    layer: 'reporting',
+    title: 'DEAMS / DDRS / Trial Balance',
+    subtitle: 'Accounting reports and adjusted trial-balance support',
+    icon: 'ATB',
+    tags: ['DEAMS', 'DDRS', 'trial balance', 'reporting'],
+    summary: 'Connects ABSS-supported request activity to downstream DEAMS, DDRS, adjusted trial balance, and financial reporting outputs.',
+    examples: ['DEAMS report', 'adjusted trial balance', 'DDRS feed', 'edit report', 'reconciliation'],
+    auditQuestions: ['Do DEAMS/ATB balances tie back to ABSS-supported source populations?', 'Are DDRS edits resolved?', 'Are request-to-obligation reconciliations complete?'],
+    keyFields: ['TAS', 'USSGL', 'trial balance line', 'request population', 'obligation', 'period', 'amount'],
+    risks: ['ABSS population not reconciled', 'ATB edit failure', 'obligation not tied to request', 'late adjustment']
+  },
+  {
+    id: 'abss-treasury-reporting',
+    layer: 'reporting',
+    title: 'Treasury / GTAS / IGT',
+    subtitle: 'TAS, USSGL, FBwT, IPAC, and G-Invoicing impacts',
+    icon: 'TRY',
+    tags: ['Treasury', 'GTAS', 'FBwT', 'IPAC', 'G-Invoicing'],
+    summary: 'Supports Treasury and intragovernmental reporting where ABSS-supported awards, payments, and interagency agreements create TAS, USSGL, FBwT, IPAC, or trading-partner impacts.',
+    examples: ['GTAS submission', 'FBwT reconciliation', 'IPAC settlement', 'G-Invoicing order', 'trading partner support'],
+    auditQuestions: ['Do TAS/USSGL values pass GTAS edits?', 'Are payments and IPAC activity tied to request and award support?', 'Are trading-partner values complete?'],
+    keyFields: ['TAS', 'USSGL', 'BETC', 'ALC', 'trading partner', 'IPAC document', 'amount'],
+    risks: ['GTAS edit failure', 'FBwT difference', 'trading partner mismatch', 'payment not tied to source']
+  },
+  {
+    id: 'abss-sbr',
+    layer: 'statements',
+    title: 'Statement of Budgetary Resources',
+    subtitle: 'Commitment, obligation, expenditure, outlay, ULO',
+    icon: 'SBR',
+    tags: ['SBR', 'budgetary', 'obligation', 'outlay'],
+    summary: 'Supports SBR reporting by linking ABSS requests and funding certification to commitments, obligations, expenditures, outlays, recoveries, and open obligation review.',
+    examples: ['obligations incurred', 'undelivered orders', 'outlays', 'recoveries', 'unobligated balance'],
+    auditQuestions: ['Can SBR lines trace to certified ABSS requests and awards?', 'Are ULOs valid?', 'Do outlays tie to payment and Treasury evidence?'],
+    keyFields: ['SBR line', 'TAS', 'budgetary USSGL', 'obligation', 'outlay', 'ULO', 'amount'],
+    risks: ['unsupported obligation', 'stale ULO', 'outlay not tied to payment', 'budgetary mismatch']
+  },
+  {
+    id: 'abss-net-cost',
+    layer: 'statements',
+    title: 'Net Cost / Expense Support',
+    subtitle: 'Services received, expense recognition, accrual and AP support',
+    icon: 'SNC',
+    tags: ['net cost', 'expense', 'accrual', 'AP'],
+    summary: 'Supports expense and net-cost reporting for services or goods requested through ABSS and later received, accepted, invoiced, accrued, or paid.',
+    examples: ['service expense', 'supply expense', 'accrual', 'AP liability', 'net cost line'],
+    auditQuestions: ['Do expenses trace to received/accepted services?', 'Are accruals complete and reversed?', 'Are AP balances supported by invoices and acceptance?'],
+    keyFields: ['USSGL expense account', 'invoice', 'receipt', 'period', 'AP balance', 'amount'],
+    risks: ['expense not supported', 'missing accrual', 'AP mismatch', 'wrong period']
+  },
+  {
+    id: 'abss-notes-audit',
+    layer: 'statements',
+    title: 'Notes / Audit Support',
+    subtitle: 'ULO aging, AP schedules, commitments, evidence packages',
+    icon: 'AUD',
+    tags: ['notes', 'audit', 'ULO', 'evidence'],
+    summary: 'Supports audit packages, note schedules, ULO aging, AP support, commitments, accrual support, and source-to-statement testing.',
+    examples: ['ULO aging', 'AP support schedule', 'audit sample package', 'commitment report', 'reconciliation'],
+    auditQuestions: ['Can an auditor trace from statement line to ABSS request package?', 'Are aged ULOs and AP schedules reconciled?', 'Is evidence retained and complete?'],
+    keyFields: ['request ID', 'obligation', 'invoice', 'note schedule', 'aging', 'reconciliation total', 'sample ID'],
+    risks: ['audit package incomplete', 'note schedule does not tie', 'aged item unsupported', 'source evidence missing']
+  }
+];
+
+const abssLineageScenarios = [
+  {
+    id: 'abss-services-request',
+    short: 'services request',
+    title: 'ABSS Services Requirement to Award Path',
+    description: 'Shows how an Air Force service requirement moves from mission owner package through ABSS funding, approval, procurement handoff, award, accounting, and statement support.',
+    path: ['abss-requirement-owner', 'abss-request-intake', 'abss-funds-validation', 'abss-approval-routing', 'abss-pr-handoff', 'abss-award-obligation', 'abss-commitment-obligation', 'abss-sbr'],
+    steps: [
+      'A mission owner builds the requirement package and submits it into ABSS.',
+      'ABSS captures category, estimate, attachments, priority, organization, and routing needs.',
+      'Resource management validates LOA, funds availability, purpose, amount, and certification.',
+      'Required reviewers approve, reject, or return the package for correction.',
+      'The approved request is handed off to PR, MIPR, GPC, or contracting execution.',
+      'Award and obligation activity is reconciled back to the ABSS request and supports SBR reporting.'
+    ],
+    exceptionTests: ['request package incomplete', 'funding not certified', 'approval skipped', 'handoff loses request ID', 'award amount differs from certified funding']
+  },
+  {
+    id: 'abss-invoice-payment',
+    short: 'invoice payment',
+    title: 'ABSS Receipt, Invoice, AP, and Payment Path',
+    description: 'Shows how an awarded ABSS-supported requirement moves through receipt/acceptance, invoice, AP/accrual, payment, reporting, and net-cost support.',
+    path: ['abss-award-obligation', 'abss-piee-wawf', 'abss-receipt-acceptance', 'abss-ap-accrual', 'abss-deams-ddrs', 'abss-net-cost'],
+    steps: [
+      'The awarded requirement establishes contract and funding detail.',
+      'Goods or services are received and accepted by authorized officials.',
+      'Invoice evidence is matched to award, receipt, and acceptance.',
+      'AP, accrual, payment clearing, and expense recognition are recorded downstream.',
+      'DEAMS/DDRS and reporting outputs tie the expense back to request and award evidence.'
+    ],
+    exceptionTests: ['invoice without ABSS/award link', 'payment without acceptance', 'accrual not reversed', 'invoice amount exceeds accepted amount', 'expense posted to wrong period']
+  },
+  {
+    id: 'abss-gpc',
+    short: 'GPC',
+    title: 'ABSS Government Purchase Card Path',
+    description: 'Shows how micro-purchase or card-based activity is requested, approved, purchased, reconciled, and supported for audit.',
+    path: ['abss-gpc-bank', 'abss-request-intake', 'abss-approval-routing', 'abss-purchase-request', 'abss-ap-accrual', 'abss-status-evidence', 'abss-notes-audit'],
+    steps: [
+      'A cardholder or requirement owner initiates a GPC-supported request where appropriate.',
+      'ABSS captures need, category, amount, cardholder, approving official, and evidence requirements.',
+      'Approval routing confirms threshold, authority, and proper use.',
+      'The card transaction, receipt, statement, and reconciliation evidence are retained.',
+      'Audit support ties the request, receipt, approving-official review, and bank settlement together.'
+    ],
+    exceptionTests: ['split purchase', 'missing receipt', 'unauthorized merchant', 'statement not reconciled', 'approving official review missing']
+  },
+  {
+    id: 'abss-closeout',
+    short: 'closeout',
+    title: 'ABSS ULO, Deobligation, and Closeout Path',
+    description: 'Shows how ABSS-supported obligations should be reviewed, deobligated, closed, and supported for statements and audit.',
+    path: ['abss-status-reporting', 'abss-closeout-ulo', 'abss-gl-close', 'abss-deams-ddrs', 'abss-treasury-reporting', 'abss-notes-audit'],
+    steps: [
+      'Open requests, commitments, obligations, receipts, invoices, and payments are reviewed for status and aging.',
+      'Invalid or excess open amounts are researched and deobligated where appropriate.',
+      'Closeout evidence ties final performance, invoice, payment, and accounting status together.',
+      'GL, DEAMS/DDRS, Treasury, and statement schedules are updated and reconciled.',
+      'Audit packages preserve the source trail from statement line back to ABSS request and award evidence.'
+    ],
+    exceptionTests: ['stale ULO', 'closeout without final invoice/payment evidence', 'deobligation not posted', 'note schedule not tied to source', 'aged request lacks owner']
+  }
+];
+
+const abssSupportServices = [
+  { title: 'Workflow Governance', detail: 'Request intake, package checklist, status trail, reviewer sequence, role authorization, comments, attachments, and closeout evidence.' },
+  { title: 'Funding Controls', detail: 'LOA validation, funds certification, commitment support, fiscal-year controls, funding revisions, amount reconciliation, and deobligation tracking.' },
+  { title: 'Contracting Integration', detail: 'PR, MIPR, GPC, SPS/contract writing, award, modification, PIID, CLIN, vendor, and contracting-officer decision evidence.' },
+  { title: 'Receipt & Payment Evidence', detail: 'PIEE/WAWF invoice, receipt, acceptance, COR review, bank/card statements, AP, accrual, payment, and clearing support.' },
+  { title: 'Reporting & Audit', detail: 'ABSS status reports, approval aging, open request populations, source-to-award reconciliation, DEAMS tie-outs, ULO review, and audit extracts.' },
+  { title: 'Data Governance', detail: 'Request ID, organization, fund cite, vendor, PIID, CLIN, invoice, obligation, TAS, USSGL, period, amount, status, and evidence retention rules.' }
+];
+
+const abssCaveats = [
+  'ABSS-specific public technical documentation is limited; this blueprint is a public-information business-process model, not an official Air Force implementation baseline.',
+  'The public evidence does not support calling ABSS SAP or Oracle ERP. It is modeled here as an Air Force business-services/request workflow surface that feeds contracting, payment, and financial-management systems.',
+  'Exact ABSS modules, interface names, database/platform stack, reports, routing rules, and current operational status require authoritative Air Force ABSS operating procedures or program documentation.',
+  'Feeder counts are modeled source-system categories represented in this blueprint, not a certified ABSS interface inventory.'
+];
+
+const abssSources = [
+  { name: 'Air Force Installation Contracting Center', url: 'https://www.afimsc.af.mil/Units/Air-Force-Installation-Contracting-Center/' },
+  { name: 'Secretary of the Air Force Financial Management mission', url: 'https://www.saffm.hq.af.mil/' },
+  { name: 'Procurement Integrated Enterprise Environment', url: 'https://piee.eb.mil/' },
+  { name: 'DoD Financial Management Regulation', url: 'https://comptroller.defense.gov/FMR/' },
+  { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+  { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
+  { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -2982,6 +3396,39 @@ export const systems = [
     supportServices: dlaEbsSupportServices,
     caveats: dlaEbsCaveats,
     sources: dlaEbsSources
+  },
+  {
+    slug: 'abss',
+    shortName: 'ABSS',
+    name: 'ABSS',
+    longName: 'ABSS / Automated Business Services System Blueprint',
+    agency: 'Department of the Air Force',
+    eyebrow: 'ABSS blueprint for Air Force business services and request-to-procurement workflow',
+    description: 'Explore ABSS as an Air Force business-services workflow surface for requirements, funding validation, approval routing, purchase-request or GPC handoff, contracting evidence, receipt/acceptance, AP/accrual support, reporting, and audit traceability.',
+    metric: '4',
+    metricLabel: 'Core ABSS lineage scenarios',
+    metricDetail: 'Request -> Approve -> Handoff -> Account',
+    referenceImage: '/abss-blueprint-reference.svg',
+    referenceTitle: 'ABSS static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/abss-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'ABSS is modeled as the Air Force Automated Business Services System, a business-services/request workflow surface for requirements, approvals, funding support, and procurement handoff.',
+      whoUsesIt: 'Air Force requirement owners, resource advisors, budget/funds certifiers, contracting support users, GPC participants, approving officials, finance/reporting teams, and auditors may rely on ABSS records.',
+      howItIsUsed: 'It captures requirement packages, routes funding and approval reviews, supports PR/MIPR/GPC or contracting handoff, tracks status/evidence, and connects request activity to accounting and audit support.',
+      currentStatus: 'Public ABSS implementation details are limited; this page models the business process and marks exact platform, interfaces, and current operational footprint as requiring Air Force authority.',
+      whyItIsUsed: 'It gives Air Force organizations a controlled request-to-procurement trail so mission needs, funding, approvals, award support, receipt, payment, and audit evidence can be connected.',
+      feederCount: 5,
+      feederSystems: ['Requirement Owner Inputs', 'Funding / LOA Source', 'Contracting / Market Inputs', 'PIEE / WAWF', 'GPC / Bank / Micro-Purchase'],
+      feederNote: 'The blueprint models 5 ABSS feeder/source categories; authoritative interface counts require Air Force ABSS documentation.'
+    },
+    layers: abssLayers,
+    nodes: abssNodes,
+    lineageScenarios: abssLineageScenarios,
+    supportServices: abssSupportServices,
+    caveats: abssCaveats,
+    sources: abssSources
   }
 ];
 

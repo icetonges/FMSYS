@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100" role="img" aria-labelledby="title desc">
+  <title id="title">ABSS / Automated Business Services System Blueprint</title>
+  <desc id="desc">Static Air Force ABSS reference blueprint showing requirements, funding, approval, contracting handoff, accounting, reporting, and financial statement support.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f4f7fb; }
+      .title { fill: #0f2f66; font: 900 60px Arial, sans-serif; }
+      .subtitle { fill: #40506a; font: 700 24px Arial, sans-serif; }
+      .layer { fill: #ffffff; stroke: #d7e0ee; stroke-width: 3; }
+      .layer-title { fill: #0f2f66; font: 900 24px Arial, sans-serif; }
+      .node { rx: 16; stroke-width: 3; }
+      .node-text { fill: #172033; font: 800 19px Arial, sans-serif; }
+      .small { fill: #556273; font: 600 15px Arial, sans-serif; }
+      .source { fill: #ede7fb; stroke: #7a51c2; }
+      .core { fill: #e7f4ef; stroke: #13895a; }
+      .detail { fill: #e7f4f7; stroke: #16839b; }
+      .accounting { fill: #eaf1ff; stroke: #255ba8; }
+      .reporting { fill: #f0e9fb; stroke: #6c43b7; }
+      .statement { fill: #fff0e2; stroke: #a45518; }
+      .arrow { stroke: #0f2f66; stroke-width: 5; fill: none; marker-end: url(#arrow); }
+      .callout { fill: #0f2f66; }
+      .callout-text { fill: #ffffff; font: 800 20px Arial, sans-serif; }
+      .caveat { fill: #667085; font: 600 16px Arial, sans-serif; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f2f66"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1800" height="1100"/>
+  <text class="title" x="70" y="88">ABSS / Automated Business Services System Blueprint</text>
+  <text class="subtitle" x="70" y="130">Air Force requirement-to-approval and services/procurement request lineage into contracting, finance, payment, and reporting</text>
+
+  <rect class="layer" x="55" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="340" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="625" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="910" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="1195" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="1480" y="175" width="260" height="720" rx="22"/>
+
+  <text class="layer-title" x="80" y="222">Source / Request Inputs</text>
+  <text class="layer-title" x="365" y="222">ABSS Workflow</text>
+  <text class="layer-title" x="650" y="222">Procurement Detail</text>
+  <text class="layer-title" x="935" y="222">Accounting</text>
+  <text class="layer-title" x="1220" y="222">Reporting / Treasury</text>
+  <text class="layer-title" x="1505" y="222">Statements</text>
+
+  <rect class="node source" x="80" y="255" width="210" height="76"/>
+  <text class="node-text" x="98" y="285">Requirement owner</text>
+  <text class="small" x="98" y="310">need, scope, package</text>
+  <rect class="node source" x="80" y="355" width="210" height="76"/>
+  <text class="node-text" x="98" y="385">Funding / LOA</text>
+  <text class="small" x="98" y="410">fund cite + certification</text>
+  <rect class="node source" x="80" y="455" width="210" height="76"/>
+  <text class="node-text" x="98" y="485">Contracting inputs</text>
+  <text class="small" x="98" y="510">market, vendor, award</text>
+  <rect class="node source" x="80" y="555" width="210" height="76"/>
+  <text class="node-text" x="98" y="585">PIEE / WAWF</text>
+  <text class="small" x="98" y="610">invoice, receipt, accept</text>
+  <rect class="node source" x="80" y="655" width="210" height="76"/>
+  <text class="node-text" x="98" y="685">GPC / bank</text>
+  <text class="small" x="98" y="710">micro-purchase support</text>
+
+  <rect class="node core" x="365" y="255" width="210" height="76"/>
+  <text class="node-text" x="383" y="285">Request intake</text>
+  <text class="small" x="383" y="310">package, category, amount</text>
+  <rect class="node core" x="365" y="355" width="210" height="76"/>
+  <text class="node-text" x="383" y="385">Funds validation</text>
+  <text class="small" x="383" y="410">LOA, commitment, cert</text>
+  <rect class="node core" x="365" y="455" width="210" height="76"/>
+  <text class="node-text" x="383" y="485">Approval routing</text>
+  <text class="small" x="383" y="510">resource, legal, CO</text>
+  <rect class="node core" x="365" y="555" width="210" height="76"/>
+  <text class="node-text" x="383" y="585">PR / handoff</text>
+  <text class="small" x="383" y="610">contracting or GPC</text>
+  <rect class="node core" x="365" y="655" width="210" height="76"/>
+  <text class="node-text" x="383" y="685">Status / evidence</text>
+  <text class="small" x="383" y="710">audit trail + closeout</text>
+
+  <rect class="node detail" x="650" y="255" width="210" height="76"/>
+  <text class="node-text" x="668" y="285">Requirement package</text>
+  <text class="small" x="668" y="310">PWS, IGCE, approvals</text>
+  <rect class="node detail" x="650" y="355" width="210" height="76"/>
+  <text class="node-text" x="668" y="385">Purchase request</text>
+  <text class="small" x="668" y="410">PR, MIPR, commitment</text>
+  <rect class="node detail" x="650" y="455" width="210" height="76"/>
+  <text class="node-text" x="668" y="485">Award / obligation</text>
+  <text class="small" x="668" y="510">SPS, EDA, contract</text>
+  <rect class="node detail" x="650" y="555" width="210" height="76"/>
+  <text class="node-text" x="668" y="585">Receipt / accept</text>
+  <text class="small" x="668" y="610">WAWF, COR, invoice</text>
+  <rect class="node detail" x="650" y="655" width="210" height="76"/>
+  <text class="node-text" x="668" y="685">Closeout support</text>
+  <text class="small" x="668" y="710">ULO, deobligation</text>
+
+  <rect class="node accounting" x="935" y="315" width="210" height="76"/>
+  <text class="node-text" x="953" y="345">Commitment / obligation</text>
+  <text class="small" x="953" y="370">DEAMS / accounting</text>
+  <rect class="node accounting" x="935" y="435" width="210" height="76"/>
+  <text class="node-text" x="953" y="465">AP / accrual</text>
+  <text class="small" x="953" y="490">invoice + receipt match</text>
+  <rect class="node accounting" x="935" y="555" width="210" height="76"/>
+  <text class="node-text" x="953" y="585">GL / budgetary</text>
+  <text class="small" x="953" y="610">USSGL, SBR, close</text>
+
+  <rect class="node reporting" x="1220" y="315" width="210" height="76"/>
+  <text class="node-text" x="1238" y="345">ABSS reports</text>
+  <text class="small" x="1238" y="370">status + audit extracts</text>
+  <rect class="node reporting" x="1220" y="435" width="210" height="76"/>
+  <text class="node-text" x="1238" y="465">DEAMS / DDRS</text>
+  <text class="small" x="1238" y="490">trial balance support</text>
+  <rect class="node reporting" x="1220" y="555" width="210" height="76"/>
+  <text class="node-text" x="1238" y="585">Treasury / GTAS</text>
+  <text class="small" x="1238" y="610">TAS, USSGL, FBwT</text>
+
+  <rect class="node statement" x="1505" y="315" width="210" height="76"/>
+  <text class="node-text" x="1523" y="345">SBR</text>
+  <text class="small" x="1523" y="370">commitment to outlay</text>
+  <rect class="node statement" x="1505" y="435" width="210" height="76"/>
+  <text class="node-text" x="1523" y="465">Net cost</text>
+  <text class="small" x="1523" y="490">service expense</text>
+  <rect class="node statement" x="1505" y="555" width="210" height="76"/>
+  <text class="node-text" x="1523" y="585">Notes / audit</text>
+  <text class="small" x="1523" y="610">ULO, AP, support</text>
+
+  <path class="arrow" d="M 293 493 H 358"/>
+  <path class="arrow" d="M 578 493 H 643"/>
+  <path class="arrow" d="M 863 493 H 928"/>
+  <path class="arrow" d="M 1148 493 H 1213"/>
+  <path class="arrow" d="M 1433 493 H 1498"/>
+
+  <rect class="callout" x="70" y="935" width="1660" height="92" rx="20"/>
+  <text class="callout-text" x="100" y="970">Tech-stack note: public ABSS implementation details are limited. This blueprint treats ABSS as an Air Force business-services workflow surface.</text>
+  <text class="callout-text" x="100" y="1000">It should be validated against authoritative Air Force ABSS operating procedures before operational use.</text>
+  <text class="caveat" x="70" y="1060">Source basis: AFICC contracting mission, SAF/FM financial-management mission, PIEE/WAWF, DoD FMR, Treasury GTAS/USSGL/IGT control patterns.</text>
+</svg>
