@@ -1579,6 +1579,350 @@ const deamsCaveats = [
   'Source systems may be feeders, authoritative mission systems, shared services, or peer systems depending on the business event and DAF organization.'
 ];
 
+const gafsLayers = [
+  { id: 'source', label: 'Source / Feeder Events', short: 'Source', description: 'Travel, contract, payroll, disbursing, collection, reimbursable, logistics, and manual source events that create Air Force accounting demand before GAFS processing.' },
+  { id: 'base', label: 'GAFS-BL Base-Level Accounting', short: 'GAFS-BL', description: 'Base-level legacy accounting intake, editing, funds control, posting, suspense, and local close activity. Public information does not support calling this SAP or Oracle ERP.' },
+  { id: 'central', label: 'GAFS-R / Central Profile', short: 'GAFS-R', description: 'Central/rehost/reporting profile that consolidates base-level accounting activity, produces trial-balance and status reporting, and supports transition or reconciliation to enterprise reporting.' },
+  { id: 'accounting', label: 'Accounting / Journal Voucher Layer', short: 'Accounting', description: 'Budgetary and proprietary accounting, standard general ledger classification, manual journal vouchers, reversals, accruals, eliminations, and close adjustments.' },
+  { id: 'reporting', label: 'Reporting / Treasury Layer', short: 'Reporting', description: 'DDRS, GTAS, USSGL crosswalks, CARS/FBwT reconciliation, IPAC/G-Invoicing settlement evidence, management reports, and audit populations.' },
+  { id: 'statements', label: 'Financial Statement Support', short: 'Statements', description: 'Statement of Budgetary Resources, Balance Sheet, Statement of Net Cost, note schedules, and audit support tied back to GAFS source, posting, and reporting evidence.' }
+];
+
+const gafsNodes = [
+  {
+    id: 'dts-gafs',
+    layer: 'source',
+    title: 'DTS / Travel Feeds',
+    subtitle: 'Travel authorization, voucher, and settlement events',
+    icon: 'DTS',
+    tags: ['travel', 'source', 'obligation', 'voucher'],
+    summary: 'Provides travel authorizations, vouchers, local vouchers, advances, and travel-card settlement activity that should trace to GAFS budgetary and proprietary postings.',
+    examples: ['Travel authorization', 'Travel voucher', 'Local voucher', 'Advance', 'Split disbursement'],
+    auditQuestions: ['Does each approved voucher trace to a GAFS accounting event?', 'Are stale travel obligations reviewed and adjusted?', 'Do DTS totals reconcile to accepted GAFS postings?'],
+    keyFields: ['authorization number', 'voucher number', 'traveler ID', 'LOA', 'TAS', 'amount', 'approval date'],
+    risks: ['approved travel not posted', 'voucher paid but obligation not liquidated', 'invalid LOA', 'summary feed loses transaction detail']
+  },
+  {
+    id: 'contract-vendor-gafs',
+    layer: 'source',
+    title: 'Contract / Vendor Pay Sources',
+    subtitle: 'Award, receipt, invoice, acceptance, and payment evidence',
+    icon: 'P2P',
+    tags: ['contract', 'invoice', 'payment', 'procure-to-pay'],
+    summary: 'Provides contract award, modification, receipt, acceptance, invoice, and payment-support data that must reconcile to obligations, expenditures, and disbursements.',
+    examples: ['Contract award', 'Modification', 'Receiving report', 'Vendor invoice', 'Disbursement schedule'],
+    auditQuestions: ['Can obligations trace to valid award and funding evidence?', 'Does payment activity have receipt/acceptance support?', 'Are rejected or suspense items cleared before close?'],
+    keyFields: ['PIID', 'mod number', 'CLIN', 'invoice number', 'vendor', 'disbursement voucher', 'amount'],
+    risks: ['unsupported payment', 'award not obligated', 'duplicate invoice', 'payment posted to wrong accounting classification']
+  },
+  {
+    id: 'payroll-labor-gafs',
+    layer: 'source',
+    title: 'Payroll / Labor Sources',
+    subtitle: 'Civilian pay, military pay support, and labor costing',
+    icon: 'PAY',
+    tags: ['payroll', 'labor', 'expense', 'accrual'],
+    summary: 'Supplies pay-period cost, benefits, labor distribution, accrual, and adjustment data for expense recognition and net-cost reporting.',
+    examples: ['Civilian payroll feed', 'Labor distribution', 'Benefits', 'Payroll accrual', 'Pay correction'],
+    auditQuestions: ['Do payroll totals reconcile to GAFS postings?', 'Are labor costs assigned to valid organization and program values?', 'Are accruals recorded and reversed in the correct periods?'],
+    keyFields: ['pay period', 'person identifier', 'organization', 'fund cite', 'program', 'gross pay', 'benefit amount'],
+    risks: ['unreconciled payroll feed', 'wrong cost assignment', 'missing accrual', 'unsupported adjustment']
+  },
+  {
+    id: 'disbursing-collections-gafs',
+    layer: 'source',
+    title: 'Disbursing / Collections',
+    subtitle: 'Outlays, collections, IPAC, and cash activity',
+    icon: 'CASH',
+    tags: ['cash', 'outlay', 'collection', 'IPAC', 'FBwT'],
+    summary: 'Provides payment, collection, cancellation, adjustment, and intragovernmental settlement activity that should reconcile to Fund Balance with Treasury and reporting outputs.',
+    examples: ['Disbursement', 'Collection', 'Cancelled payment', 'IPAC settlement', 'Deposit ticket'],
+    auditQuestions: ['Do disbursements and collections reconcile to Treasury records?', 'Are IPAC settlements tied to trading partner detail?', 'Are unmatched cash differences researched and resolved?'],
+    keyFields: ['voucher number', 'disbursing station', 'TAS', 'BETC', 'ALC', 'trading partner', 'amount'],
+    risks: ['FBwT unreconciled difference', 'unmatched collection', 'incorrect TAS/BETC', 'trading partner mismatch']
+  },
+  {
+    id: 'manual-source-gafs',
+    layer: 'source',
+    title: 'Manual Requests / Exception Inputs',
+    subtitle: 'Corrections, accruals, reclasses, and late source evidence',
+    icon: 'REQ',
+    tags: ['manual', 'journal voucher', 'exception', 'correction'],
+    summary: 'Originates supported correction requests when source feeds are incomplete, late, classified incorrectly, or require accrual, reclassification, reversal, or close adjustment.',
+    examples: ['Correction request', 'Accrual request', 'Reclassification', 'Reversal request', 'Unsupported transaction research'],
+    auditQuestions: ['Is the request tied to a real source exception?', 'Does the package include preparer, reviewer, approver, and evidence?', 'Was the JV reversed or cleared when no longer valid?'],
+    keyFields: ['request ID', 'source document', 'reason code', 'period', 'debit', 'credit', 'approval date'],
+    risks: ['JV used as substitute for source processing', 'missing approval', 'late-period manual entry', 'reversal not processed']
+  },
+  {
+    id: 'gafs-bl-intake',
+    layer: 'base',
+    title: 'GAFS-BL Intake / Edit',
+    subtitle: 'Base-level batch and online transaction acceptance',
+    icon: 'BL',
+    tags: ['GAFS-BL', 'legacy', 'edit', 'interface'],
+    summary: 'Accepts base-level transactions from local entry, feeders, batch files, or interface control processes and applies format, accounting, fund, period, and edit checks before posting.',
+    examples: ['Accepted batch', 'Rejected batch', 'Online accounting input', 'Interface control total', 'Edit report'],
+    auditQuestions: ['Are accepted and rejected records controlled?', 'Do feeder totals match GAFS-BL accepted totals?', 'Are rejects researched and reprocessed with evidence?'],
+    keyFields: ['batch ID', 'document number', 'fiscal year', 'accounting classification', 'TAS', 'USSGL', 'amount'],
+    risks: ['lost interface record', 'reject not corrected', 'control total mismatch', 'posting without valid edit evidence']
+  },
+  {
+    id: 'gafs-bl-funds',
+    layer: 'base',
+    title: 'Funds Control / Budget Execution',
+    subtitle: 'Authority, commitment, obligation, expenditure, outlay',
+    icon: 'FUND',
+    tags: ['funds control', 'budgetary', 'SBR', 'obligation'],
+    summary: 'Supports budget execution lifecycle control from authority and allotment through commitments, obligations, expenditures, collections, recoveries, and outlays.',
+    examples: ['Budget authority', 'Allotment', 'Commitment', 'Obligation', 'Expenditure', 'Outlay', 'Recovery'],
+    auditQuestions: ['Can SBR lines trace to budgetary source events?', 'Are obligations valid, timely, and supported?', 'Are upward/downward adjustments documented?'],
+    keyFields: ['appropriation', 'fund cite', 'program element', 'object class', 'commitment/obligation number', 'amount', 'period'],
+    risks: ['over-obligation', 'stale ULO', 'unsupported upward adjustment', 'incorrect apportionment or allotment classification']
+  },
+  {
+    id: 'gafs-bl-suspense',
+    layer: 'base',
+    title: 'Suspense / Reject Resolution',
+    subtitle: 'Failed edits, unmatched postings, and exception queues',
+    icon: 'ERR',
+    tags: ['suspense', 'reject', 'exception', 'reconciliation'],
+    summary: 'Tracks transactions that fail accounting edits, lack valid reference data, mismatch control totals, or require research before they can be posted or reported.',
+    examples: ['Reject report', 'Suspense item', 'Invalid LOA', 'Unmatched disbursement', 'Correction batch'],
+    auditQuestions: ['Are aged suspense items monitored?', 'Are corrections traceable to original rejects?', 'Do rejected populations reconcile to later accepted postings or removals?'],
+    keyFields: ['reject code', 'batch ID', 'document number', 'reason', 'owner', 'aging', 'resolution date'],
+    risks: ['aged suspense hides misstatement', 'duplicate reprocessing', 'unexplained deletion', 'manual workaround without evidence']
+  },
+  {
+    id: 'gafs-r-consolidation',
+    layer: 'central',
+    title: 'GAFS-R Consolidation',
+    subtitle: 'Central profile, rehost, and reporting accumulation',
+    icon: 'G-R',
+    tags: ['GAFS-R', 'central', 'consolidation', 'trial balance'],
+    summary: 'Consolidates base-level activity into central accounting/reporting views, maintaining fiscal-period balances, summary detail, and extracts for enterprise reporting and reconciliation.',
+    examples: ['Base-to-central feed', 'Accepted central load', 'Period balance', 'Trial balance extract', 'Historical archive'],
+    auditQuestions: ['Do base-level totals reconcile to GAFS-R totals?', 'Are central loads complete and timely?', 'Are historical balances tied to current reporting extracts?'],
+    keyFields: ['base identifier', 'period', 'TAS', 'USSGL', 'fund cite', 'document total', 'load date'],
+    risks: ['base-to-central out of balance', 'missing central load', 'summary loses source reference', 'period cutoff mismatch']
+  },
+  {
+    id: 'legacy-modern-bridge',
+    layer: 'central',
+    title: 'Legacy / Modernization Bridge',
+    subtitle: 'Crosswalks, extracts, and coexistence controls',
+    icon: 'XWALK',
+    tags: ['modernization', 'crosswalk', 'migration', 'DEAMS'],
+    summary: 'Provides mapping, extracts, historical data, and reconciliation controls where GAFS activity coexists with or migrates to modern target environments and enterprise reporting stores.',
+    examples: ['Chart crosswalk', 'Historical extract', 'Balance conversion', 'Dual-run reconciliation', 'Audit archive'],
+    auditQuestions: ['Are old and new accounting classifications crosswalked?', 'Do converted balances reconcile?', 'Is the audit archive complete enough to support source-to-statement testing?'],
+    keyFields: ['legacy account', 'target account', 'TAS', 'USSGL', 'fund cite', 'conversion period', 'reconciliation total'],
+    risks: ['crosswalk error', 'lost historical detail', 'unreconciled converted balance', 'duplicate posting during coexistence']
+  },
+  {
+    id: 'gafs-jv',
+    layer: 'accounting',
+    title: 'GAFS Journal Voucher',
+    subtitle: 'Manual accrual, reclass, correction, and close adjustment',
+    icon: 'JV',
+    tags: ['journal voucher', 'manual adjustment', 'accrual', 'reclass', 'close'],
+    summary: 'Records supported debit/credit adjustments when normal source processing cannot fully or correctly represent the event before close or reporting.',
+    examples: ['Accrual JV', 'Reclassification JV', 'Reversal JV', 'Elimination adjustment', 'Error correction'],
+    auditQuestions: ['Is the JV linked to a real source condition and approved package?', 'Do debits equal credits and map to valid USSGL/TAS values?', 'Was a required reversal posted in the correct period?'],
+    keyFields: ['JV number', 'document date', 'posting period', 'TAS', 'USSGL', 'debit amount', 'credit amount', 'approver'],
+    risks: ['unsupported top-side adjustment', 'JV masks source-system defect', 'incorrect USSGL', 'missing reversal', 'SoD violation']
+  },
+  {
+    id: 'budget-prop-accounting',
+    layer: 'accounting',
+    title: 'Budgetary / Proprietary Accounting',
+    subtitle: 'USSGL classification and accounting equation support',
+    icon: 'GL',
+    tags: ['USSGL', 'budgetary', 'proprietary', 'GL'],
+    summary: 'Classifies accepted activity into budgetary and proprietary accounts, supports debit/credit balance logic, and prepares balances for reporting crosswalks.',
+    examples: ['Budgetary posting', 'Proprietary posting', 'Accrual', 'Liquidation', 'Reversal', 'Year-end closing entry'],
+    auditQuestions: ['Do budgetary and proprietary postings remain in balance?', 'Are USSGL accounts valid for the transaction type?', 'Do adjustments preserve source lineage?'],
+    keyFields: ['USSGL', 'TAS', 'fund cite', 'debit', 'credit', 'period', 'document number'],
+    risks: ['invalid USSGL', 'out-of-balance posting', 'budget/proprietary mismatch', 'manual entry lacks source support']
+  },
+  {
+    id: 'gafs-trial-balance',
+    layer: 'reporting',
+    title: 'Trial Balance / DDRS Feed',
+    subtitle: 'Adjusted trial balance and DoD reporting support',
+    icon: 'TB',
+    tags: ['trial balance', 'DDRS', 'GTAS', 'reporting'],
+    summary: 'Produces adjusted trial-balance and financial-reporting feeds used for DDRS, GTAS validation, management reporting, and financial-statement compilation.',
+    examples: ['Adjusted trial balance', 'DDRS feed', 'GTAS extract', 'Edit report', 'Tie-point reconciliation'],
+    auditQuestions: ['Does the trial balance reconcile to GAFS-R and GL balances?', 'Are DDRS/GTAS edits cleared with evidence?', 'Do reporting attributes support line-item crosswalks?'],
+    keyFields: ['TAS', 'USSGL', 'period', 'beginning balance', 'debit', 'credit', 'ending balance', 'attribute'],
+    risks: ['trial balance not tied to source', 'GTAS edit failure', 'incorrect reporting attribute', 'late adjustment after certified extract']
+  },
+  {
+    id: 'treasury-gafs',
+    layer: 'reporting',
+    title: 'Treasury / Intragovernmental Reporting',
+    subtitle: 'GTAS, FBwT, IPAC, trading partner, and USSGL controls',
+    icon: 'TRY',
+    tags: ['Treasury', 'GTAS', 'FBwT', 'IPAC', 'USSGL'],
+    summary: 'Supports Treasury and intragovernmental reconciliation through TAS/BETC, USSGL, trading-partner, CARS/FBwT, GTAS, IPAC, and G-Invoicing alignment.',
+    examples: ['GTAS submission', 'FBwT reconciliation', 'IPAC settlement', 'Trading-partner elimination', 'USSGL crosswalk'],
+    auditQuestions: ['Do TAS/BETC values reconcile to Treasury?', 'Are trading partner attributes complete?', 'Can USSGL balances pass GTAS edits and crosswalk to statements?'],
+    keyFields: ['TAS', 'BETC', 'ALC', 'USSGL', 'trading partner', 'GTAS attribute', 'amount'],
+    risks: ['FBwT difference', 'GTAS edit failure', 'trading partner mismatch', 'missing intragovernmental support']
+  },
+  {
+    id: 'gafs-sbr',
+    layer: 'statements',
+    title: 'Statement of Budgetary Resources',
+    subtitle: 'Authority-to-outlay statement support',
+    icon: 'SBR',
+    tags: ['SBR', 'budgetary', 'statement', 'audit'],
+    summary: 'Uses GAFS budgetary activity to support beginning unobligated balance, budget authority, obligations incurred, outlays, recoveries, and unobligated balance reporting.',
+    examples: ['Budgetary resources', 'Obligations incurred', 'Unpaid obligations', 'Outlays', 'Recoveries'],
+    auditQuestions: ['Can each SBR line trace to GAFS budgetary transactions?', 'Are obligations valid and supported?', 'Do outlays reconcile to Treasury?'],
+    keyFields: ['TAS', 'USSGL budgetary account', 'fund cite', 'period', 'SBR line', 'amount'],
+    risks: ['unsupported obligation', 'stale ULO', 'misclassified outlay', 'budgetary trial balance mismatch']
+  },
+  {
+    id: 'gafs-financial-statements',
+    layer: 'statements',
+    title: 'Balance Sheet / Net Cost / Notes',
+    subtitle: 'Proprietary statement and note support',
+    icon: 'FS',
+    tags: ['balance sheet', 'net cost', 'notes', 'audit'],
+    summary: 'Supports proprietary balances, expenses, assets, liabilities, net cost, note schedules, and audit evidence packages using GAFS and reporting-layer data.',
+    examples: ['Fund Balance with Treasury', 'Accounts payable', 'Accounts receivable', 'Expense', 'Net cost', 'Note schedule'],
+    auditQuestions: ['Do proprietary balances reconcile to trial balance?', 'Are note schedules tied to supporting detail?', 'Do manual adjustments have approved evidence?'],
+    keyFields: ['USSGL proprietary account', 'TAS', 'line item', 'note schedule', 'document number', 'amount'],
+    risks: ['unsupported account balance', 'note schedule does not tie', 'late manual adjustment', 'classification error']
+  }
+];
+
+const gafsLineageScenarios = [
+  {
+    id: 'gafs-jv-control',
+    short: 'JV control',
+    title: 'GAFS Journal Voucher Control Path',
+    description: 'Shows how a GAFS correction, accrual, reclass, or reversal should move from a real source exception to a controlled JV package, posting, reporting, and audit evidence.',
+    path: ['manual-source-gafs', 'gafs-bl-intake', 'gafs-jv', 'budget-prop-accounting', 'gafs-trial-balance', 'gafs-financial-statements'],
+    steps: [
+      'A source exception, period-end estimate, reconciliation difference, or classification error is identified and documented.',
+      'The preparer assembles source evidence, reason code, accounting classification, debit/credit lines, and reversal instructions when needed.',
+      'Review and approval verify authority, segregation of duties, accounting validity, and period cutoff.',
+      'GAFS-BL accepts or rejects the JV input; exceptions are corrected through controlled resubmission.',
+      'GAFS-R and trial-balance extracts reflect the accepted posting and support DDRS, GTAS, or statement reporting.',
+      'Auditors trace from statement line to trial balance, JV record, approval package, and original source condition.'
+    ],
+    exceptionTests: ['JV without source exception', 'debits do not equal credits', 'invalid TAS/USSGL', 'missing approval', 'reversal not posted', 'late close adjustment not in reporting package']
+  },
+  {
+    id: 'gafs-budget-execution',
+    short: 'budget execution',
+    title: 'GAFS Budget Execution Path',
+    description: 'Shows how budgetary resources move through GAFS-BL funds control, GAFS-R consolidation, trial balance, Treasury reporting, and SBR support.',
+    path: ['contract-vendor-gafs', 'gafs-bl-intake', 'gafs-bl-funds', 'gafs-r-consolidation', 'gafs-trial-balance', 'gafs-sbr'],
+    steps: [
+      'A funded procurement, travel, payroll, or local requirement creates a valid accounting classification and source document.',
+      'GAFS-BL validates the input and records commitment, obligation, expenditure, outlay, recovery, or adjustment activity.',
+      'Rejects and suspense items are researched until accepted, corrected, or formally removed.',
+      'GAFS-R consolidates accepted base-level activity and prepares period balances.',
+      'Trial-balance and reporting extracts support DDRS, GTAS validation, and SBR line-item crosswalks.',
+      'Audit testing traces SBR lines back to source documents and base-level posting evidence.'
+    ],
+    exceptionTests: ['source amount not in GAFS-BL', 'base-to-central imbalance', 'stale obligation', 'budgetary/proprietary mismatch', 'GTAS edit failure']
+  },
+  {
+    id: 'gafs-cash-recon',
+    short: 'cash recon',
+    title: 'GAFS Disbursing, Collections, and FBwT Path',
+    description: 'Shows how disbursement, collection, IPAC, and Treasury cash activity should reconcile to GAFS postings and statement balances.',
+    path: ['disbursing-collections-gafs', 'gafs-bl-intake', 'gafs-bl-suspense', 'gafs-r-consolidation', 'treasury-gafs', 'gafs-financial-statements'],
+    steps: [
+      'Payment, collection, cancellation, or IPAC activity is received with TAS/BETC, ALC, voucher, and trading-partner detail.',
+      'GAFS-BL accepts valid cash activity or routes mismatches to suspense and reject resolution.',
+      'Cash and accounting totals reconcile from base records to central profile balances.',
+      'Treasury, CARS/FBwT, GTAS, and intragovernmental evidence are matched to reporting balances.',
+      'Statement support packages tie FBwT, payable, receivable, and expense balances to transaction evidence.'
+    ],
+    exceptionTests: ['cash record without accounting posting', 'wrong TAS/BETC', 'aged unmatched disbursement', 'IPAC trading partner mismatch', 'FBwT difference lacks research']
+  },
+  {
+    id: 'gafs-modernization',
+    short: 'modernization',
+    title: 'GAFS Legacy-to-Modernization Reconciliation Path',
+    description: 'Shows how GAFS-BL/GAFS-R history, extracts, crosswalks, and balances should be controlled when activity coexists with or migrates to a modern target environment.',
+    path: ['gafs-r-consolidation', 'legacy-modern-bridge', 'budget-prop-accounting', 'gafs-trial-balance', 'treasury-gafs', 'gafs-financial-statements'],
+    steps: [
+      'Legacy GAFS balances and transaction populations are extracted with stable control totals and metadata.',
+      'Legacy chart values are crosswalked to target accounting classifications, USSGL, TAS, fund, organization, and program values.',
+      'Converted balances and open items are reconciled before and after migration or dual-run reporting.',
+      'Historical support remains available for source-to-statement testing after transition.',
+      'Differences are tracked as data-conversion, timing, configuration, or manual-adjustment issues.'
+    ],
+    exceptionTests: ['crosswalk not approved', 'converted balance does not reconcile', 'historical detail unavailable', 'duplicate posting in coexistence period', 'audit extract missing source keys']
+  }
+];
+
+const gafsJvScenarios = [
+  gafsLineageScenarios[0],
+  {
+    id: 'gafs-accrual-reversal',
+    short: 'accrual reversal',
+    title: 'GAFS Accrual and Reversal Path',
+    description: 'Focuses on period-end accruals, later reversal, and tie-back to subsequent source-system activity.',
+    path: ['manual-source-gafs', 'gafs-jv', 'budget-prop-accounting', 'gafs-trial-balance', 'gafs-financial-statements'],
+    steps: [
+      'A period-end estimate is prepared because goods, services, payroll, or other activity occurred before complete source processing.',
+      'The accrual package documents method, source basis, estimate logic, approver, and reversal requirement.',
+      'The JV posts the accrual to valid USSGL/TAS and period values.',
+      'The reversal or clearing entry is posted when the source transaction is recorded or the estimate is no longer valid.',
+      'The trial balance, statements, and note schedules show the net effect without double counting.'
+    ],
+    exceptionTests: ['accrual lacks estimate support', 'reversal not posted', 'source transaction and accrual double count expense', 'wrong period', 'unsupported method']
+  },
+  {
+    id: 'gafs-reclass',
+    short: 'reclass',
+    title: 'GAFS Reclassification and Error-Correction Path',
+    description: 'Focuses on moving an amount from an incorrect accounting classification to a valid classification without breaking the source trail.',
+    path: ['manual-source-gafs', 'gafs-bl-suspense', 'gafs-jv', 'budget-prop-accounting', 'gafs-trial-balance'],
+    steps: [
+      'A reconciliation, edit failure, reporting review, or audit test identifies a wrong fund, program, object class, USSGL, TAS, or trading-partner value.',
+      'The correction package explains the original error, correct accounting, evidence, and whether the source system also needs remediation.',
+      'The JV reverses the incorrect classification and posts the correct classification.',
+      'GAFS-R and reporting extracts reflect the corrected balance for the correct period.',
+      'The audit trail preserves both the original transaction and correction reason.'
+    ],
+    exceptionTests: ['correction lacks original document reference', 'source defect not remediated', 'same error repeats', 'wrong period correction', 'trading partner still invalid']
+  }
+];
+
+const gafsSupportServices = [
+  { title: 'Legacy Platform Profile', detail: 'Public sources do not support treating GAFS as SAP or Oracle ERP. This blueprint models it as a legacy Air Force accounting/reporting suite with base-level and central/rehost profiles, batch/file interfaces, reports, and reconciliation controls.' },
+  { title: 'Interface Control', detail: 'Accepted/rejected batch totals, source-to-target reconciliations, suspense queues, load reports, edit reports, and resubmission evidence.' },
+  { title: 'Journal Voucher Governance', detail: 'Preparer, reviewer, approver, reason code, source support, debit/credit balancing, period controls, reversal tracking, and SoD monitoring.' },
+  { title: 'Reference Data & Crosswalks', detail: 'TAS, USSGL, fund citation, organization, program, object class, trading partner, GTAS attributes, and legacy-to-modernization mappings.' },
+  { title: 'Close & Reporting', detail: 'Base-level close, central consolidation, adjusted trial balance, DDRS/GTAS edit resolution, Treasury reconciliation, and statement support packages.' },
+  { title: 'Audit Evidence', detail: 'Source documents, batch logs, edit reports, JV packages, reconciliations, trial-balance extracts, reporting submissions, and management review sign-offs.' }
+];
+
+const gafsCaveats = [
+  'GAFS public technical documentation is limited; this blueprint is a high-confidence business-process model, not an official system configuration baseline.',
+  'The public evidence supports modeling GAFS as a legacy Air Force accounting suite with GAFS-BL base-level processing and GAFS-R central/rehost/reporting profile, not as SAP or Oracle ERP.',
+  'Exact transaction codes, database schemas, interface names, reports, roles, and hosting details require authoritative Air Force, DFAS, or program-office documentation.',
+  'JV examples are control patterns for manual accounting adjustments; they should be validated against local policy, DoD FMR requirements, and system operating procedures before operational use.'
+];
+
+const gafsSources = [
+  { name: 'DFAS public mission and payment services', url: 'https://www.dfas.mil/' },
+  { name: 'Secretary of the Air Force Financial Management mission', url: 'https://www.saffm.hq.af.mil/' },
+  { name: 'DoD Financial Management Regulation', url: 'https://comptroller.defense.gov/FMR/' },
+  { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+  { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
+  { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -1691,6 +2035,55 @@ export const systems = [
       { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
       { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
     ]
+  },
+  {
+    slug: 'gafs',
+    shortName: 'GAFS',
+    name: 'GAFS Suite',
+    longName: 'GAFS Suite / GAFS-BL and GAFS-R Full Profile Blueprint',
+    agency: 'Legacy Air Force',
+    eyebrow: 'GAFS blueprint for legacy Air Force accounting and reporting',
+    description: 'Explore GAFS as a legacy Air Force accounting suite, not a SAP or Oracle ERP, connecting GAFS-BL base-level processing, GAFS-R central reporting, source feeds, suspense, journal vouchers, Treasury reporting, and statement support.',
+    metric: '4',
+    metricLabel: 'Core GAFS lineage scenarios',
+    metricDetail: 'Source -> GAFS-BL -> GAFS-R -> Statement',
+    referenceImage: '/gafs-blueprint-reference.svg',
+    referenceTitle: 'GAFS suite static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/gafs-blueprint-reference.svg' }
+    ],
+    layers: gafsLayers,
+    nodes: gafsNodes,
+    lineageScenarios: gafsLineageScenarios,
+    supportServices: gafsSupportServices,
+    caveats: gafsCaveats,
+    sources: gafsSources
+  },
+  {
+    slug: 'gafs-jv',
+    shortName: 'GAFS JV',
+    name: 'GAFS JV',
+    longName: 'GAFS Journal Voucher Control Blueprint',
+    agency: 'Legacy Air Force',
+    eyebrow: 'Focused GAFS subpage for manual accounting adjustments',
+    description: 'Focus on the GAFS journal voucher lifecycle: source exception, support package, preparer/reviewer/approver control, GAFS-BL posting, GAFS-R reporting, reversal tracking, and audit evidence.',
+    metric: '3',
+    metricLabel: 'Focused JV control paths',
+    metricDetail: 'Exception -> Approve -> Post -> Report',
+    referenceImage: '/gafs-blueprint-reference.svg',
+    referenceTitle: 'GAFS JV static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/gafs-blueprint-reference.svg' }
+    ],
+    layers: gafsLayers,
+    nodes: gafsNodes,
+    lineageScenarios: gafsJvScenarios,
+    supportServices: gafsSupportServices,
+    caveats: [
+      ...gafsCaveats,
+      'This subpage isolates JV control because manual GAFS adjustments are high-risk and can obscure source-system defects if not tied to evidence, approval, reversal, and reconciliation.'
+    ],
+    sources: gafsSources
   }
 ];
 

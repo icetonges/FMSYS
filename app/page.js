@@ -21,7 +21,7 @@ export default function Page() {
           <p className="eyebrow">DoD FM system suite</p>
           <h1>Financial Management System Architecture Blueprints</h1>
           <p>
-            Navigate between GFEBS, Navy ERP, DAI, DEAMS, and future DoD financial management systems using a shared audit-readiness,
+            Navigate between GFEBS, Navy ERP, DAI, DEAMS, GAFS, and future DoD financial management systems using a shared audit-readiness,
             UoT lineage, source-to-statement model.
           </p>
           <div className="hero-actions">
@@ -29,6 +29,8 @@ export default function Page() {
             <Link href="/systems/navy-erp" className="secondary-action">Open Navy ERP</Link>
             <Link href="/systems/dai" className="secondary-action">Open DAI</Link>
             <Link href="/systems/deams" className="secondary-action">Open DEAMS</Link>
+            <Link href="/systems/gafs" className="secondary-action">Open GAFS</Link>
+            <Link href="/systems/gafs-jv" className="secondary-action">Open GAFS JV</Link>
           </div>
         </div>
         <div className="hero-card">

@@ -2,7 +2,7 @@ import './globals.css';
 
 export const metadata = {
   title: 'DoD FM System Architecture Blueprints',
-  description: 'Interactive DoD financial management architecture blueprints for GFEBS, Navy ERP, DAI, DEAMS, audit readiness, and UoT traceability.'
+  description: 'Interactive DoD financial management architecture blueprints for GFEBS, Navy ERP, DAI, DEAMS, GAFS, audit readiness, and UoT traceability.'
 };
 
 export default function RootLayout({ children }) {

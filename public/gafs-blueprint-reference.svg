@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="1400" viewBox="0 0 2200 1400" role="img" aria-labelledby="title desc">
+  <title id="title">GAFS suite static financial accounting blueprint</title>
+  <desc id="desc">Static blueprint for the legacy Air Force General Accounting and Finance System suite, including GAFS-BL, GAFS-R, and GAFS journal voucher lineage.</desc>
+  <defs>
+    <linearGradient id="hero" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#061b36"/>
+      <stop offset="0.5" stop-color="#123d70"/>
+      <stop offset="1" stop-color="#2f65b7"/>
+    </linearGradient>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#10213d" flood-opacity="0.16"/>
+    </filter>
+    <style>
+      .font { font-family: Inter, Arial, Helvetica, sans-serif; }
+      .eyebrow { fill: #b9d7ff; font-size: 30px; font-weight: 900; letter-spacing: 5px; }
+      .title { fill: #ffffff; font-size: 58px; font-weight: 900; }
+      .subtitle { fill: #dbeaff; font-size: 24px; }
+      .layer-title { fill: #172033; font-size: 24px; font-weight: 900; }
+      .layer-sub { fill: #52637a; font-size: 16px; font-weight: 700; }
+      .card-text { fill: #172033; font-size: 17px; font-weight: 850; }
+      .small { fill: #475467; font-size: 15px; }
+      .section { fill: #2f65b7; font-size: 18px; font-weight: 900; letter-spacing: 3px; }
+      .body { fill: #344054; font-size: 18px; }
+      .risk { fill: #8a1f11; font-size: 16px; font-weight: 800; }
+      .check { fill: #075a3a; font-size: 16px; font-weight: 800; }
+    </style>
+  </defs>
+
+  <rect width="2200" height="1400" fill="#f4f7fb"/>
+  <rect x="44" y="34" width="2112" height="198" rx="32" fill="url(#hero)" filter="url(#shadow)"/>
+  <text class="font eyebrow" x="88" y="104">LEGACY AIR FORCE FINANCIAL ACCOUNTING</text>
+  <text class="font title" x="88" y="168">GAFS Suite / GAFS-BL, GAFS-R, and Journal Voucher Blueprint</text>
+  <text class="font subtitle" x="88" y="207">Representative full-profile model for legacy custom accounting, batch interfaces, JV controls, and source-to-statement traceability.</text>
+
+  <g class="font" transform="translate(44 272)" filter="url(#shadow)">
+    <rect width="2112" height="690" rx="28" fill="#ffffff" stroke="#d7e0ee"/>
+
+    <g transform="translate(26 26)">
+      <rect width="320" height="638" rx="20" fill="#ede7fb" stroke="#7a51c2"/>
+      <text class="layer-title" x="20" y="42">1. Source / Feeder Events</text>
+      <text class="layer-sub" x="20" y="72">Base, DFAS, pay, travel, contract, treasury</text>
+      <g fill="#ffffff" stroke="#c8b8ef">
+        <rect x="20" y="105" width="280" height="58" rx="14"/><text class="card-text" x="38" y="140">Base commitments / obligations</text>
+        <rect x="20" y="178" width="280" height="58" rx="14"/><text class="card-text" x="38" y="213">DTS travel / voucher feeds</text>
+        <rect x="20" y="251" width="280" height="58" rx="14"/><text class="card-text" x="38" y="286">Contract / WAWF / vendor evidence</text>
+        <rect x="20" y="324" width="280" height="58" rx="14"/><text class="card-text" x="38" y="359">Civilian pay / labor feeds</text>
+        <rect x="20" y="397" width="280" height="58" rx="14"/><text class="card-text" x="38" y="432">Disbursing / collection schedules</text>
+        <rect x="20" y="470" width="280" height="58" rx="14"/><text class="card-text" x="38" y="505">Manual accounting requests</text>
+        <rect x="20" y="543" width="280" height="58" rx="14"/><text class="card-text" x="38" y="578">Prior-period / correction evidence</text>
+      </g>
+    </g>
+
+    <g transform="translate(372 26)">
+      <rect width="320" height="638" rx="20" fill="#e7f4ef" stroke="#13895a"/>
+      <text class="layer-title" x="20" y="42">2. GAFS-BL Base Level</text>
+      <text class="layer-sub" x="20" y="72">Legacy custom base accounting, not ERP</text>
+      <g fill="#ffffff" stroke="#b7dfcf">
+        <rect x="20" y="105" width="280" height="64" rx="14"/><text class="card-text" x="38" y="133">Funds control / execution</text><text class="small" x="38" y="154">commitment, obligation, expenditure</text>
+        <rect x="20" y="188" width="280" height="64" rx="14"/><text class="card-text" x="38" y="216">Base-level accounting input</text><text class="small" x="38" y="237">document number, fund, org, object class</text>
+        <rect x="20" y="271" width="280" height="64" rx="14"/><text class="card-text" x="38" y="299">Edit / validation controls</text><text class="small" x="38" y="320">accounting string and period checks</text>
+        <rect x="20" y="354" width="280" height="64" rx="14"/><text class="card-text" x="38" y="382">Transaction posting</text><text class="small" x="38" y="403">budgetary and proprietary effects</text>
+        <rect x="20" y="437" width="280" height="64" rx="14"/><text class="card-text" x="38" y="465">Suspense / reject handling</text><text class="small" x="38" y="486">interface errors and corrections</text>
+        <rect x="20" y="520" width="280" height="64" rx="14"/><text class="card-text" x="38" y="548">JV initiation support</text><text class="small" x="38" y="569">manual adjustment request and approval</text>
+      </g>
+    </g>
+
+    <g transform="translate(718 26)">
+      <rect width="320" height="638" rx="20" fill="#e7f4f7" stroke="#16839b"/>
+      <text class="layer-title" x="20" y="42">3. GAFS-R / Central Profile</text>
+      <text class="layer-sub" x="20" y="72">Rehost/reporting/central ledger profile</text>
+      <g fill="#ffffff" stroke="#b9dee6">
+        <rect x="20" y="105" width="280" height="58" rx="14"/><text class="card-text" x="38" y="140">Base-to-central daily interfaces</text>
+        <rect x="20" y="178" width="280" height="58" rx="14"/><text class="card-text" x="38" y="213">Central ledger accumulation</text>
+        <rect x="20" y="251" width="280" height="58" rx="14"/><text class="card-text" x="38" y="286">Journal voucher posting</text>
+        <rect x="20" y="324" width="280" height="58" rx="14"/><text class="card-text" x="38" y="359">Trial balance extract</text>
+        <rect x="20" y="397" width="280" height="58" rx="14"/><text class="card-text" x="38" y="432">Crosswalk / report staging</text>
+        <rect x="20" y="470" width="280" height="58" rx="14"/><text class="card-text" x="38" y="505">Reconciliation and tie-out</text>
+        <rect x="20" y="543" width="280" height="58" rx="14"/><text class="card-text" x="38" y="578">Legacy extract archive</text>
+      </g>
+    </g>
+
+    <g transform="translate(1064 26)">
+      <rect width="320" height="638" rx="20" fill="#eaf1ff" stroke="#255ba8"/>
+      <text class="layer-title" x="20" y="42">4. Accounting / JV Layer</text>
+      <text class="layer-sub" x="20" y="72">USSGL-like mapping and manual entries</text>
+      <g fill="#ffffff" stroke="#bfd0ef">
+        <rect x="20" y="115" width="280" height="74" rx="14"/><text class="card-text" x="38" y="144">Budgetary accounting</text><text class="small" x="38" y="167">authority, commitments, obligations, outlays</text>
+        <rect x="20" y="214" width="280" height="74" rx="14"/><text class="card-text" x="38" y="243">Proprietary accounting</text><text class="small" x="38" y="266">assets, liabilities, expenses, revenue</text>
+        <rect x="20" y="313" width="280" height="74" rx="14"/><text class="card-text" x="38" y="342">GAFS Journal Voucher</text><text class="small" x="38" y="365">correction, accrual, reclass, tie-out</text>
+        <rect x="20" y="412" width="280" height="74" rx="14"/><text class="card-text" x="38" y="441">Ledger balance maintenance</text><text class="small" x="38" y="464">fund, program, object, organization</text>
+        <rect x="20" y="511" width="280" height="74" rx="14"/><text class="card-text" x="38" y="540">JV audit package</text><text class="small" x="38" y="563">approval, support, reason code, reversal</text>
+      </g>
+    </g>
+
+    <g transform="translate(1410 26)">
+      <rect width="320" height="638" rx="20" fill="#f0e9fb" stroke="#6c43b7"/>
+      <text class="layer-title" x="20" y="42">5. Reporting / Treasury</text>
+      <text class="layer-sub" x="20" y="72">DoD reporting, Treasury, audit extracts</text>
+      <g fill="#ffffff" stroke="#d1c0ec">
+        <rect x="20" y="105" width="280" height="64" rx="14"/><text class="card-text" x="38" y="133">Legacy trial balance</text><text class="small" x="38" y="154">fund, USSGL/SGL, organization, period</text>
+        <rect x="20" y="188" width="280" height="64" rx="14"/><text class="card-text" x="38" y="216">DDRS / DoD reporting package</text><text class="small" x="38" y="237">edits, adjustments, submissions</text>
+        <rect x="20" y="271" width="280" height="64" rx="14"/><text class="card-text" x="38" y="299">GTAS / Treasury attributes</text><text class="small" x="38" y="320">TAS, BETC, trading partner, period</text>
+        <rect x="20" y="354" width="280" height="64" rx="14"/><text class="card-text" x="38" y="382">FBwT / collections / disbursements</text><text class="small" x="38" y="403">Treasury reconciliation support</text>
+        <rect x="20" y="437" width="280" height="64" rx="14"/><text class="card-text" x="38" y="465">Audit extracts</text><text class="small" x="38" y="486">transaction population and JV universe</text>
+        <rect x="20" y="520" width="280" height="64" rx="14"/><text class="card-text" x="38" y="548">Legacy-to-modern bridge</text><text class="small" x="38" y="569">migration and reconciliation support</text>
+      </g>
+    </g>
+
+    <g transform="translate(1756 26)">
+      <rect width="320" height="638" rx="20" fill="#fff0e2" stroke="#a45518"/>
+      <text class="layer-title" x="20" y="42">6. Statement Support</text>
+      <text class="layer-sub" x="20" y="72">DAF / DoD financial reporting assertions</text>
+      <g fill="#ffffff" stroke="#ebc49d">
+        <rect x="20" y="105" width="280" height="64" rx="14"/><text class="card-text" x="38" y="133">Balance Sheet</text><text class="small" x="38" y="154">FBwT, AP, AR, liabilities, net position</text>
+        <rect x="20" y="188" width="280" height="64" rx="14"/><text class="card-text" x="38" y="216">Statement of Net Cost</text><text class="small" x="38" y="237">expenses, payroll, accruals, reclasses</text>
+        <rect x="20" y="271" width="280" height="64" rx="14"/><text class="card-text" x="38" y="299">Statement of Budgetary Resources</text><text class="small" x="38" y="320">authority, obligations, outlays</text>
+        <rect x="20" y="354" width="280" height="64" rx="14"/><text class="card-text" x="38" y="382">Notes / schedules</text><text class="small" x="38" y="403">FBwT, AP, IGT, budget-accrual support</text>
+        <rect x="20" y="437" width="280" height="64" rx="14"/><text class="card-text" x="38" y="465">Audit trail package</text><text class="small" x="38" y="486">source, edit, posting, JV, report tie-out</text>
+        <rect x="20" y="520" width="280" height="64" rx="14"/><text class="card-text" x="38" y="548">Modernization crosswalk</text><text class="small" x="38" y="569">GAFS to DEAMS/target reconciliation</text>
+      </g>
+    </g>
+
+    <g stroke="#174b9a" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.72">
+      <path d="M346 344 H372"/>
+      <path d="M692 344 H718"/>
+      <path d="M1038 344 H1064"/>
+      <path d="M1384 344 H1410"/>
+      <path d="M1730 344 H1756"/>
+    </g>
+  </g>
+
+  <g class="font" transform="translate(44 1000)" filter="url(#shadow)">
+    <rect width="2112" height="154" rx="26" fill="#eaf1ff" stroke="#d7e0ee"/>
+    <text class="section" x="28" y="44">PRIMARY UOT LINEAGE</text>
+    <text class="layer-title" x="28" y="86">Source event -> GAFS-BL edit/post -> GAFS-R central ledger/profile -> JV or automated accounting -> trial balance -> DDRS/GTAS -> statement line</text>
+    <text class="body" x="28" y="124">Key trace keys: base/site, document number, fund/TAS, appropriation, object class, organization, program, SGL/USSGL, JV number, batch ID, accounting period, control total, report line.</text>
+  </g>
+
+  <g class="font" transform="translate(44 1186)">
+    <rect width="1028" height="154" rx="22" fill="#ffffff" stroke="#d7e0ee" filter="url(#shadow)"/>
+    <text class="section" x="24" y="40">GAFS JV SPECIAL FOCUS</text>
+    <text class="check" x="24" y="75">JV package: preparer, approver, reason, source support, debit/credit balance, accounting period, reversal logic.</text>
+    <text class="check" x="24" y="103">JV tests: duplicate adjustment, unsupported plug, cross-period correction, suspense clear, treasury tie-out.</text>
+    <text class="risk" x="24" y="131">High-risk signals: manual JV near close, missing support, no reversal, report-only correction, source population not adjusted.</text>
+
+    <rect x="1084" width="1072" height="154" rx="22" fill="#ffffff" stroke="#d7e0ee" filter="url(#shadow)"/>
+    <text class="section" x="1108" y="40">TECH STACK AND CAVEAT</text>
+    <text class="body" x="1108" y="75">Treat GAFS as a legacy custom Air Force accounting suite with batch/file interfaces, base-level posting, central reporting, and manual JV controls. It is not modeled as SAP or Oracle ERP.</text>
+    <text class="body" x="1108" y="103">Representative model only. Exact GAFS-BL/GAFS-R platform, file layouts, tables, screens, reports, and JV rules require authoritative GAFS program or DFAS/DAF documentation.</text>
+    <text class="body" x="1108" y="131">Refs: DFAS and SAF/FM public mission pages, DoD FMR, Treasury GTAS/USSGL/G-Invoicing/IPAC reporting mechanics.</text>
+  </g>
+</svg>

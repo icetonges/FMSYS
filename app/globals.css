@@ -469,10 +469,12 @@ select:focus {
 
 .node-card.layer-source { background: var(--source); border-color: rgba(122, 81, 194, 0.28); }
 .node-card.layer-process { background: var(--process); border-color: rgba(19, 137, 90, 0.28); }
+.node-card.layer-base { background: var(--process); border-color: rgba(19, 137, 90, 0.28); }
 .node-card.layer-capabilities { background: var(--capabilities); border-color: rgba(19, 137, 90, 0.28); }
 .node-card.layer-oracle { background: var(--process); border-color: rgba(19, 137, 90, 0.28); }
 .node-card.layer-detail { background: var(--detail); border-color: rgba(22, 131, 155, 0.28); }
 .node-card.layer-transactions { background: var(--transactions); border-color: rgba(22, 131, 155, 0.28); }
+.node-card.layer-central { background: var(--transactions); border-color: rgba(22, 131, 155, 0.28); }
 .node-card.layer-accounting { background: var(--accounting); border-color: rgba(37, 91, 168, 0.28); }
 .node-card.layer-reporting { background: var(--reporting); border-color: rgba(108, 67, 183, 0.28); }
 .node-card.layer-statements { background: var(--statements); border-color: rgba(164, 85, 24, 0.28); }
