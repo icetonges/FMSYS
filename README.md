@@ -22,6 +22,8 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/public/navy-erp-blueprint-v2-hires.png`
 - DAI static reference asset:
   - `/public/dai-blueprint-reference.svg`
+- DAI verification notes:
+  - `/docs/DAI_BLUEPRINT_VERIFICATION.md`
 - Existing GFEBS static reference:
   - `/public/gfebs-blueprint-reference.png`
 

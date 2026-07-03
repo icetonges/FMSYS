@@ -557,7 +557,7 @@ const navyCaveats = [
 
 const daiLayers = [
   { id: 'source', label: 'Fourth Estate Source / Feeder Systems', short: 'Source', description: 'Agency, payroll, acquisition, travel, logistics, and partner systems where Defense Agency business events originate.' },
-  { id: 'oracle', label: 'DAI Oracle Financial Capabilities', short: 'Oracle', description: 'Oracle-based financial accounting capabilities used to validate, control, and account for Fourth Estate business activity.' },
+  { id: 'oracle', label: 'DAI Oracle EBS / Federal Financial Capabilities', short: 'Oracle', description: 'Oracle-based federal financial capabilities used to validate, control, account for, and report Fourth Estate business activity.' },
   { id: 'transactions', label: 'Detailed Transaction Objects', short: 'Detail', description: 'Document, subledger, and interface objects that preserve transaction-level evidence before summarization.' },
   { id: 'accounting', label: 'Accounting Layer', short: 'Accounting', description: 'SLA, subledger accounting, budgetary/proprietary accounting, and GL journal lines.' },
   { id: 'reporting', label: 'Reporting & Treasury Layer', short: 'Reporting', description: 'Operational reporting, DDRS, GTAS, Treasury, and external reporting outputs.' },
@@ -646,13 +646,13 @@ const daiNodes = [
   {
     id: 'budget',
     layer: 'oracle',
-    title: 'Budgetary Control',
-    subtitle: 'Funds control and budget execution',
+    title: 'Budget-to-Report / Budgetary Control',
+    subtitle: 'Funds control, budget execution, reporting',
     icon: 'BUD',
     tags: ['budget', 'funds control', 'obligation', 'SBR'],
-    summary: 'Controls budget authority, allotments, commitments, obligations, expenditures, and outlays for supported agencies.',
-    examples: ['Budget authority', 'Allotment', 'Commitment', 'Obligation', 'Expenditure', 'Outlay'],
-    auditQuestions: ['Can budgetary resources be traced from authority to outlay?', 'Are funds checks and overrides supportable?', 'Are open obligations valid?'],
+    summary: 'Controls and reports budget authority, allotments, commitments, obligations, expenditures, and outlays for supported agencies.',
+    examples: ['Budget authority', 'Allotment', 'Commitment', 'Obligation', 'Expenditure', 'Outlay', 'Trial-balance attribute support'],
+    auditQuestions: ['Can budgetary resources be traced from authority to outlay?', 'Are funds checks and overrides supportable?', 'Are open obligations valid?', 'Do budgetary attributes support SBR and GTAS reporting?'],
     keyFields: ['fund', 'TAS', 'budget object class', 'organization', 'program', 'project', 'amount'],
     risks: ['Over-obligation', 'Invalid accounting string', 'Stale ULO']
   },
@@ -660,19 +660,19 @@ const daiNodes = [
     id: 'procurement',
     layer: 'oracle',
     title: 'Procure-to-Pay',
-    subtitle: 'Purchasing, receiving, invoice, payment',
+    subtitle: 'Requisition, PO, receipt, invoice, payment',
     icon: 'P2P',
     tags: ['procure-to-pay', 'purchase order', 'receipt', 'invoice', 'payment'],
-    summary: 'Manages requisitions, purchase orders, receiving, invoices, matching, approvals, and payment-ready AP activity.',
-    examples: ['Requisition', 'Purchase order', 'Receipt', 'Invoice', 'Three-way match', 'Payment request'],
-    auditQuestions: ['Does every invoice trace to award, PO, and receipt or acceptance?', 'Do obligation and invoice amounts agree?', 'Are duplicate invoices prevented?'],
+    summary: 'Manages requisition demand, purchase orders and agreements, receiving, invoices, matching, approvals, and payment-ready AP activity.',
+    examples: ['Requisition demand', 'Purchase order', 'Agreement', 'Receipt', 'Invoice', 'Three-way match', 'Payment request'],
+    auditQuestions: ['Does every invoice trace to award, PO, and receipt or acceptance?', 'Do obligation and invoice amounts agree?', 'Are duplicate invoices prevented?', 'Do PO approval and invoice approval paths retain evidence?'],
     keyFields: ['requisition', 'PO number', 'PO line', 'invoice number', 'vendor', 'receipt', 'payment reference'],
     risks: ['Invoice without receipt', 'Duplicate invoice', 'PO/award mismatch']
   },
   {
     id: 'projects',
     layer: 'oracle',
-    title: 'Projects / Cost Accounting',
+    title: 'Project Costing / Cost Accounting',
     subtitle: 'Project, task, cost object, allocation',
     icon: 'PRJ',
     tags: ['project', 'cost', 'task', 'allocation'],
@@ -685,25 +685,25 @@ const daiNodes = [
   {
     id: 'receivables',
     layer: 'oracle',
-    title: 'Receivables / Reimbursables',
-    subtitle: 'Billing, AR, collections',
+    title: 'Order-to-Cash / Reimbursables',
+    subtitle: 'Agreements, billing, AR, collections',
     icon: 'AR',
     tags: ['AR', 'billing', 'collection', 'reimbursable'],
-    summary: 'Manages reimbursable agreements, customer billing, accounts receivable, collections, and debt activity.',
-    examples: ['Customer agreement', 'Invoice', 'AR open item', 'Collection', 'Write-off'],
-    auditQuestions: ['Are reimbursable orders billable and valid?', 'Do collections liquidate the right receivables?', 'Are aged receivables supportable?'],
+    summary: 'Manages reimbursable agreements, customer billing, accounts receivable, collections, debt activity, and trading-partner attributes.',
+    examples: ['Customer agreement', 'G-Invoicing order', 'Invoice', 'AR open item', 'Collection', 'Write-off'],
+    auditQuestions: ['Are reimbursable orders billable and valid?', 'Do collections liquidate the right receivables?', 'Are aged receivables supportable?', 'Do trading-partner attributes support GTAS eliminations?'],
     keyFields: ['customer', 'agreement', 'invoice', 'collection', 'trading partner', 'fund', 'aging bucket'],
     risks: ['Unbilled reimbursable work', 'Unapplied collection', 'Aged receivable']
   },
   {
     id: 'assets',
     layer: 'oracle',
-    title: 'Fixed Assets',
+    title: 'Acquire-to-Retire / Fixed Assets',
     subtitle: 'Capitalization, depreciation, retirement',
     icon: 'FA',
     tags: ['asset', 'fixed assets', 'depreciation', 'PP&E'],
-    summary: 'Maintains asset master records, capitalization, depreciation, transfers, retirements, and PP&E support.',
-    examples: ['Asset addition', 'Capitalization', 'Depreciation', 'Transfer', 'Retirement'],
+    summary: 'Maintains asset master records and supports the asset lifecycle from acquisition/capitalization through depreciation, transfer, retirement, and PP&E reporting.',
+    examples: ['Asset addition', 'Capitalization', 'Mass addition from AP', 'Depreciation', 'Transfer', 'Retirement'],
     auditQuestions: ['Do assets exist and are they complete?', 'Do asset additions trace to procurement or source events?', 'Does depreciation post correctly?'],
     keyFields: ['asset number', 'book', 'category', 'cost center', 'location', 'acquisition value', 'useful life'],
     risks: ['Asset not capitalized', 'Wrong useful life', 'Retired asset still active']
@@ -711,13 +711,13 @@ const daiNodes = [
   {
     id: 'payables-detail',
     layer: 'transactions',
-    title: 'AP Invoice Detail',
-    subtitle: 'Supplier invoice, match, approval, payment',
+    title: 'AP Invoice / Payment Detail',
+    subtitle: 'Supplier invoice, match, hold, approval, payment',
     icon: 'AP',
     tags: ['AP', 'invoice', 'payment', 'supplier'],
-    summary: 'Supplier-level detail explaining invoices, holds, approvals, accruals, and payment clearing.',
-    examples: ['Supplier invoice', 'Invoice hold', 'Payment', 'Accrual', 'Supplier site'],
-    auditQuestions: ['Does AP reconcile to GL?', 'Are invoices supported by PO and receipt?', 'Are payment holds resolved timely?'],
+    summary: 'Supplier-level detail explaining invoices, distributions, holds, approvals, accruals, payment-ready records, and payment clearing.',
+    examples: ['Supplier invoice', 'Invoice distribution', 'Invoice hold', 'Payment', 'Accrual', 'Supplier site'],
+    auditQuestions: ['Does AP reconcile to GL?', 'Are invoices supported by PO and receipt?', 'Are payment holds resolved timely?', 'Do invoice distributions retain accounting string and source-document support?'],
     keyFields: ['supplier', 'invoice number', 'invoice line', 'PO', 'receipt', 'payment ID', 'due date'],
     risks: ['Duplicate invoice', 'Unsupported accrual', 'AP/GL mismatch']
   },
@@ -780,11 +780,11 @@ const daiNodes = [
     subtitle: 'Oracle SLA accounting rules',
     icon: 'SLA',
     tags: ['SLA', 'subledger accounting', 'accounting rules'],
-    summary: 'Transforms subledger events into accounting entries using configured accounting rules and attributes.',
-    examples: ['AP accounting event', 'AR accounting event', 'Project accounting event', 'Asset accounting event'],
-    auditQuestions: ['Are accounting rules approved and current?', 'Do subledger events account completely?', 'Are exceptions resolved?'],
-    keyFields: ['event ID', 'ledger', 'accounting date', 'account combination', 'debit', 'credit', 'source'],
-    risks: ['Accounting rule error', 'Unaccounted event', 'Unsupported manual override']
+    summary: 'Transforms subledger accounting events into journal entries using configured accounting methods, journal line definitions, account derivation rules, and supporting references.',
+    examples: ['AP invoice validated event', 'Payment event', 'AR invoice or receipt event', 'Project cost event', 'Asset addition or depreciation event'],
+    auditQuestions: ['Are accounting rules approved and current?', 'Do subledger events account completely?', 'Are exceptions resolved?', 'Do supporting references preserve agency, project, trading partner, and document lineage?'],
+    keyFields: ['event ID', 'event class', 'ledger', 'accounting date', 'account combination', 'supporting reference', 'debit', 'credit', 'source'],
+    risks: ['Accounting rule error', 'Unaccounted event', 'Invalid account derivation', 'Unsupported manual override']
   },
   {
     id: 'budgetary-accounting',
@@ -819,11 +819,11 @@ const daiNodes = [
     subtitle: 'GL journal header and line',
     icon: 'GL',
     tags: ['GL', 'journal', 'trial balance', 'USSGL'],
-    summary: 'Official accounting journal lines where budgetary and proprietary activity lands for trial balance and reporting.',
-    examples: ['Journal header', 'Journal line', 'Manual journal', 'Subledger journal import', 'Period close'],
-    auditQuestions: ['Does every GL line have source support?', 'Do subledger journals reconcile to GL?', 'Can GL lines trace to statement lines?'],
-    keyFields: ['journal ID', 'journal line', 'ledger', 'accounting date', 'account combination', 'debit', 'credit'],
-    risks: ['Unsupported manual journal', 'Subledger-to-GL mismatch', 'Summary posting breaks lineage']
+    summary: 'Official accounting journal lines where budgetary and proprietary activity lands for trial balance, period close, and downstream reporting.',
+    examples: ['Journal header', 'Journal line', 'Manual journal', 'Subledger journal import', 'Period close', 'Trial balance extract'],
+    auditQuestions: ['Does every GL line have source support?', 'Do subledger journals reconcile to GL?', 'Can GL lines trace to statement lines?', 'Was subledger transfer performed at detail or summary level and is drillback retained?'],
+    keyFields: ['journal ID', 'journal line', 'ledger', 'accounting date', 'account combination', 'debit', 'credit', 'subledger link'],
+    risks: ['Unsupported manual journal', 'Subledger-to-GL mismatch', 'Summary posting breaks lineage', 'Closed-period adjustment without support']
   },
   {
     id: 'operational-reporting',
@@ -832,9 +832,9 @@ const daiNodes = [
     subtitle: 'Oracle reports, BI, extracts',
     icon: 'BI',
     tags: ['reporting', 'BI', 'extract', 'dashboard'],
-    summary: 'Provides operational reports, dashboards, data extracts, and management analytics for DAI activity.',
-    examples: ['Trial balance extract', 'AP aging', 'Open obligations', 'Project cost report', 'Interface error report'],
-    auditQuestions: ['Are report definitions documented?', 'Do extracts reconcile to source tables?', 'Are prompts and filters retained?'],
+    summary: 'Provides operational reports, dashboards, data extracts, and management analytics for DAI transaction populations and reconciliations.',
+    examples: ['Trial balance extract', 'AP aging', 'Open obligations', 'Project cost report', 'Interface error report', 'SLA-to-GL reconciliation'],
+    auditQuestions: ['Are report definitions documented?', 'Do extracts reconcile to source tables?', 'Are prompts and filters retained?', 'Are report totals tied to GL, subledger, and interface control totals?'],
     keyFields: ['report ID', 'extract date', 'selection criteria', 'source object', 'control total'],
     risks: ['Undocumented logic', 'Wrong population', 'Extract not reconciled']
   },
@@ -845,7 +845,7 @@ const daiNodes = [
     subtitle: 'Defense Departmental Reporting System',
     icon: 'DDRS',
     tags: ['DDRS', 'trial balance', 'financial reporting'],
-    summary: 'Receives trial-balance data and supports reporting edits, validations, adjustments, and financial reporting packages.',
+    summary: 'Receives DAI/GL trial-balance data and supports reporting edits, validations, adjustments, and financial reporting packages.',
     examples: ['Trial balance', 'Validation edit', 'Adjustment', 'Reporting package'],
     auditQuestions: ['Does DDRS reconcile to DAI GL?', 'Are adjustments approved?', 'Do attributes support reporting rules?'],
     keyFields: ['USSGL', 'fund/TAS', 'attribute', 'ending balance', 'adjustment ID', 'period'],
@@ -858,21 +858,21 @@ const daiNodes = [
     subtitle: 'Treasury adjusted trial balance',
     icon: 'GTAS',
     tags: ['GTAS', 'Treasury', 'adjusted trial balance'],
-    summary: 'Treasury reporting layer for adjusted trial balance, attributes, edits, eliminations, and reclassifications.',
+    summary: 'Treasury reporting layer where federal entities submit adjusted trial-balance data and supporting attributes for budget execution and proprietary reporting.',
     examples: ['GTAS ATB', 'Edit validation', 'Elimination', 'Reclassification'],
     auditQuestions: ['Do GTAS attributes align to USSGL and TAS?', 'Are edits resolved?', 'Are eliminations supported?'],
-    keyFields: ['USSGL', 'TAS', 'trading partner', 'BETC', 'attribute', 'amount', 'edit status'],
+    keyFields: ['USSGL', 'TAS', 'trading partner', 'BETC', 'attribute', 'amount', 'edit status', 'reporting period'],
     risks: ['GTAS edit failure', 'Trading partner mismatch', 'Unsupported elimination']
   },
   {
     id: 'external-reporting',
     layer: 'reporting',
-    title: 'External Reporting',
+    title: 'External Reporting / USSGL Crosswalks',
     subtitle: 'Crosswalks, notes, financial reports',
     icon: 'EXT',
     tags: ['external reporting', 'crosswalk', 'statements', 'notes'],
-    summary: 'Maps trial-balance amounts and attributes to financial statement lines, notes, and statutory reporting outputs.',
-    examples: ['USSGL crosswalk', 'Statement line', 'Note schedule', 'Agency reporting package'],
+    summary: 'Maps USSGL trial-balance amounts and attributes to financial statement lines, note schedules, and statutory reporting outputs.',
+    examples: ['USSGL crosswalk', 'Statement line', 'Note schedule', 'Agency reporting package', 'Schedule F / budget-accrual reconciliation support'],
     auditQuestions: ['Is crosswalk logic current?', 'Do statement lines reconcile to ATB?', 'Are notes tied to schedules?'],
     keyFields: ['statement line', 'USSGL', 'attribute', 'crosswalk rule', 'source balance'],
     risks: ['Wrong statement mapping', 'Incomplete note support', 'Crosswalk not updated']
@@ -940,12 +940,13 @@ const daiLineageScenarios = [
     path: ['contracting', 'piee', 'procurement', 'payables-detail', 'sla', 'gl', 'ddrs', 'gtas', 'balance-sheet', 'net-cost', 'sbr'],
     steps: [
       'Contract action and funding create award, modification, and line-item support.',
-      'DAI creates purchasing and budgetary control records.',
+      'DAI creates requisition, purchase order/agreement, distribution, and budgetary control records.',
       'PIEE/WAWF provides receipt, acceptance, and invoice evidence.',
-      'AP and SLA create accounting entries that import to GL.',
+      'AP validation, matching, holds, approvals, and payment-ready processing create accounting events for SLA.',
+      'SLA creates subledger journal entries and transfers supported accounting to GL.',
       'Trial balance, GTAS, and statement lines rely on supported AP, expense, asset, and outlay populations.'
     ],
-    exceptionTests: ['award without obligation', 'invoice without receipt or acceptance', 'SLA event not accounted', 'payment without AP support', 'PO amount mismatch']
+    exceptionTests: ['award without obligation', 'invoice without receipt or acceptance', 'SLA event not accounted', 'payment without AP support', 'PO amount mismatch', 'subledger-to-GL transfer mismatch']
   },
   {
     id: 'travel',
@@ -957,10 +958,10 @@ const daiLineageScenarios = [
       'DTS creates authorization and voucher with accounting string and approvals.',
       'DAI records or adjusts the obligation and budgetary status.',
       'Voucher approval and payment activity liquidate or adjust the obligation.',
-      'SLA and GL postings support expense, outlay, and trial-balance reporting.',
+      'SLA creates accounting from the approved travel/payment event and transfers it to GL.',
       'SBR and net-cost lines rely on valid travel populations and timing.'
     ],
-    exceptionTests: ['approved travel without obligation', 'voucher paid but obligation remains open', 'wrong accounting string', 'manual adjustment outside source flow', 'period mismatch']
+    exceptionTests: ['approved travel without obligation', 'voucher paid but obligation remains open', 'wrong accounting string', 'manual adjustment outside source flow', 'period mismatch', 'travel source total not reconciled to DAI']
   },
   {
     id: 'reimbursables',
@@ -969,13 +970,13 @@ const daiLineageScenarios = [
     description: 'Shows how reimbursable and intragovernmental activity flows through DAI receivables, collections, GL, GTAS, and notes.',
     path: ['g-invoicing', 'receivables', 'budget-detail', 'sla', 'proprietary-accounting', 'gl', 'ddrs', 'gtas', 'balance-sheet', 'net-cost', 'notes'],
     steps: [
-      'Agreement or customer order establishes reimbursable authority.',
-      'DAI records billable activity, invoice, and AR detail.',
-      'Collections liquidate receivables and support FBwT reconciliation.',
-      'Trading partner attributes support GTAS and eliminations.',
-      'Notes and statement lines tie to AR, revenue, collections, and trading-partner schedules.'
+      'G-Invoicing agreement/order or customer order establishes reimbursable authority and trading-partner context.',
+      'DAI records reimbursable authority, billable activity, invoice, and AR detail.',
+      'Collections, including IPAC where applicable, liquidate receivables and support FBwT reconciliation.',
+      'SLA and GL postings preserve customer, project, fund, and trading-partner attributes.',
+      'GTAS, notes, and statement lines tie to AR, revenue, collections, and trading-partner schedules.'
     ],
-    exceptionTests: ['unbilled reimbursable work', 'aged AR', 'collection not applied', 'trading partner mismatch', 'buyer/seller disagreement']
+    exceptionTests: ['unbilled reimbursable work', 'aged AR', 'collection not applied', 'trading partner mismatch', 'buyer/seller disagreement', 'G-Invoicing order not reconciled to DAI billing']
   },
   {
     id: 'payroll-cost',
@@ -985,7 +986,7 @@ const daiLineageScenarios = [
     path: ['dcps', 'projects', 'project-detail', 'sla', 'proprietary-accounting', 'gl', 'ddrs', 'gtas', 'net-cost', 'balance-sheet'],
     steps: [
       'Payroll source provides pay, benefits, labor, and organization detail.',
-      'DAI maps costs to project, task, organization, program, and funding structures.',
+      'DAI maps payroll and labor distribution to project, task, organization, program, and funding structures.',
       'Project and cost detail support management reporting and allocations.',
       'SLA and GL record expense, liability, and clearing activity.',
       'Net-cost and balance-sheet lines rely on complete population and valid assignment.'
@@ -999,13 +1000,13 @@ const daiLineageScenarios = [
     description: 'Shows how asset events flow from agency or procurement sources into DAI fixed assets, accounting, GL, and PP&E reporting.',
     path: ['agency-systems', 'piee', 'assets', 'asset-detail', 'sla', 'proprietary-accounting', 'gl', 'ddrs', 'gtas', 'balance-sheet', 'notes'],
     steps: [
-      'Asset purchase or agency source event provides receiving and capitalization evidence.',
-      'DAI creates or updates asset master and asset transaction detail.',
+      'Asset purchase, AP invoice distribution, or agency source event provides receiving and capitalization evidence.',
+      'DAI creates mass additions or asset records and updates asset transaction detail.',
       'Capitalization, depreciation, transfers, and retirements create accounting events.',
-      'GL and trial balance support PP&E balances.',
+      'SLA and GL postings support PP&E balances, depreciation expense, gains/losses, and retirements.',
       'Notes and schedules support existence, completeness, valuation, and disclosure.'
     ],
-    exceptionTests: ['asset received but not capitalized', 'retired asset still active', 'asset ledger not reconciled to GL', 'wrong useful life', 'missing physical evidence']
+    exceptionTests: ['asset received but not capitalized', 'AP distribution not sent to assets', 'retired asset still active', 'asset ledger not reconciled to GL', 'wrong useful life', 'missing physical evidence']
   }
 ];
 
@@ -1101,8 +1102,11 @@ export const systems = [
     supportServices: daiSupportServices,
     caveats: daiCaveats,
     sources: [
-      { name: 'Fourth Estate overview', url: 'https://en.wikipedia.org/wiki/Fourth_Estate_(Department_of_Defense)' },
-      { name: 'DoD organization overview', url: 'https://en.wikipedia.org/wiki/United_States_Department_of_Defense' }
+      { name: 'Oracle Purchasing buyer work center', url: 'https://docs.oracle.com/cd/E26401_01/doc.122/e48931/T446883T443956.htm' },
+      { name: 'Oracle Subledger Accounting event model', url: 'https://docs.oracle.com/cd/E18727_01/doc.121/e13628/T149412T149415.htm' },
+      { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+      { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
+      { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
     ]
   }
 ];

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1080" viewBox="0 0 1800 1080" role="img" aria-labelledby="title desc">
-  <title id="title">Defense Agencies Initiative Oracle-based financial accounting architecture blueprint</title>
-  <desc id="desc">Static six-layer DAI blueprint from Fourth Estate source systems through Oracle financial capabilities, transaction detail, subledger accounting, reporting, and financial statements.</desc>
+  <title id="title">Defense Agencies Initiative Oracle EBS and Federal Financials architecture blueprint</title>
+  <desc id="desc">Static six-layer DAI blueprint from Fourth Estate source systems through Oracle EBS federal financial capabilities, transaction detail, subledger accounting, reporting, and financial statements.</desc>
   <defs>
     <linearGradient id="hero" x1="0" x2="1" y1="0" y2="1">
       <stop offset="0" stop-color="#071c38"/>
@@ -15,7 +15,7 @@
   <rect width="1800" height="1080" fill="#f4f7fb"/>
   <rect x="42" y="36" width="1716" height="178" rx="30" fill="url(#hero)" filter="url(#shadow)"/>
   <text x="82" y="100" fill="#b9d7ff" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="800" letter-spacing="5">FOURTH ESTATE FINANCIAL MANAGEMENT</text>
-  <text x="82" y="162" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-size="58" font-weight="900">Defense Agencies Initiative / Oracle Financial Accounting Blueprint</text>
+  <text x="82" y="162" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-size="58" font-weight="900">Defense Agencies Initiative / Oracle EBS Financial Accounting Blueprint</text>
   <text x="82" y="198" fill="#dbeaff" font-family="Inter, Arial, sans-serif" font-size="24">Representative public-information model for audit readiness, UoT traceability, and source-to-statement navigation.</text>
 
   <g transform="translate(42 258)" filter="url(#shadow)">
@@ -37,14 +37,14 @@
 
       <g transform="translate(306 24)">
         <rect width="254" height="512" rx="18" fill="#e7f4ef" stroke="#13895a"/>
-        <text x="18" y="42" fill="#075a3a" font-size="22" font-weight="900">2. Oracle Financials</text>
+        <text x="18" y="42" fill="#075a3a" font-size="22" font-weight="900">2. Oracle EBS / Federal</text>
         <text x="18" y="75" fill="#3e6656" font-size="16">DAI core capabilities</text>
         <g fill="#ffffff" stroke="#b7dfcf" font-size="18" font-weight="800">
-          <rect x="18" y="108" width="218" height="52" rx="13"/><text x="34" y="141" fill="#172033">Budgetary control</text>
+          <rect x="18" y="108" width="218" height="52" rx="13"/><text x="34" y="141" fill="#172033">Budget-to-report</text>
           <rect x="18" y="174" width="218" height="52" rx="13"/><text x="34" y="207" fill="#172033">Procure-to-pay</text>
-          <rect x="18" y="240" width="218" height="52" rx="13"/><text x="34" y="273" fill="#172033">Projects / cost acct</text>
-          <rect x="18" y="306" width="218" height="52" rx="13"/><text x="34" y="339" fill="#172033">Receivables</text>
-          <rect x="18" y="372" width="218" height="52" rx="13"/><text x="34" y="405" fill="#172033">Fixed assets</text>
+          <rect x="18" y="240" width="218" height="52" rx="13"/><text x="34" y="273" fill="#172033">Project costing</text>
+          <rect x="18" y="306" width="218" height="52" rx="13"/><text x="34" y="339" fill="#172033">Order-to-cash / AR</text>
+          <rect x="18" y="372" width="218" height="52" rx="13"/><text x="34" y="405" fill="#172033">Acquire-to-retire</text>
         </g>
       </g>
 
@@ -53,7 +53,7 @@
         <text x="18" y="42" fill="#0d5a6a" font-size="22" font-weight="900">3. Detail Objects</text>
         <text x="18" y="75" fill="#45656b" font-size="16">Transaction evidence</text>
         <g fill="#ffffff" stroke="#b9dee6" font-size="18" font-weight="800">
-          <rect x="18" y="108" width="218" height="52" rx="13"/><text x="34" y="141" fill="#172033">AP invoice detail</text>
+          <rect x="18" y="108" width="218" height="52" rx="13"/><text x="34" y="141" fill="#172033">AP invoice/payment</text>
           <rect x="18" y="174" width="218" height="52" rx="13"/><text x="34" y="207" fill="#172033">Budgetary detail</text>
           <rect x="18" y="240" width="218" height="52" rx="13"/><text x="34" y="273" fill="#172033">Project / cost detail</text>
           <rect x="18" y="306" width="218" height="52" rx="13"/><text x="34" y="339" fill="#172033">Asset detail</text>
@@ -81,7 +81,7 @@
           <rect x="18" y="126" width="218" height="58" rx="13"/><text x="34" y="162" fill="#172033">Operational reports</text>
           <rect x="18" y="210" width="218" height="58" rx="13"/><text x="34" y="246" fill="#172033">DDRS</text>
           <rect x="18" y="294" width="218" height="58" rx="13"/><text x="34" y="330" fill="#172033">GTAS</text>
-          <rect x="18" y="378" width="218" height="58" rx="13"/><text x="34" y="414" fill="#172033">External reporting</text>
+          <rect x="18" y="378" width="218" height="58" rx="13"/><text x="34" y="414" fill="#172033">USSGL crosswalks</text>
         </g>
       </g>
 
@@ -112,6 +112,6 @@
     <rect width="1716" height="166" rx="24" fill="#ffffff" stroke="#d7e0ee" filter="url(#shadow)"/>
     <text x="28" y="48" fill="#2f65b7" font-size="20" font-weight="900" letter-spacing="3">UOT LINEAGE CHECKPOINTS</text>
     <text x="28" y="92" fill="#172033" font-size="30" font-weight="900">Business event -> Source transaction -> Interface control -> Subledger event -> SLA accounting -> GL journal -> Trial balance -> Statement line</text>
-    <text x="28" y="133" fill="#667085" font-size="21">Representative model only. Exact DAI configuration, ledgers, interfaces, reports, and Oracle objects vary by supported Defense Agency and authoritative program data.</text>
+    <text x="28" y="133" fill="#667085" font-size="21">Representative model only. Exact DAI modules, ledgers, interfaces, reports, and Oracle objects vary by supported Defense Agency and authoritative program data.</text>
   </g>
 </svg>
