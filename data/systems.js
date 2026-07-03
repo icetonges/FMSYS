@@ -3950,6 +3950,417 @@ const lmpSources = [
   { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
 ];
 
+const starsLayers = [
+  { id: 'source', label: 'Legacy Source / Interface Events', short: 'Source', description: 'Field activity, vendor pay, travel, payroll, disbursing, collections, Navy ERP transition, and reporting partner events tied to legacy STARS accounting.' },
+  { id: 'base', label: 'STARS Family Processing', short: 'STARS', description: 'Legacy Navy Standard Accounting and Reporting System processing for field-level accounting, central consolidation, suspense, edits, and close support.' },
+  { id: 'detail', label: 'Legacy Transaction Detail', short: 'Detail', description: 'Document, obligation, expenditure, JV, suspense, archive, and migration detail needed to reconstruct the legacy Universe of Transactions.' },
+  { id: 'accounting', label: 'Accounting and Control Layer', short: 'Accounting', description: 'Budgetary, proprietary, JV, suspense, trial-balance, and Navy ERP transition controls.' },
+  { id: 'reporting', label: 'Reporting and Reconciliation', short: 'Reporting', description: 'Legacy reports, trial balances, DDRS/GTAS support, crosswalks, tie-outs, archive extracts, and audit packages.' },
+  { id: 'statements', label: 'DON / DoD Statement Support', short: 'Statements', description: 'Budgetary resources, net cost, balance-sheet, note, ULO, suspense, and transition assertions supported by STARS history.' }
+];
+
+const starsNodes = [
+  {
+    id: 'stars-field-source',
+    layer: 'source',
+    title: 'Field Activity Inputs',
+    subtitle: 'Legacy command/accounting events',
+    icon: 'FLD',
+    tags: ['field', 'command', 'obligation', 'expense'],
+    summary: 'Represents command-level and field-level obligations, expenses, adjustments, collections, reimbursements, and status events captured in legacy STARS processing.',
+    examples: ['Obligation input', 'Expense update', 'Collection record', 'Status correction'],
+    auditQuestions: ['Can each field input trace to source authority?', 'Are accounting classification elements complete?', 'Are rejected or corrected records retained?'],
+    keyFields: ['document number', 'fund', 'organization', 'object class', 'program element', 'amount', 'effective date'],
+    risks: ['Unsupported field posting', 'Invalid accounting classification', 'Correction not tied to original transaction']
+  },
+  {
+    id: 'stars-vendor-pay-source',
+    layer: 'source',
+    title: 'Vendor Pay / Contract Sources',
+    subtitle: 'Award, receipt, invoice, payment support',
+    icon: 'P2P',
+    tags: ['vendor', 'contract', 'invoice', 'payment'],
+    summary: 'Captures contract, vendor pay, receipt, acceptance, invoice, disbursement, and liquidation activity that historically affected STARS obligations and expenditures.',
+    examples: ['Contract award', 'Invoice', 'Receiving report', 'Payment', 'Liquidation'],
+    auditQuestions: ['Does every payment tie to obligation and receipt/acceptance support?', 'Are partial liquidations traceable?', 'Are unmatched disbursements resolved?'],
+    keyFields: ['PIID', 'CLIN', 'invoice', 'payment voucher', 'vendor', 'obligation document', 'amount'],
+    risks: ['Payment lacks receipt support', 'Unmatched disbursement', 'Obligation not liquidated correctly']
+  },
+  {
+    id: 'stars-payroll-travel-source',
+    layer: 'source',
+    title: 'Payroll / Labor / Travel',
+    subtitle: 'Personnel cost and entitlement feeds',
+    icon: 'PAY',
+    tags: ['payroll', 'labor', 'travel', 'dts'],
+    summary: 'Represents payroll, labor, travel authorization/voucher, entitlement, and accrual events that require legacy accounting and reporting support.',
+    examples: ['Civilian payroll', 'Labor distribution', 'Travel voucher', 'Travel obligation', 'Accrual'],
+    auditQuestions: ['Do labor and travel costs trace to approved source populations?', 'Are accruals complete?', 'Are stale travel obligations reviewed?'],
+    keyFields: ['employee/traveler ID', 'pay period', 'authorization/voucher', 'LOA', 'amount', 'period'],
+    risks: ['Unsupported labor population', 'Travel obligation not cleared', 'Cutoff/accrual error']
+  },
+  {
+    id: 'stars-disbursing-source',
+    layer: 'source',
+    title: 'Disbursing / Treasury / IPAC',
+    subtitle: 'Payments, collections, and intragovernmental settlement',
+    icon: 'DSB',
+    tags: ['disbursing', 'collections', 'ipac', 'treasury'],
+    summary: 'Provides payment, collection, IPAC, and Treasury-related activity that must reconcile to legacy accounting, reporting, and fund balance support.',
+    examples: ['Disbursement', 'Collection', 'IPAC settlement', 'Treasury confirmation'],
+    auditQuestions: ['Do disbursements and collections tie to accounting documents?', 'Are IPAC/trading partner attributes complete?', 'Are unreconciled items aged and resolved?'],
+    keyFields: ['voucher', 'disbursing station', 'TAS', 'BETC', 'trading partner', 'amount', 'date'],
+    risks: ['Fund balance reconciliation break', 'Trading partner mismatch', 'Unmatched payment/collection']
+  },
+  {
+    id: 'stars-navy-erp-transition',
+    layer: 'source',
+    title: 'Navy ERP / Archive Transition Partner',
+    subtitle: 'Migration, bridge, and historical lookup',
+    icon: 'ERP',
+    tags: ['navy erp', 'migration', 'archive', 'transition'],
+    summary: 'Represents the modern Navy ERP, archive, data conversion, and reconciliation relationship used when legacy STARS balances or transactions must support current reporting or audit.',
+    examples: ['Beginning balance bridge', 'Legacy transaction lookup', 'Archive extract', 'Migration reconciliation'],
+    auditQuestions: ['Can migrated balances trace to legacy STARS detail?', 'Are archived records complete?', 'Are conversion adjustments approved and explained?'],
+    keyFields: ['legacy document', 'converted document', 'fund', 'USSGL', 'balance amount', 'conversion batch', 'period'],
+    risks: ['Migration break', 'Archive extract incomplete', 'Legacy balance unsupported']
+  },
+  {
+    id: 'stars-fl',
+    layer: 'base',
+    title: 'STARS-FL / Field-Level Accounting',
+    subtitle: 'Legacy field processing and control',
+    icon: 'FL',
+    tags: ['stars-fl', 'field level', 'legacy accounting'],
+    summary: 'Models field-level STARS accounting controls for transaction intake, edits, document status, classification, obligation/expenditure processing, and local reporting.',
+    examples: ['Field accounting edit', 'Document status update', 'Local report', 'Reject correction'],
+    auditQuestions: ['Are field transactions complete and valid?', 'Are local corrections authorized?', 'Can field records trace to central reporting?'],
+    keyFields: ['document number', 'fund code', 'organization', 'object class', 'transaction code', 'amount', 'status'],
+    risks: ['Field-to-central reconciliation failure', 'Invalid accounting classification', 'Local correction lacks evidence']
+  },
+  {
+    id: 'stars-central',
+    layer: 'base',
+    title: 'STARS Central / Consolidation',
+    subtitle: 'Edit, summarize, consolidate, report',
+    icon: 'CTR',
+    tags: ['central', 'consolidation', 'trial balance', 'reporting'],
+    summary: 'Models central STARS processing that consolidated field activity, applied edits, summarized balances, and supported trial-balance or external reporting outputs.',
+    examples: ['Central edit', 'Summary balance', 'Trial balance feed', 'Report extract'],
+    auditQuestions: ['Do central summaries reconcile to field/detail populations?', 'Are edits and rejects resolved?', 'Are crosswalks governed?'],
+    keyFields: ['summary account', 'fund', 'USSGL/crosswalk', 'period', 'amount', 'batch', 'reject code'],
+    risks: ['Summary lacks detail support', 'Crosswalk error', 'Rejects remain in suspense']
+  },
+  {
+    id: 'stars-suspense-processing',
+    layer: 'base',
+    title: 'Suspense / Reject Processing',
+    subtitle: 'Unmatched, invalid, and exception records',
+    icon: 'SUS',
+    tags: ['suspense', 'reject', 'exception', 'unmatched'],
+    summary: 'Tracks transactions that fail edits, lack matching detail, contain invalid accounting, or require research before posting, clearing, or reporting.',
+    examples: ['Rejected record', 'Unmatched disbursement', 'Invalid LOA', 'Suspense clearing'],
+    auditQuestions: ['Are suspense balances aged and owned?', 'Can clearing entries trace to root cause?', 'Are invalid accounting records corrected timely?'],
+    keyFields: ['reject code', 'suspense account', 'source document', 'amount', 'age', 'owner', 'clearing document'],
+    risks: ['Aged suspense', 'Clearing unsupported', 'Statement balances include invalid items']
+  },
+  {
+    id: 'stars-close-processing',
+    layer: 'base',
+    title: 'Legacy Close Processing',
+    subtitle: 'Period close, balances, and historical reporting',
+    icon: 'CLS',
+    tags: ['close', 'trial balance', 'legacy', 'period'],
+    summary: 'Supports period-end close, balance roll-forward, trial-balance preparation, adjustment review, archive retention, and transition reporting.',
+    examples: ['Period close', 'Balance roll-forward', 'Trial balance extract', 'Archive package'],
+    auditQuestions: ['Are opening and ending balances reconciled?', 'Are close adjustments supported?', 'Can historic reports be reproduced?'],
+    keyFields: ['period', 'fund', 'account', 'beginning balance', 'activity', 'ending balance', 'adjustment'],
+    risks: ['Balance roll-forward break', 'Unsupported close adjustment', 'Historic report cannot be reproduced']
+  },
+  {
+    id: 'stars-document-detail',
+    layer: 'detail',
+    title: 'Legacy Document Detail',
+    subtitle: 'Document number, fund, org, object class, amount',
+    icon: 'DOC',
+    tags: ['document', 'uott', 'detail', 'classification'],
+    summary: 'Preserves document-level accounting identity, classification, amount, date, status, and lineage needed for legacy transaction sampling.',
+    examples: ['Accounting document', 'Funding line', 'Status update', 'Correction record'],
+    auditQuestions: ['Is the UoT complete at document level?', 'Can corrections trace to original records?', 'Are required classification fields populated?'],
+    keyFields: ['document number', 'fund', 'organization', 'object class', 'transaction code', 'amount', 'status'],
+    risks: ['Incomplete UoT', 'Missing accounting attributes', 'Correction breaks lineage']
+  },
+  {
+    id: 'stars-obligation-detail',
+    layer: 'detail',
+    title: 'Obligation / ULO Detail',
+    subtitle: 'Commitment, obligation, expenditure, deobligation',
+    icon: 'ULO',
+    tags: ['obligation', 'ulo', 'sbr', 'deobligation'],
+    summary: 'Maintains obligation history, changes, liquidations, deobligations, aging, and support needed for SBR and ULO review.',
+    examples: ['Obligation', 'Modification', 'Liquidation', 'Deobligation', 'ULO review'],
+    auditQuestions: ['Are open obligations valid and supportable?', 'Do modifications reconcile to obligation changes?', 'Are deobligations timely and approved?'],
+    keyFields: ['obligation document', 'PIID', 'fund', 'amount', 'liquidated amount', 'open balance', 'age'],
+    risks: ['Unsupported ULO', 'Stale obligation', 'Incorrect liquidation']
+  },
+  {
+    id: 'stars-expenditure-detail',
+    layer: 'detail',
+    title: 'Expenditure / Collection Detail',
+    subtitle: 'Payment, collection, liquidation, disbursing trail',
+    icon: 'EXP',
+    tags: ['expenditure', 'collection', 'outlay', 'disbursing'],
+    summary: 'Preserves payment, collection, disbursing, IPAC, liquidation, and outlay detail tied to budgetary and proprietary accounting.',
+    examples: ['Payment voucher', 'Collection', 'IPAC', 'Liquidation', 'Outlay'],
+    auditQuestions: ['Do expenditures tie to valid obligations?', 'Are collections applied correctly?', 'Do outlays reconcile to Treasury support?'],
+    keyFields: ['voucher', 'disbursing office', 'TAS', 'BETC', 'document number', 'amount', 'date'],
+    risks: ['Unmatched disbursement', 'Collection misapplied', 'FBWT tie-out issue']
+  },
+  {
+    id: 'stars-jv-detail',
+    layer: 'detail',
+    title: 'Journal Voucher Package',
+    subtitle: 'Correction, accrual, reclass, reversal evidence',
+    icon: 'JV',
+    tags: ['journal voucher', 'manual adjustment', 'accrual', 'reversal'],
+    summary: 'Captures manual adjustment support, preparer/reviewer/approver evidence, debit/credit lines, source cause, posting, and reversal tracking.',
+    examples: ['Correction JV', 'Accrual JV', 'Reclass', 'Reversal', 'Approval package'],
+    auditQuestions: ['Is the JV supported by source evidence?', 'Are preparer/reviewer/approver duties separated?', 'Was reversal tracked where required?'],
+    keyFields: ['JV number', 'source document', 'USSGL', 'debit', 'credit', 'approver', 'reversal date'],
+    risks: ['Unsupported manual adjustment', 'Segregation-of-duties weakness', 'Reversal omitted']
+  },
+  {
+    id: 'stars-archive-detail',
+    layer: 'detail',
+    title: 'Archive / Migration Extract',
+    subtitle: 'Legacy lookup, conversion, and audit population',
+    icon: 'ARC',
+    tags: ['archive', 'migration', 'extract', 'audit'],
+    summary: 'Maintains historical transaction and balance extracts used for audit support, Navy ERP transition, legacy reconciliation, and sample response.',
+    examples: ['Archive UoT', 'Balance conversion extract', 'Legacy lookup', 'Sample response'],
+    auditQuestions: ['Is the archive population complete?', 'Can extracts be reproduced?', 'Do converted balances tie to legacy detail?'],
+    keyFields: ['extract ID', 'legacy document', 'fund', 'period', 'account', 'amount', 'conversion batch'],
+    risks: ['Archive incomplete', 'Conversion not reconcilable', 'Legacy sample unsupported']
+  },
+  {
+    id: 'stars-budgetary-control',
+    layer: 'accounting',
+    title: 'Budgetary Accounting Control',
+    subtitle: 'Authority, commitments, obligations, expenditures, outlays',
+    icon: 'BUD',
+    tags: ['budgetary', 'sbr', 'obligation', 'outlay'],
+    summary: 'Controls budgetary activity from authority and obligation through expenditure, outlay, ULO, cancellation, and reporting support.',
+    examples: ['Budget authority', 'Commitment', 'Obligation', 'Expenditure', 'Outlay'],
+    auditQuestions: ['Do budgetary balances tie to supported detail?', 'Are ULOs valid?', 'Are outlays recorded in the proper period?'],
+    keyFields: ['TAS', 'fund', 'USSGL/crosswalk', 'document', 'amount', 'period'],
+    risks: ['SBR misstatement', 'Unsupported ULO', 'Cutoff error']
+  },
+  {
+    id: 'stars-proprietary-control',
+    layer: 'accounting',
+    title: 'Proprietary Accounting Control',
+    subtitle: 'Expense, AP, AR, assets, FBWT support',
+    icon: 'PROP',
+    tags: ['proprietary', 'expense', 'ap', 'ar'],
+    summary: 'Supports proprietary effects for expenses, payables, receivables, collections, assets, and fund balance with Treasury where reflected in legacy reporting.',
+    examples: ['Expense posting', 'AP balance', 'AR balance', 'FBWT support'],
+    auditQuestions: ['Do proprietary postings reconcile to budgetary/source detail?', 'Are AP/AR balances aged and supportable?', 'Does FBWT reconcile?'],
+    keyFields: ['USSGL/crosswalk', 'document', 'vendor/customer', 'TAS', 'amount', 'period'],
+    risks: ['Budgetary/proprietary mismatch', 'Unsupported AP/AR', 'FBWT reconciliation break']
+  },
+  {
+    id: 'stars-jv-control',
+    layer: 'accounting',
+    title: 'JV / Adjustment Controls',
+    subtitle: 'Approval, evidence, posting, reversal, reporting impact',
+    icon: 'ADJ',
+    tags: ['jv', 'adjustment', 'approval', 'close'],
+    summary: 'Controls manual accounting entries, close adjustments, accruals, corrections, reversals, and reclasses to prevent unsupported statement impact.',
+    examples: ['Accrual', 'Correction', 'Reclassification', 'Reversal', 'Close entry'],
+    auditQuestions: ['Does every adjustment have source cause and support?', 'Was approval completed before posting?', 'Are recurring/reversing entries tracked?'],
+    keyFields: ['JV number', 'preparer', 'reviewer', 'approver', 'USSGL', 'amount', 'reversal flag'],
+    risks: ['Manual override of source system', 'Unsupported close entry', 'Missing reversal']
+  },
+  {
+    id: 'stars-navy-erp-bridge',
+    layer: 'accounting',
+    title: 'Navy ERP Transition Bridge',
+    subtitle: 'Legacy balance and transaction tie-out',
+    icon: 'BRG',
+    tags: ['navy erp', 'transition', 'bridge', 'reconciliation'],
+    summary: 'Links legacy STARS transactions and balances to Navy ERP conversion, beginning balances, archive evidence, and ongoing audit-support inquiries.',
+    examples: ['Balance bridge', 'Conversion adjustment', 'Legacy-to-ERP tie-out', 'Archive support'],
+    auditQuestions: ['Do converted balances reconcile to STARS detail?', 'Are conversion adjustments approved?', 'Can legacy source records be retrieved?'],
+    keyFields: ['legacy account', 'ERP account', 'fund', 'period', 'amount', 'conversion batch', 'adjustment ID'],
+    risks: ['Beginning balance unsupported', 'Conversion adjustment unexplained', 'Legacy lookup gap']
+  },
+  {
+    id: 'stars-trial-balance',
+    layer: 'reporting',
+    title: 'Trial Balance / Legacy Reports',
+    subtitle: 'Summarized balances and close outputs',
+    icon: 'TB',
+    tags: ['trial balance', 'reports', 'close', 'legacy'],
+    summary: 'Produces or supports legacy trial balances, summary reports, close packages, management reports, and reconciliation extracts.',
+    examples: ['Trial balance', 'Fund report', 'Close report', 'Balance extract'],
+    auditQuestions: ['Do reports reconcile to transaction detail?', 'Are report parameters documented?', 'Can historic reports be reproduced?'],
+    keyFields: ['report ID', 'period', 'fund', 'account', 'beginning balance', 'activity', 'ending balance'],
+    risks: ['Report not reproducible', 'Summary not tied to detail', 'Parameter/filter ambiguity']
+  },
+  {
+    id: 'stars-ddrs-gtas',
+    layer: 'reporting',
+    title: 'DDRS / GTAS / Treasury Support',
+    subtitle: 'External financial reporting path',
+    icon: 'GTAS',
+    tags: ['ddrs', 'gtas', 'treasury', 'ussgl'],
+    summary: 'Supports DoD and Treasury reporting through trial-balance crosswalks, TAS/USSGL attributes, DDRS, GTAS, IPAC, and reconciliation support.',
+    examples: ['DDRS feed', 'GTAS crosswalk', 'USSGL mapping', 'Treasury tie-out'],
+    auditQuestions: ['Are TAS and USSGL attributes complete?', 'Do DDRS/GTAS values reconcile to trial balance?', 'Are crosswalks governed?'],
+    keyFields: ['TAS', 'USSGL', 'fund', 'period', 'amount', 'statement line', 'trading partner'],
+    risks: ['Crosswalk error', 'TAS/USSGL mismatch', 'Unsupported Treasury reporting amount']
+  },
+  {
+    id: 'stars-audit-package',
+    layer: 'reporting',
+    title: 'Audit / Archive Package',
+    subtitle: 'Sample support and historical evidence',
+    icon: 'AUD',
+    tags: ['audit', 'archive', 'evidence', 'sample'],
+    summary: 'Assembles source documents, transaction extracts, approvals, JVs, suspense research, trial balances, and conversion tie-outs for audit support.',
+    examples: ['Sample package', 'Archive extract', 'Suspense aging', 'Conversion tie-out'],
+    auditQuestions: ['Can evidence be retrieved for the sampled item?', 'Is the UoT extract complete?', 'Does support cover source, accounting, and reporting?'],
+    keyFields: ['sample ID', 'legacy document', 'archive extract', 'report line', 'evidence link', 'reconciliation ID'],
+    risks: ['Evidence unavailable', 'Archive incomplete', 'Sample cannot be tied to report']
+  },
+  {
+    id: 'stars-sbr',
+    layer: 'statements',
+    title: 'Statement of Budgetary Resources',
+    subtitle: 'Authority, obligations, expenditures, outlays, ULOs',
+    icon: 'SBR',
+    tags: ['sbr', 'budgetary', 'ulo', 'outlay'],
+    summary: 'Supports SBR assertions for legacy budget authority, obligations, delivered orders, expenditures, outlays, recoveries, and ULO review.',
+    examples: ['Obligation support', 'ULO aging', 'Outlay support', 'Deobligation'],
+    auditQuestions: ['Are budgetary amounts complete and valid?', 'Are ULOs supported?', 'Do outlays tie to Treasury/disbursing evidence?'],
+    keyFields: ['TAS', 'fund', 'USSGL/crosswalk', 'document', 'obligation amount', 'outlay amount'],
+    risks: ['Unsupported ULO', 'Outlay mismatch', 'Budgetary classification error']
+  },
+  {
+    id: 'stars-net-cost',
+    layer: 'statements',
+    title: 'Net Cost / Balance Sheet Support',
+    subtitle: 'Expense, AP, AR, assets, FBWT impacts',
+    icon: 'NCT',
+    tags: ['net cost', 'balance sheet', 'expense', 'fbwt'],
+    summary: 'Connects legacy expenses, accruals, AP, AR, assets, collections, and fund-balance activity to net cost and balance-sheet support.',
+    examples: ['Expense support', 'AP/AR aging', 'FBWT tie-out', 'Accrual support'],
+    auditQuestions: ['Can expenses trace to supported events?', 'Are AP/AR balances supportable?', 'Does FBWT reconcile to Treasury?'],
+    keyFields: ['USSGL/crosswalk', 'document', 'vendor/customer', 'TAS', 'amount', 'period'],
+    risks: ['Expense unsupported', 'AP/AR aging weakness', 'FBWT unreconciled']
+  },
+  {
+    id: 'stars-notes-transition',
+    layer: 'statements',
+    title: 'Notes / Suspense / Transition Assertions',
+    subtitle: 'Disclosure, archive, conversion, and legacy cleanup',
+    icon: 'NTE',
+    tags: ['notes', 'suspense', 'transition', 'disclosure'],
+    summary: 'Supports note schedules, suspense disclosure, legacy cleanup, archive reliance, transition adjustments, and beginning balance support.',
+    examples: ['Suspense note', 'Transition schedule', 'Legacy cleanup list', 'Beginning balance support'],
+    auditQuestions: ['Are note schedules tied to controlled populations?', 'Are suspense and cleanup actions aged and governed?', 'Can beginning balances trace to legacy support?'],
+    keyFields: ['schedule ID', 'legacy document', 'suspense account', 'conversion batch', 'amount', 'owner', 'status'],
+    risks: ['Unsupported note schedule', 'Aged suspense not resolved', 'Beginning balance gap']
+  }
+];
+
+const starsLineageScenarios = [
+  {
+    id: 'stars-obligation-to-sbr',
+    short: 'obligation',
+    title: 'Legacy Obligation to SBR and ULO Review',
+    description: 'Traces a STARS obligation from field or vendor source through field/central processing, obligation detail, budgetary control, reporting, and SBR support.',
+    path: ['stars-field-source', 'stars-fl', 'stars-obligation-detail', 'stars-budgetary-control', 'stars-trial-balance', 'stars-sbr'],
+    steps: [
+      'A field activity or contract source creates an obligation with document, fund, organization, object class, and amount.',
+      'STARS field-level processing edits the transaction and passes supported activity toward central consolidation.',
+      'Obligation detail preserves changes, liquidations, deobligations, and open balance aging.',
+      'Budgetary controls classify the activity for authority, obligations, expenditures, outlays, and ULO review.',
+      'Trial balance and SBR support trace reported amounts back to the legacy obligation population.'
+    ],
+    exceptionTests: ['invalid fund/classification', 'stale ULO', 'modification not reflected', 'trial balance not tied to detail', 'deobligation unsupported']
+  },
+  {
+    id: 'stars-vendor-pay',
+    short: 'vendor pay',
+    title: 'Vendor Pay to Expenditure and Net Cost',
+    description: 'Connects contract, receipt, invoice, payment, expenditure detail, proprietary control, and net cost or balance-sheet support.',
+    path: ['stars-vendor-pay-source', 'stars-central', 'stars-expenditure-detail', 'stars-proprietary-control', 'stars-ddrs-gtas', 'stars-net-cost'],
+    steps: [
+      'Contract, receipt, acceptance, invoice, and payment evidence enters or supports legacy STARS accounting.',
+      'Central processing summarizes valid activity and identifies rejects or unmatched items.',
+      'Expenditure detail ties disbursement, liquidation, and outlay evidence to the original obligation.',
+      'Proprietary control records expense, AP, AR, asset, or FBWT impact where applicable.',
+      'DDRS/GTAS and statement support reconcile reported amounts to source payment and accounting detail.'
+    ],
+    exceptionTests: ['payment without receipt', 'unmatched disbursement', 'AP/expense cutoff issue', 'Treasury mismatch', 'source payment not archived']
+  },
+  {
+    id: 'stars-jv-close',
+    short: 'JV close',
+    title: 'Journal Voucher Close Adjustment to Statement Support',
+    description: 'Shows how a manual STARS adjustment should preserve source cause, approval, posting, reversal, and audit evidence.',
+    path: ['stars-suspense-processing', 'stars-jv-detail', 'stars-jv-control', 'stars-close-processing', 'stars-audit-package', 'stars-notes-transition'],
+    steps: [
+      'An exception, suspense item, accrual need, reclass, or reporting difference creates a proposed JV.',
+      'The JV package documents source cause, debit/credit lines, preparer, reviewer, approver, and reversal needs.',
+      'JV control verifies approval, segregation of duties, posting, and tie-back to underlying evidence.',
+      'Close processing incorporates the adjustment into legacy balances and reporting packages.',
+      'Audit and note schedules preserve the adjustment rationale, posting impact, and reversal/cleanup status.'
+    ],
+    exceptionTests: ['JV lacks source support', 'approval after posting', 'debit/credit not balanced', 'reversal omitted', 'manual entry masks feeder defect']
+  },
+  {
+    id: 'stars-transition-archive',
+    short: 'transition',
+    title: 'STARS Archive to Navy ERP Transition Bridge',
+    description: 'Traces legacy balances and archived transactions into Navy ERP transition, beginning balance, and audit-support paths.',
+    path: ['stars-navy-erp-transition', 'stars-archive-detail', 'stars-navy-erp-bridge', 'stars-trial-balance', 'stars-audit-package', 'stars-notes-transition'],
+    steps: [
+      'Legacy STARS balances or transactions are requested for migration, beginning balance, or audit support.',
+      'Archive extracts preserve historical detail, source documents, period, fund, account, and amount.',
+      'The Navy ERP transition bridge reconciles legacy values to converted balances and approved adjustments.',
+      'Trial balance support ties the converted or historical amount to reporting populations.',
+      'Audit and note packages retain the archive, reconciliation, and conversion evidence.'
+    ],
+    exceptionTests: ['archive extract incomplete', 'converted balance not reconciled', 'conversion adjustment unsupported', 'legacy sample not retrievable', 'beginning balance gap']
+  }
+];
+
+const starsSupportServices = [
+  { title: 'Legacy Accounting Governance', detail: 'Document-number control, field-to-central reconciliation, accounting classification validation, period close, balance roll-forward, and report reproducibility.' },
+  { title: 'Suspense and Reject Control', detail: 'Reject queues, unmatched disbursements, invalid LOA/accounting edits, suspense aging, owner assignment, clearing evidence, and root-cause tracking.' },
+  { title: 'JV and Close Controls', detail: 'Manual adjustment support, preparer/reviewer/approver trail, debit/credit validation, accruals, reclasses, reversals, and close-package tie-outs.' },
+  { title: 'Archive and Transition Support', detail: 'Legacy UoT extracts, Navy ERP balance bridge, conversion batches, beginning-balance evidence, historic lookup, and retained sample packages.' },
+  { title: 'Reporting Crosswalks', detail: 'Legacy account-to-USSGL/TAS mapping, trial balance support, DDRS/GTAS reconciliation, Treasury/IPAC tie-outs, and statement-line mapping.' },
+  { title: 'Audit Evidence', detail: 'Source documents, transaction detail, obligation/expenditure history, payment and collection support, archive extracts, reconciliations, and note schedules.' }
+];
+
+const starsCaveats = [
+  'Public STARS family technical documentation is limited. This blueprint models STARS as a Navy legacy accounting and reporting family, not a SAP or Oracle ERP implementation.',
+  'STARS variants, interface names, file layouts, platform details, retirement/archival status, and system-of-record boundaries require authoritative Navy, DFAS, or program documentation.',
+  'This page is intentionally transition- and audit-focused because legacy STARS data may be most important for UoT reconstruction, beginning balances, manual adjustments, suspense cleanup, and Navy ERP migration support.',
+  'Feeder counts are modeled source/partner categories represented in this blueprint, not a certified production interface inventory.'
+];
+
+const starsSources = [
+  { name: 'DFAS Navy ERP information', url: 'https://www.dfas.mil/PDI/NavyERP/' },
+  { name: 'DoD Financial Management Regulation', url: 'https://comptroller.defense.gov/FMR/' },
+  { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+  { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
+  { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -4081,6 +4492,39 @@ export const systems = [
     supportServices: gcssSupportServices,
     caveats: gcssMcCaveats,
     sources: gcssSources
+  },
+  {
+    slug: 'stars',
+    shortName: 'STARS',
+    name: 'STARS Family',
+    longName: 'STARS Family / Standard Accounting and Reporting System Blueprint',
+    agency: 'Legacy Navy',
+    eyebrow: 'STARS blueprint for Navy legacy accounting and reporting',
+    description: 'Explore the STARS family as a Navy legacy accounting and reporting environment for field-level accounting, central consolidation, obligation and expenditure detail, suspense, journal vouchers, trial balances, Navy ERP transition support, and source-to-statement audit evidence.',
+    metric: '4',
+    metricLabel: 'Core STARS lineage scenarios',
+    metricDetail: 'Legacy source -> STARS -> TB -> Statement',
+    referenceImage: '/stars-blueprint-reference.svg',
+    referenceTitle: 'STARS static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/stars-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'STARS is modeled as the Navy legacy Standard Accounting and Reporting System family used for accounting, reporting, consolidation, suspense, and historical transaction support before or alongside Navy ERP transition paths.',
+      whoUsesIt: 'Legacy Navy accounting users, DFAS/reporting support teams, DON financial managers, migration and archive teams, close teams, JV preparers/reviewers, suspense cleanup owners, and auditors may rely on STARS data or outputs.',
+      howItIsUsed: 'It supports field-level accounting, central consolidation, obligation and expenditure tracking, vendor pay impacts, payroll/travel accounting, suspense/reject processing, JVs, trial balances, DDRS/GTAS support, and archive lookup.',
+      currentStatus: 'Modeled as legacy and transition-oriented. Public technical detail is limited, so exact variants, interface names, archive status, and system boundaries require authoritative Navy or DFAS documentation.',
+      whyItIsUsed: 'It preserves legacy Navy accounting history and supports audit, beginning balances, UoT reconstruction, suspense cleanup, JV support, and reconciliation between historical activity and Navy ERP/reporting outputs.',
+      feederCount: 6,
+      feederSystems: ['Field Activity Inputs', 'Vendor Pay / Contract Sources', 'Payroll / Labor / Travel', 'Disbursing / Treasury / IPAC', 'Navy ERP / Archive Transition Partner', 'Manual JV / Suspense Inputs'],
+      feederNote: 'The blueprint models 6 STARS source/partner categories; authoritative interface counts require Navy/DFAS records.'
+    },
+    layers: starsLayers,
+    nodes: starsNodes,
+    lineageScenarios: starsLineageScenarios,
+    supportServices: starsSupportServices,
+    caveats: starsCaveats,
+    sources: starsSources
   },
   {
     slug: 'navy-erp',

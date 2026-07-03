@@ -1,0 +1,190 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040" role="img" aria-labelledby="title desc">
+  <title id="title">STARS Family / Navy Legacy Accounting Blueprint</title>
+  <desc id="desc">Static source-to-statement blueprint for the Navy legacy Standard Accounting and Reporting System family.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f5f8fc; }
+      .panel { fill: #ffffff; stroke: #d5e1f2; stroke-width: 2; }
+      .title { fill: #08234a; font: 800 44px Arial, sans-serif; }
+      .subtitle { fill: #415778; font: 22px Arial, sans-serif; }
+      .layer-title { fill: #0b2f66; font: 800 20px Arial, sans-serif; letter-spacing: .8px; }
+      .box-title { fill: #ffffff; font: 800 20px Arial, sans-serif; }
+      .box-text { fill: #e9f2ff; font: 15px Arial, sans-serif; }
+      .note { fill: #253b5b; font: 16px Arial, sans-serif; }
+      .arrow { stroke: #163e7a; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .source { fill: #174f9a; }
+      .core { fill: #134f88; }
+      .detail { fill: #7152b8; }
+      .finance { fill: #b05a1f; }
+      .report { fill: #7a3d86; }
+      .statement { fill: #132f58; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#163e7a"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1600" height="1040"/>
+  <text class="title" x="70" y="88">STARS Family / Navy Legacy Accounting Blueprint</text>
+  <text class="subtitle" x="70" y="124">Standard Accounting and Reporting System lineage for legacy DON accounting, reporting, suspense, JV, and transition support</text>
+
+  <rect class="panel" x="55" y="165" width="1490" height="710" rx="18"/>
+
+  <text class="layer-title" x="90" y="215">SOURCE EVENTS</text>
+  <text class="layer-title" x="338" y="215">STARS PROCESSING</text>
+  <text class="layer-title" x="610" y="215">DETAIL RECORDS</text>
+  <text class="layer-title" x="880" y="215">ACCOUNTING CONTROL</text>
+  <text class="layer-title" x="1160" y="215">REPORTING</text>
+  <text class="layer-title" x="1360" y="215">STATEMENTS</text>
+
+  <g transform="translate(85 250)">
+    <rect class="source" width="190" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Field Activity</text>
+    <text class="box-text" x="18" y="58">Obligation, expense,</text>
+    <text class="box-text" x="18" y="76">collection inputs</text>
+  </g>
+  <g transform="translate(85 370)">
+    <rect class="source" width="190" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Vendor Pay</text>
+    <text class="box-text" x="18" y="58">Contracts, invoices,</text>
+    <text class="box-text" x="18" y="76">receipts, payments</text>
+  </g>
+  <g transform="translate(85 490)">
+    <rect class="source" width="190" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Payroll / Travel</text>
+    <text class="box-text" x="18" y="58">Labor, entitlements,</text>
+    <text class="box-text" x="18" y="76">DTS activity</text>
+  </g>
+  <g transform="translate(85 610)">
+    <rect class="source" width="190" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Navy ERP</text>
+    <text class="box-text" x="18" y="58">Migration, archive,</text>
+    <text class="box-text" x="18" y="76">reconciliation partner</text>
+  </g>
+
+  <g transform="translate(340 250)">
+    <rect class="core" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">STARS-FL</text>
+    <text class="box-text" x="18" y="58">Field-level legacy</text>
+    <text class="box-text" x="18" y="76">accounting control</text>
+  </g>
+  <g transform="translate(340 370)">
+    <rect class="core" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">STARS Central</text>
+    <text class="box-text" x="18" y="58">Consolidation, edit,</text>
+    <text class="box-text" x="18" y="76">reporting support</text>
+  </g>
+  <g transform="translate(340 490)">
+    <rect class="core" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Suspense</text>
+    <text class="box-text" x="18" y="58">Reject, unmatched,</text>
+    <text class="box-text" x="18" y="76">interface exceptions</text>
+  </g>
+  <g transform="translate(340 610)">
+    <rect class="core" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Legacy Close</text>
+    <text class="box-text" x="18" y="58">Period-end trial</text>
+    <text class="box-text" x="18" y="76">balance support</text>
+  </g>
+
+  <g transform="translate(610 250)">
+    <rect class="detail" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Document Detail</text>
+    <text class="box-text" x="18" y="58">Document, fund, org,</text>
+    <text class="box-text" x="18" y="76">object class, amount</text>
+  </g>
+  <g transform="translate(610 370)">
+    <rect class="detail" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Obligation File</text>
+    <text class="box-text" x="18" y="58">Commitment, ULO,</text>
+    <text class="box-text" x="18" y="76">deobligation trail</text>
+  </g>
+  <g transform="translate(610 490)">
+    <rect class="detail" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">JV Package</text>
+    <text class="box-text" x="18" y="58">Correction, accrual,</text>
+    <text class="box-text" x="18" y="76">reversal evidence</text>
+  </g>
+  <g transform="translate(610 610)">
+    <rect class="detail" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Archive Extract</text>
+    <text class="box-text" x="18" y="58">Legacy UoT and</text>
+    <text class="box-text" x="18" y="76">sample support</text>
+  </g>
+
+  <g transform="translate(885 250)">
+    <rect class="finance" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Budgetary</text>
+    <text class="box-text" x="18" y="58">Authority, obligation,</text>
+    <text class="box-text" x="18" y="76">expenditure, outlay</text>
+  </g>
+  <g transform="translate(885 370)">
+    <rect class="finance" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Proprietary</text>
+    <text class="box-text" x="18" y="58">Expense, AP, AR,</text>
+    <text class="box-text" x="18" y="76">asset balances</text>
+  </g>
+  <g transform="translate(885 490)">
+    <rect class="finance" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">JV Controls</text>
+    <text class="box-text" x="18" y="58">Approval, support,</text>
+    <text class="box-text" x="18" y="76">posting, reversal</text>
+  </g>
+  <g transform="translate(885 610)">
+    <rect class="finance" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Navy ERP Tie-Out</text>
+    <text class="box-text" x="18" y="58">Migration and legacy</text>
+    <text class="box-text" x="18" y="76">balance bridge</text>
+  </g>
+
+  <g transform="translate(1160 300)">
+    <rect class="report" width="160" height="100" rx="12"/>
+    <text class="box-title" x="18" y="34">Trial Balance</text>
+    <text class="box-text" x="18" y="61">Legacy reports,</text>
+    <text class="box-text" x="18" y="80">crosswalks</text>
+  </g>
+  <g transform="translate(1160 480)">
+    <rect class="report" width="160" height="100" rx="12"/>
+    <text class="box-title" x="18" y="34">DDRS / GTAS</text>
+    <text class="box-text" x="18" y="61">Treasury and DoD</text>
+    <text class="box-text" x="18" y="80">report support</text>
+  </g>
+
+  <g transform="translate(1370 300)">
+    <rect class="statement" width="135" height="100" rx="12"/>
+    <text class="box-title" x="18" y="34">SBR</text>
+    <text class="box-text" x="18" y="61">Budgetary</text>
+    <text class="box-text" x="18" y="80">resources</text>
+  </g>
+  <g transform="translate(1370 430)">
+    <rect class="statement" width="135" height="100" rx="12"/>
+    <text class="box-title" x="18" y="34">Net Cost</text>
+    <text class="box-text" x="18" y="61">Expense and</text>
+    <text class="box-text" x="18" y="80">adjustments</text>
+  </g>
+  <g transform="translate(1370 560)">
+    <rect class="statement" width="135" height="100" rx="12"/>
+    <text class="box-title" x="18" y="34">Notes</text>
+    <text class="box-text" x="18" y="61">ULO, suspense,</text>
+    <text class="box-text" x="18" y="80">transition support</text>
+  </g>
+
+  <path class="arrow" d="M 280 294 H 330"/>
+  <path class="arrow" d="M 545 294 H 600"/>
+  <path class="arrow" d="M 815 294 H 875"/>
+  <path class="arrow" d="M 1090 294 H 1150"/>
+  <path class="arrow" d="M 1325 350 H 1360"/>
+  <path class="arrow" d="M 280 414 H 330"/>
+  <path class="arrow" d="M 545 414 H 600"/>
+  <path class="arrow" d="M 815 414 H 875"/>
+  <path class="arrow" d="M 1090 414 C 1120 414 1130 500 1150 520"/>
+  <path class="arrow" d="M 1325 530 H 1360"/>
+  <path class="arrow" d="M 280 534 H 330"/>
+  <path class="arrow" d="M 545 534 H 600"/>
+  <path class="arrow" d="M 815 534 H 875"/>
+  <path class="arrow" d="M 1090 534 H 1150"/>
+  <path class="arrow" d="M 1325 530 C 1345 530 1345 610 1360 610"/>
+
+  <rect class="panel" x="70" y="905" width="1460" height="90" rx="14"/>
+  <text class="note" x="95" y="940">Tech-stack note: STARS is modeled as a Navy legacy accounting and reporting family, not SAP or Oracle ERP.</text>
+  <text class="note" x="95" y="970">Audit lens: preserve document-level lineage across legacy obligation, expense, JV, suspense, trial balance, transition, and statement support.</text>
+</svg>

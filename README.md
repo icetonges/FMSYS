@@ -10,6 +10,7 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/systems/gcss-army` GCSS-Army logistics-to-finance blueprint
   - `/systems/lmp` Logistics Modernization Program blueprint
   - `/systems/gcss-mc` GCSS-MC logistics-to-finance blueprint
+  - `/systems/stars` STARS Navy legacy accounting blueprint
   - `/systems/navy-erp` Navy ERP architecture blueprint
   - `/systems/dai` Defense Agencies Initiative blueprint
   - `/systems/deams` Defense Enterprise Accounting and Management System blueprint
@@ -46,6 +47,8 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/public/gcss-blueprint-reference.svg`
 - LMP static reference asset:
   - `/public/lmp-blueprint-reference.svg`
+- STARS static reference asset:
+  - `/public/stars-blueprint-reference.svg`
 - DAI verification notes:
   - `/docs/DAI_BLUEPRINT_VERIFICATION.md`
 - Existing GFEBS static reference:
