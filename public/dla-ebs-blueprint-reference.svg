@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100" role="img" aria-labelledby="title desc">
+  <title id="title">DLA EBS / Enterprise Business System Blueprint</title>
+  <desc id="desc">Static blueprint for DLA EBS showing DLA source applications, SAP/COTS ERP core functions, supply-chain detail, accounting, reporting, Treasury, and statement support.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f4f7fb; }
+      .title { fill: #0f2f66; font: 900 62px Arial, sans-serif; }
+      .subtitle { fill: #40506a; font: 700 24px Arial, sans-serif; }
+      .layer { fill: #ffffff; stroke: #d7e0ee; stroke-width: 3; }
+      .layer-title { fill: #0f2f66; font: 900 24px Arial, sans-serif; }
+      .node { rx: 16; stroke-width: 3; }
+      .node-text { fill: #172033; font: 800 19px Arial, sans-serif; }
+      .small { fill: #556273; font: 600 15px Arial, sans-serif; }
+      .source { fill: #ede7fb; stroke: #7a51c2; }
+      .core { fill: #e7f4ef; stroke: #13895a; }
+      .detail { fill: #e7f4f7; stroke: #16839b; }
+      .accounting { fill: #eaf1ff; stroke: #255ba8; }
+      .reporting { fill: #f0e9fb; stroke: #6c43b7; }
+      .statement { fill: #fff0e2; stroke: #a45518; }
+      .arrow { stroke: #0f2f66; stroke-width: 5; fill: none; marker-end: url(#arrow); }
+      .callout { fill: #0f2f66; }
+      .callout-text { fill: #ffffff; font: 800 20px Arial, sans-serif; }
+      .caveat { fill: #667085; font: 600 16px Arial, sans-serif; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f2f66"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1800" height="1100"/>
+  <text class="title" x="70" y="88">DLA EBS / Enterprise Business System Blueprint</text>
+  <text class="subtitle" x="70" y="130">DLA global supply-chain ERP: requisition, procurement, inventory, distribution, vendor, finance, and reporting lineage</text>
+
+  <rect class="layer" x="55" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="340" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="625" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="910" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="1195" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="1480" y="175" width="260" height="720" rx="22"/>
+
+  <text class="layer-title" x="80" y="222">DLA Source Applications</text>
+  <text class="layer-title" x="365" y="222">EBS Core ERP</text>
+  <text class="layer-title" x="650" y="222">Supply-Chain Detail</text>
+  <text class="layer-title" x="935" y="222">Accounting</text>
+  <text class="layer-title" x="1220" y="222">Reporting / Treasury</text>
+  <text class="layer-title" x="1505" y="222">Statements</text>
+
+  <rect class="node source" x="80" y="255" width="210" height="74"/>
+  <text class="node-text" x="98" y="284">FedMall / EEBP</text>
+  <text class="small" x="98" y="307">customer + supplier portal</text>
+  <rect class="node source" x="80" y="345" width="210" height="74"/>
+  <text class="node-text" x="98" y="374">DAAS / DLMS</text>
+  <text class="small" x="98" y="397">requisitions + logistics EDI</text>
+  <rect class="node source" x="80" y="435" width="210" height="74"/>
+  <text class="node-text" x="98" y="464">PIEE / WAWF</text>
+  <text class="small" x="98" y="487">invoice, receipt, acceptance</text>
+  <rect class="node source" x="80" y="525" width="210" height="74"/>
+  <text class="node-text" x="98" y="554">DIBBS / VSM</text>
+  <text class="small" x="98" y="577">quotes + vendor shipment</text>
+  <rect class="node source" x="80" y="615" width="210" height="74"/>
+  <text class="node-text" x="98" y="644">WebFLIS / FED LOG</text>
+  <text class="small" x="98" y="667">catalog + NSN master data</text>
+  <rect class="node source" x="80" y="705" width="210" height="74"/>
+  <text class="node-text" x="98" y="734">DSS / Distribution</text>
+  <text class="small" x="98" y="757">warehouse + inventory events</text>
+
+  <rect class="node core" x="365" y="255" width="210" height="74"/>
+  <text class="node-text" x="383" y="284">Demand / sales order</text>
+  <text class="small" x="383" y="307">customer requisition to order</text>
+  <rect class="node core" x="365" y="345" width="210" height="74"/>
+  <text class="node-text" x="383" y="374">Procurement / MM</text>
+  <text class="small" x="383" y="397">PR, PO, award, receipt</text>
+  <rect class="node core" x="365" y="435" width="210" height="74"/>
+  <text class="node-text" x="383" y="464">Inventory / warehouse</text>
+  <text class="small" x="383" y="487">stock, valuation, movement</text>
+  <rect class="node core" x="365" y="525" width="210" height="74"/>
+  <text class="node-text" x="383" y="554">Finance FI / CO</text>
+  <text class="small" x="383" y="577">AP, AR, GL, cost</text>
+  <rect class="node core" x="365" y="615" width="210" height="74"/>
+  <text class="node-text" x="383" y="644">Planning / supply</text>
+  <text class="small" x="383" y="667">forecast, buys, replenishment</text>
+
+  <rect class="node detail" x="650" y="255" width="210" height="74"/>
+  <text class="node-text" x="668" y="284">NSN / material master</text>
+  <text class="small" x="668" y="307">catalog + item identity</text>
+  <rect class="node detail" x="650" y="345" width="210" height="74"/>
+  <text class="node-text" x="668" y="374">Purchase / vendor</text>
+  <text class="small" x="668" y="397">PO, vendor, contract</text>
+  <rect class="node detail" x="650" y="435" width="210" height="74"/>
+  <text class="node-text" x="668" y="464">Inventory valuation</text>
+  <text class="small" x="668" y="487">stock, movement, condition</text>
+  <rect class="node detail" x="650" y="525" width="210" height="74"/>
+  <text class="node-text" x="668" y="554">Order fulfillment</text>
+  <text class="small" x="668" y="577">pick, pack, ship, bill</text>
+  <rect class="node detail" x="650" y="615" width="210" height="74"/>
+  <text class="node-text" x="668" y="644">Energy / troop / weapons</text>
+  <text class="small" x="668" y="667">supply-chain segments</text>
+
+  <rect class="node accounting" x="935" y="315" width="210" height="74"/>
+  <text class="node-text" x="953" y="344">AP / vendor liability</text>
+  <text class="small" x="953" y="367">invoice + payment support</text>
+  <rect class="node accounting" x="935" y="425" width="210" height="74"/>
+  <text class="node-text" x="953" y="454">AR / customer billing</text>
+  <text class="small" x="953" y="477">sales + collections</text>
+  <rect class="node accounting" x="935" y="535" width="210" height="74"/>
+  <text class="node-text" x="953" y="564">Inventory / COGS GL</text>
+  <text class="small" x="953" y="587">valuation + expense</text>
+
+  <rect class="node reporting" x="1220" y="315" width="210" height="74"/>
+  <text class="node-text" x="1238" y="344">EBS / EA2 analytics</text>
+  <text class="small" x="1238" y="367">management + audit extracts</text>
+  <rect class="node reporting" x="1220" y="425" width="210" height="74"/>
+  <text class="node-text" x="1238" y="454">DDRS / GTAS</text>
+  <text class="small" x="1238" y="477">ATB + federal edits</text>
+  <rect class="node reporting" x="1220" y="535" width="210" height="74"/>
+  <text class="node-text" x="1238" y="564">Treasury / IGT</text>
+  <text class="small" x="1238" y="587">FBwT, IPAC, CARS</text>
+
+  <rect class="node statement" x="1505" y="315" width="210" height="74"/>
+  <text class="node-text" x="1523" y="344">Working capital fund</text>
+  <text class="small" x="1523" y="367">net cost + inventory</text>
+  <rect class="node statement" x="1505" y="425" width="210" height="74"/>
+  <text class="node-text" x="1523" y="454">SBR</text>
+  <text class="small" x="1523" y="477">resources + outlays</text>
+  <rect class="node statement" x="1505" y="535" width="210" height="74"/>
+  <text class="node-text" x="1523" y="564">Balance sheet / notes</text>
+  <text class="small" x="1523" y="587">inventory, AP, AR, FBwT</text>
+
+  <path class="arrow" d="M 293 492 H 358"/>
+  <path class="arrow" d="M 578 492 H 643"/>
+  <path class="arrow" d="M 863 492 H 928"/>
+  <path class="arrow" d="M 1148 492 H 1213"/>
+  <path class="arrow" d="M 1433 492 H 1498"/>
+
+  <rect class="callout" x="70" y="935" width="1660" height="92" rx="20"/>
+  <text class="callout-text" x="100" y="970">Tech-stack note: DLA EBS is modeled as the operational successor to DLA BSM's commercial ERP modernization lineage.</text>
+  <text class="callout-text" x="100" y="1000">Public sources support a COTS ERP/SAP-style supply-chain finance profile; exact current modules and custom interfaces require DLA authority.</text>
+  <text class="caveat" x="70" y="1060">Source basis: DLA public application ecosystem, DLA mission pages, GAO BSM oversight, DoD FMR, Treasury GTAS/USSGL/IGT requirements.</text>
+</svg>

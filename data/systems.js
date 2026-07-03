@@ -2258,6 +2258,443 @@ const cefmsSources = [
   { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
 ];
 
+const dlaEbsLayers = [
+  { id: 'source', label: 'DLA Source / Customer / Partner Applications', short: 'Source', description: 'DLA portals, ordering, cataloging, procurement, distribution, logistics-transaction, vendor, invoice, and customer systems that originate business events.' },
+  { id: 'core', label: 'DLA EBS Core ERP Capabilities', short: 'EBS', description: 'Commercial ERP-style supply-chain and financial capabilities for demand, sales orders, procurement, inventory, warehouse, finance, cost, and replenishment processing.' },
+  { id: 'detail', label: 'Supply-Chain / Subsidiary Detail', short: 'Detail', description: 'Material master, NSN, vendor, customer, order, inventory, shipment, contract, receipt, invoice, and supply-chain segment detail used for traceability.' },
+  { id: 'accounting', label: 'Accounting Layer', short: 'Accounting', description: 'AP, AR, inventory valuation, cost of goods, budgetary/proprietary USSGL, GL, adjustments, and close accounting.' },
+  { id: 'reporting', label: 'Reporting / Treasury Layer', short: 'Reporting', description: 'EBS reports, EA2 analytics, DDRS, GTAS, Treasury/CARS/FBwT, IPAC/G-Invoicing, audit extracts, and DLA management reporting.' },
+  { id: 'statements', label: 'DLA / DoD Statement Support', short: 'Statements', description: 'Working capital fund, inventory, AP, AR, net cost, SBR, Balance Sheet, note schedules, and audit-support reporting.' }
+];
+
+const dlaEbsNodes = [
+  {
+    id: 'fedmall-eebp',
+    layer: 'source',
+    title: 'FedMall / EEBP',
+    subtitle: 'Customer ordering and external business portal',
+    icon: 'WEB',
+    tags: ['FedMall', 'EEBP', 'customer', 'sales order'],
+    summary: 'Provides customer ordering, supplier access, requisition research, tracking, and external business portal activity that can initiate demand, sales-order, fulfillment, and billing processes.',
+    examples: ['customer order', 'catalog search', 'supplier portal action', 'order tracking', 'status inquiry'],
+    auditQuestions: ['Does each customer demand trace to an EBS order or requisition event?', 'Are customer identities and DoDAACs valid?', 'Do portal statuses reconcile to EBS fulfillment and billing?'],
+    keyFields: ['order number', 'customer DoDAAC', 'NSN', 'quantity', 'fund code', 'priority', 'status'],
+    risks: ['customer order not accepted by EBS', 'invalid DoDAAC/fund code', 'portal status not reconciled', 'duplicate demand']
+  },
+  {
+    id: 'daas-dlms',
+    layer: 'source',
+    title: 'DAAS / DLMS / MILS',
+    subtitle: 'Logistics transaction routing and standards',
+    icon: 'EDI',
+    tags: ['DAAS', 'DLMS', 'MILS', 'EDI', 'requisition'],
+    summary: 'Routes standardized logistics transactions, requisitions, status, billing-related messages, and machine-to-machine interfaces across DLA, services, and partners.',
+    examples: ['DLMS transaction', 'MILSTRIP requisition', 'status message', 'billing-related transaction', 'routing acknowledgement'],
+    auditQuestions: ['Do routed transactions reconcile to EBS accepted transactions?', 'Are rejects and retransmissions controlled?', 'Are DLMS data elements mapped to financial attributes?'],
+    keyFields: ['document number', 'DLMS transaction type', 'routing identifier', 'DoDAAC', 'fund code', 'signal code', 'amount'],
+    risks: ['lost logistics transaction', 'incorrect data-element mapping', 'duplicate retransmission', 'financial attribute missing']
+  },
+  {
+    id: 'dla-piee-wawf',
+    layer: 'source',
+    title: 'PIEE / WAWF',
+    subtitle: 'Procurement, invoice, receipt, and acceptance evidence',
+    icon: 'P2P',
+    tags: ['PIEE', 'WAWF', 'invoice', 'receipt', 'acceptance'],
+    summary: 'Captures procurement and payment-support evidence including invoices, receiving reports, acceptance, contract references, and payment packages.',
+    examples: ['vendor invoice', 'receiving report', 'acceptance', 'combo document', 'payment request'],
+    auditQuestions: ['Does every paid invoice have contract, receipt, and acceptance evidence?', 'Are invoice amounts tied to EBS PO and receipt detail?', 'Are rejected invoice records resolved?'],
+    keyFields: ['PIID', 'CLIN', 'invoice number', 'receiving report', 'vendor CAGE/UEI', 'acceptance date', 'amount'],
+    risks: ['payment without acceptance', 'duplicate invoice', 'PO/receipt/invoice mismatch', 'interface reject unresolved']
+  },
+  {
+    id: 'dibbs-vsm',
+    layer: 'source',
+    title: 'DIBBS / VSM',
+    subtitle: 'Supplier quote and vendor shipment activity',
+    icon: 'VND',
+    tags: ['DIBBS', 'VSM', 'supplier', 'shipment', 'procurement'],
+    summary: 'Provides supplier quote, solicitation, award-support, shipment, carrier, in-transit, and vendor-delivery information used by procurement and distribution processes.',
+    examples: ['RFQ quote', 'solicitation', 'vendor shipment', 'tracking update', 'delivery confirmation'],
+    auditQuestions: ['Do solicitations and awards trace to EBS procurement records?', 'Do vendor shipments reconcile to receipt and inventory updates?', 'Are in-transit differences resolved?'],
+    keyFields: ['solicitation', 'quote', 'vendor', 'shipment number', 'NSN', 'quantity', 'receipt date'],
+    risks: ['shipment not received', 'vendor record mismatch', 'award not tied to procurement', 'quantity discrepancy']
+  },
+  {
+    id: 'webflis-fedlog',
+    layer: 'source',
+    title: 'WebFLIS / FED LOG / Cataloging',
+    subtitle: 'Federal logistics item and NSN master data',
+    icon: 'NSN',
+    tags: ['WebFLIS', 'FED LOG', 'catalog', 'NSN', 'master data'],
+    summary: 'Provides item identity, NSN, item name, reference/part-number, CAGE, federal logistics, and cataloging information used to control material master and item traceability.',
+    examples: ['NSN lookup', 'item name', 'reference number', 'CAGE link', 'cataloging request'],
+    auditQuestions: ['Is each EBS material tied to valid catalog data?', 'Are NSN changes controlled and reflected in material master?', 'Do item attributes support valuation and reporting?'],
+    keyFields: ['NSN', 'NIIN', 'item name', 'CAGE', 'part number', 'FSC', 'unit of issue'],
+    risks: ['invalid material master', 'wrong item identity', 'catalog update not reflected', 'valuation tied to wrong item']
+  },
+  {
+    id: 'dss-distribution',
+    layer: 'source',
+    title: 'DSS / Distribution / Depot Events',
+    subtitle: 'Warehouse, storage, issue, receipt, and movement activity',
+    icon: 'DSS',
+    tags: ['DSS', 'distribution', 'warehouse', 'inventory', 'shipment'],
+    summary: 'Provides depot receipt, storage, pick, pack, ship, inventory adjustment, condition-code, and distribution activity that must reconcile to EBS inventory and fulfillment records.',
+    examples: ['goods receipt', 'stock movement', 'pick ticket', 'shipment', 'inventory adjustment', 'condition-code change'],
+    auditQuestions: ['Do physical inventory events reconcile to EBS inventory balances?', 'Are shipments tied to customer orders?', 'Are adjustments approved and supported?'],
+    keyFields: ['depot', 'NSN', 'storage location', 'quantity', 'condition code', 'shipment', 'movement date'],
+    risks: ['inventory quantity mismatch', 'shipment without billing impact', 'unapproved adjustment', 'condition code not reflected financially']
+  },
+  {
+    id: 'dla-demand-order',
+    layer: 'core',
+    title: 'Demand / Sales Order Management',
+    subtitle: 'Requisition to customer order and fulfillment demand',
+    icon: 'SO',
+    tags: ['demand', 'sales order', 'requisition', 'customer'],
+    summary: 'Transforms customer requisitions and demand signals into controlled customer orders, availability checks, priority handling, fulfillment activity, and billing-relevant records.',
+    examples: ['sales order', 'backorder', 'availability check', 'priority designator', 'customer billing trigger'],
+    auditQuestions: ['Can demand trace from customer request to fulfillment and billing?', 'Are cancellations and backorders reflected accurately?', 'Are priority and fund-code attributes valid?'],
+    keyFields: ['sales order', 'document number', 'DoDAAC', 'NSN', 'quantity', 'fund code', 'priority'],
+    sapTables: ['VBAK/VBAP', 'VBFA', 'LIKP/LIPS'],
+    risks: ['unfulfilled demand not tracked', 'order cancelled but billed', 'priority/fund code invalid', 'order-to-cash break']
+  },
+  {
+    id: 'dla-procurement',
+    layer: 'core',
+    title: 'Procurement / Materials Management',
+    subtitle: 'Purchase requisition, purchase order, receipt, invoice match',
+    icon: 'MM',
+    tags: ['procurement', 'MM', 'purchase order', 'receipt'],
+    summary: 'Supports buys, purchase requisitions, purchase orders, contracts, goods receipts, service/receiving activity, invoice matching, and vendor-related procurement controls.',
+    examples: ['purchase requisition', 'purchase order', 'contract line', 'goods receipt', 'invoice match'],
+    auditQuestions: ['Does procurement trace to valid demand or replenishment logic?', 'Do PO, receipt, and invoice quantities agree?', 'Are open obligations and receipts reviewed?'],
+    keyFields: ['PR', 'PO', 'PIID', 'CLIN', 'vendor', 'NSN', 'receipt', 'invoice'],
+    sapTables: ['EBAN', 'EKKO', 'EKPO', 'EKBE', 'MKPF/MSEG', 'RBKP/RSEG'],
+    risks: ['PO not tied to demand', 'receipt/invoice mismatch', 'unsupported vendor liability', 'open PO not valid']
+  },
+  {
+    id: 'dla-inventory',
+    layer: 'core',
+    title: 'Inventory / Warehouse / Distribution',
+    subtitle: 'Stock, movement, condition, valuation, fulfillment',
+    icon: 'INV',
+    tags: ['inventory', 'warehouse', 'valuation', 'distribution'],
+    summary: 'Maintains inventory balances, stock movements, storage, condition, availability, warehouse fulfillment, shipment, issue, disposal, and valuation impacts.',
+    examples: ['stock receipt', 'goods issue', 'transfer', 'inventory adjustment', 'shipment', 'condition-code update'],
+    auditQuestions: ['Do physical and book inventory balances reconcile?', 'Are stock movements supported by source events?', 'Is valuation updated for quantity or condition changes?'],
+    keyFields: ['material', 'plant', 'storage location', 'batch/condition', 'movement type', 'quantity', 'valuation amount'],
+    sapTables: ['MARA/MARC/MARD', 'MBEW', 'MKPF/MSEG'],
+    risks: ['inventory existence gap', 'quantity/value mismatch', 'incorrect condition', 'unapproved adjustment']
+  },
+  {
+    id: 'dla-finance-core',
+    layer: 'core',
+    title: 'Finance / Cost / Working Capital',
+    subtitle: 'FI, CO, AP, AR, GL, cost objects, fund controls',
+    icon: 'FI',
+    tags: ['financials', 'FI', 'CO', 'working capital fund', 'GL'],
+    summary: 'Supports DLA financial accounting, working-capital cost recovery, AP, AR, GL, cost centers, product cost, customer billing, vendor liabilities, and close processing.',
+    examples: ['vendor liability', 'customer receivable', 'inventory valuation', 'cost center charge', 'GL posting', 'close adjustment'],
+    auditQuestions: ['Do AP/AR and inventory subsidiary balances reconcile to GL?', 'Are cost-recovery and working-capital transactions complete?', 'Do GL postings retain source support?'],
+    keyFields: ['company/fund', 'GL account', 'cost center', 'customer', 'vendor', 'document number', 'amount'],
+    sapTables: ['BKPF/BSEG', 'FAGLFLEXA/FAGLFLEXT', 'BSIK/BSAK', 'BSID/BSAD', 'COBK/COEP'],
+    risks: ['subsidiary ledger mismatch', 'manual journal lacks support', 'working-capital revenue/cost mismatch', 'close adjustment not reversed']
+  },
+  {
+    id: 'dla-planning',
+    layer: 'core',
+    title: 'Planning / Supply / Replenishment',
+    subtitle: 'Forecast, demand planning, buys, and stock positioning',
+    icon: 'PLN',
+    tags: ['planning', 'replenishment', 'forecast', 'supply chain'],
+    summary: 'Supports demand planning, supply planning, replenishment buys, stock positioning, safety levels, and readiness-related supply-chain decisions.',
+    examples: ['forecast', 'reorder point', 'supply plan', 'buy recommendation', 'stock objective'],
+    auditQuestions: ['Are planned buys tied to demand and inventory evidence?', 'Do planning parameters support approved supply objectives?', 'Are excess or obsolete risks monitored?'],
+    keyFields: ['NSN', 'forecast', 'reorder point', 'safety level', 'demand history', 'buy quantity', 'planning date'],
+    risks: ['overbuy', 'stockout', 'obsolete inventory', 'planning parameter not approved']
+  },
+  {
+    id: 'dla-material-master',
+    layer: 'detail',
+    title: 'Material / NSN Master',
+    subtitle: 'Material identity, catalog, unit, valuation and supply attributes',
+    icon: 'MAT',
+    tags: ['material master', 'NSN', 'catalog', 'master data'],
+    summary: 'Maintains the item-level data that links NSNs, material IDs, item names, units of issue, plants, storage, valuation, source, and logistics attributes.',
+    examples: ['material master', 'NSN mapping', 'unit of issue', 'plant view', 'valuation class'],
+    auditQuestions: ['Is each material tied to authoritative catalog identity?', 'Are units and valuation classes correct?', 'Are changes approved and reflected across systems?'],
+    keyFields: ['material', 'NSN', 'NIIN', 'unit of issue', 'valuation class', 'plant', 'FSC'],
+    sapTables: ['MARA', 'MARC', 'MARD', 'MBEW'],
+    risks: ['invalid NSN/material link', 'wrong valuation class', 'unit conversion error', 'stale master data']
+  },
+  {
+    id: 'dla-vendor-customer',
+    layer: 'detail',
+    title: 'Vendor / Customer Master',
+    subtitle: 'Supplier, customer, DoDAAC, CAGE, banking, trading partner',
+    icon: 'MST',
+    tags: ['vendor', 'customer', 'DoDAAC', 'CAGE', 'trading partner'],
+    summary: 'Maintains the supplier and customer records needed for procurement, billing, payment, collections, trading partner reporting, and identity validation.',
+    examples: ['vendor master', 'customer master', 'DoDAAC', 'CAGE', 'banking data', 'trading partner'],
+    auditQuestions: ['Are vendor and customer records complete and approved?', 'Do DoDAAC/CAGE values reconcile to authoritative sources?', 'Are inactive or duplicate records monitored?'],
+    keyFields: ['vendor', 'customer', 'CAGE', 'UEI', 'DoDAAC', 'bank account', 'trading partner'],
+    sapTables: ['LFA1/LFB1', 'KNA1/KNB1'],
+    risks: ['duplicate vendor', 'incorrect customer billing', 'invalid banking data', 'trading partner missing']
+  },
+  {
+    id: 'dla-inventory-detail',
+    layer: 'detail',
+    title: 'Inventory Valuation Detail',
+    subtitle: 'Quantity, condition, location, cost, and movement trail',
+    icon: 'VAL',
+    tags: ['inventory valuation', 'stock', 'movement', 'condition'],
+    summary: 'Preserves inventory quantity, cost, condition, movement, location, and valuation history supporting inventory existence, completeness, and valuation assertions.',
+    examples: ['stock ledger', 'movement history', 'condition-code report', 'valuation layer', 'adjustment support'],
+    auditQuestions: ['Can inventory balances trace to movement history?', 'Are quantity and value reconciled?', 'Are condition-code changes financially reflected?'],
+    keyFields: ['material', 'plant', 'storage location', 'condition', 'movement type', 'quantity', 'value'],
+    sapTables: ['MARD', 'MBEW', 'MKPF/MSEG'],
+    risks: ['quantity/value mismatch', 'condition not valued correctly', 'unsupported adjustment', 'book-to-physical variance']
+  },
+  {
+    id: 'dla-order-fulfillment',
+    layer: 'detail',
+    title: 'Order Fulfillment Detail',
+    subtitle: 'Pick, pack, ship, delivery, customer billing support',
+    icon: 'FUL',
+    tags: ['fulfillment', 'shipment', 'delivery', 'billing'],
+    summary: 'Links customer demand to availability, warehouse execution, shipment, delivery status, customer billing, and collection support.',
+    examples: ['delivery', 'pick/pack', 'shipment', 'proof of shipment', 'billing document'],
+    auditQuestions: ['Does each shipment trace to customer demand and billing?', 'Are partial shipments and backorders handled correctly?', 'Do delivery quantities match billing quantities?'],
+    keyFields: ['sales order', 'delivery', 'shipment', 'NSN', 'quantity', 'customer', 'billing document'],
+    sapTables: ['VBAK/VBAP', 'LIKP/LIPS', 'VBRK/VBRP'],
+    risks: ['shipment not billed', 'billing without shipment', 'partial quantity mismatch', 'delivery status stale']
+  },
+  {
+    id: 'dla-supply-chains',
+    layer: 'detail',
+    title: 'DLA Supply-Chain Segments',
+    subtitle: 'Energy, Troop Support, Weapons Support, Distribution, Disposition',
+    icon: 'SC',
+    tags: ['supply chain', 'Energy', 'Troop Support', 'Weapons Support', 'Distribution'],
+    summary: 'Represents mission-specific DLA supply-chain segments where commodities, customers, inventory, distribution, and financial patterns vary.',
+    examples: ['fuel support', 'subsistence', 'medical material', 'repair part', 'disposition property', 'distribution depot'],
+    auditQuestions: ['Are supply-chain-specific attributes retained in financial reporting?', 'Do segment reports reconcile to EBS totals?', 'Are commodity-specific valuation issues controlled?'],
+    keyFields: ['supply chain', 'commodity', 'NSN', 'customer', 'depot', 'fund', 'amount'],
+    risks: ['segment reporting mismatch', 'commodity-specific valuation gap', 'cross-segment duplication', 'unsupported disposal impact']
+  },
+  {
+    id: 'dla-ap-accounting',
+    layer: 'accounting',
+    title: 'AP / Vendor Liability',
+    subtitle: 'Invoice, receipt, acceptance, accrual, payment clearing',
+    icon: 'AP',
+    tags: ['AP', 'invoice', 'payment', 'liability'],
+    summary: 'Records vendor liability, invoice accruals, payment clearing, receipt/invoice matching, and supplier payment activity tied to procurement and WAWF/PIEE evidence.',
+    examples: ['vendor invoice', 'AP accrual', 'payment clearing', 'withholding', 'debit memo'],
+    auditQuestions: ['Does AP reconcile to vendor invoice and receipt support?', 'Are payments cleared and matched?', 'Are accruals valid and reversed?'],
+    keyFields: ['vendor', 'invoice', 'PO', 'receipt', 'AP document', 'payment', 'amount'],
+    sapTables: ['BKPF/BSEG', 'BSIK/BSAK', 'RBKP/RSEG'],
+    risks: ['unsupported liability', 'duplicate payment', 'receipt/invoice mismatch', 'accrual not reversed']
+  },
+  {
+    id: 'dla-ar-accounting',
+    layer: 'accounting',
+    title: 'AR / Customer Billing',
+    subtitle: 'Sales, billing, receivable, collection, write-off',
+    icon: 'AR',
+    tags: ['AR', 'billing', 'collection', 'customer'],
+    summary: 'Records customer billing, receivables, collections, write-offs, credit memos, and settlement activity for DLA customer and working-capital transactions.',
+    examples: ['billing document', 'customer invoice', 'collection', 'write-off', 'credit memo'],
+    auditQuestions: ['Do receivables trace to shipment or reimbursable evidence?', 'Are collections applied correctly?', 'Are aged balances reviewed and supported?'],
+    keyFields: ['customer', 'billing document', 'sales order', 'collection', 'AR document', 'trading partner', 'amount'],
+    sapTables: ['VBRK/VBRP', 'BSID/BSAD', 'BKPF/BSEG'],
+    risks: ['unbilled shipment', 'collection not applied', 'aged receivable unsupported', 'customer/trading partner mismatch']
+  },
+  {
+    id: 'dla-inventory-gl',
+    layer: 'accounting',
+    title: 'Inventory / COGS / GL',
+    subtitle: 'Inventory asset, cost, expense, revenue, and working-capital GL',
+    icon: 'GL',
+    tags: ['inventory', 'COGS', 'GL', 'working capital fund'],
+    summary: 'Posts inventory asset, cost of goods, expense, revenue, gain/loss, and other GL impacts tied to supply-chain transactions and working-capital operations.',
+    examples: ['inventory asset posting', 'COGS', 'price variance', 'goods issue', 'adjustment', 'GL close'],
+    auditQuestions: ['Do inventory subledger balances reconcile to GL?', 'Are cost/revenue postings complete for shipments?', 'Are manual GL adjustments supported?'],
+    keyFields: ['GL account', 'material', 'movement type', 'fund', 'cost center', 'debit', 'credit'],
+    sapTables: ['BKPF/BSEG', 'FAGLFLEXA/FAGLFLEXT', 'COBK/COEP', 'MBEW'],
+    risks: ['inventory/GL mismatch', 'COGS not recorded', 'price variance unexplained', 'manual journal unsupported']
+  },
+  {
+    id: 'dla-budgetary',
+    layer: 'accounting',
+    title: 'Budgetary / USSGL Support',
+    subtitle: 'Resources, obligations, expenditures, outlays, recoveries',
+    icon: 'BUD',
+    tags: ['budgetary', 'USSGL', 'SBR', 'funds'],
+    summary: 'Classifies budgetary resources, obligations, expenditures, outlays, recoveries, and related USSGL/TAS reporting attributes for DLA reporting contexts.',
+    examples: ['obligation', 'expenditure', 'outlay', 'recovery', 'budgetary close'],
+    auditQuestions: ['Do budgetary postings trace to source events?', 'Are USSGL/TAS values valid?', 'Do budgetary balances support SBR and GTAS edits?'],
+    keyFields: ['TAS', 'USSGL', 'fund', 'object class', 'obligation', 'outlay', 'amount'],
+    risks: ['invalid USSGL/TAS', 'budgetary/proprietary mismatch', 'unsupported upward adjustment', 'GTAS edit failure']
+  },
+  {
+    id: 'dla-ebs-reporting',
+    layer: 'reporting',
+    title: 'EBS Reporting / EA2 Analytics',
+    subtitle: 'Operational reports, analytics, audit extracts',
+    icon: 'BI',
+    tags: ['reporting', 'EA2', 'analytics', 'audit extract'],
+    summary: 'Provides EBS reports, enterprise analytics, data extracts, audit populations, management dashboards, and reconciled views of supply-chain and financial activity.',
+    examples: ['management dashboard', 'audit extract', 'inventory report', 'customer order report', 'AP/AR aging'],
+    auditQuestions: ['Are report definitions tied to authoritative sources?', 'Do extracts reconcile to EBS control totals?', 'Are filters and refresh dates documented?'],
+    keyFields: ['report ID', 'extract date', 'source table/view', 'selection criteria', 'control total', 'amount'],
+    risks: ['undocumented report logic', 'extract not reconciled', 'wrong population', 'stale analytics layer']
+  },
+  {
+    id: 'dla-ddrs-gtas',
+    layer: 'reporting',
+    title: 'DDRS / GTAS / Treasury',
+    subtitle: 'Adjusted trial balance, federal edits, FBwT and IGT reporting',
+    icon: 'ATB',
+    tags: ['DDRS', 'GTAS', 'Treasury', 'FBwT', 'IPAC'],
+    summary: 'Supports adjusted trial balance, DDRS, GTAS edit validation, Treasury/CARS/FBwT, IPAC/G-Invoicing, TAS/BETC, and trading-partner reconciliation.',
+    examples: ['adjusted trial balance', 'GTAS submission', 'FBwT reconciliation', 'IPAC settlement', 'trading-partner elimination'],
+    auditQuestions: ['Does ATB reconcile to EBS GL?', 'Are GTAS edits resolved?', 'Are cash and trading-partner differences researched?'],
+    keyFields: ['TAS', 'USSGL', 'BETC', 'ALC', 'trading partner', 'GTAS attribute', 'amount'],
+    risks: ['ATB/GL mismatch', 'FBwT difference', 'GTAS edit failure', 'trading partner mismatch']
+  },
+  {
+    id: 'dla-wcf-statement',
+    layer: 'statements',
+    title: 'Working Capital Fund Statements',
+    subtitle: 'Inventory, revenue, cost recovery, net cost',
+    icon: 'WCF',
+    tags: ['working capital fund', 'inventory', 'net cost', 'statement'],
+    summary: 'Supports DLA working-capital reporting, inventory valuation, revenue, cost recovery, cost of goods, net cost, and operating-result analysis.',
+    examples: ['inventory line', 'revenue', 'cost of goods', 'net cost', 'operating result'],
+    auditQuestions: ['Do inventory and COGS lines tie to EBS detail?', 'Are revenue/cost recovery calculations supported?', 'Are note schedules reconciled?'],
+    keyFields: ['fund', 'USSGL', 'statement line', 'material', 'customer', 'revenue', 'cost'],
+    risks: ['inventory valuation misstatement', 'revenue/cost mismatch', 'unsupported note schedule', 'segment imbalance']
+  },
+  {
+    id: 'dla-sbr',
+    layer: 'statements',
+    title: 'Statement of Budgetary Resources',
+    subtitle: 'Budgetary resources, obligations, outlays, recoveries',
+    icon: 'SBR',
+    tags: ['SBR', 'budgetary', 'outlay', 'statement'],
+    summary: 'Supports budgetary statement reporting from DLA budgetary accounting activity, including resources, obligations, expenditures, outlays, recoveries, and unobligated balances.',
+    examples: ['budgetary resources', 'obligations incurred', 'outlays', 'recoveries', 'unobligated balance'],
+    auditQuestions: ['Can SBR lines trace to budgetary postings?', 'Are obligations and outlays supportable?', 'Do recoveries reconcile to source evidence?'],
+    keyFields: ['TAS', 'budgetary USSGL', 'SBR line', 'fund', 'period', 'amount'],
+    risks: ['unsupported obligation', 'budgetary line mismatch', 'outlay not tied to Treasury', 'stale open obligation']
+  },
+  {
+    id: 'dla-balance-notes',
+    layer: 'statements',
+    title: 'Balance Sheet / Notes',
+    subtitle: 'Inventory, AP, AR, FBwT, liabilities, disclosures',
+    icon: 'FS',
+    tags: ['balance sheet', 'notes', 'AP', 'AR', 'FBwT'],
+    summary: 'Supports Balance Sheet lines and note schedules for inventory, AP, AR, FBwT, liabilities, intragovernmental activity, and related disclosures.',
+    examples: ['inventory note', 'AP schedule', 'AR schedule', 'FBwT line', 'IGT disclosure'],
+    auditQuestions: ['Do balance sheet lines tie to trial balance and subsidiary detail?', 'Are AP/AR aging schedules reconciled?', 'Are IGT disclosures supported?'],
+    keyFields: ['USSGL', 'statement line', 'note schedule', 'material', 'vendor/customer', 'trading partner', 'amount'],
+    risks: ['note schedule does not tie', 'subsidiary mismatch', 'unsupported liability', 'IGT difference']
+  }
+];
+
+const dlaEbsLineageScenarios = [
+  {
+    id: 'dla-order-to-cash',
+    short: 'order to cash',
+    title: 'DLA Customer Order to Cash Path',
+    description: 'Shows how customer demand flows from FedMall/DAAS through EBS order management, fulfillment, billing, AR, collections, reporting, and statement support.',
+    path: ['fedmall-eebp', 'daas-dlms', 'dla-demand-order', 'dla-order-fulfillment', 'dla-ar-accounting', 'dla-ddrs-gtas', 'dla-wcf-statement'],
+    steps: [
+      'A customer order or requisition is submitted through a DLA portal or logistics transaction channel.',
+      'EBS validates customer, DoDAAC, NSN, priority, fund, and availability data.',
+      'Warehouse or distribution activity fulfills the order through pick, pack, ship, and status updates.',
+      'Billing and AR records are created and later settled through collection or offset.',
+      'Reporting and working-capital statements tie fulfillment, revenue, cost, and receivable balances back to source events.'
+    ],
+    exceptionTests: ['customer demand not accepted by EBS', 'shipment without billing', 'billing without shipment', 'collection not applied', 'AR aging unsupported']
+  },
+  {
+    id: 'dla-procure-to-pay',
+    short: 'procure to pay',
+    title: 'DLA Procurement to Vendor Payment Path',
+    description: 'Shows how DLA buys inventory or support items through solicitation, procurement, receipt, invoice, AP, payment, and GL reporting.',
+    path: ['dibbs-vsm', 'dla-procurement', 'dla-piee-wawf', 'dla-inventory-detail', 'dla-ap-accounting', 'dla-ddrs-gtas', 'dla-balance-notes'],
+    steps: [
+      'Supplier quote, solicitation, or procurement demand creates buying activity.',
+      'EBS records PR/PO, vendor, contract, material, price, and delivery terms.',
+      'Receipt and acceptance evidence supports inventory update and invoice matching.',
+      'AP records liability, accrual, payment clearing, and vendor payment activity.',
+      'Trial balance and statements reflect inventory, AP, expense, and cash impacts.'
+    ],
+    exceptionTests: ['PO not tied to demand', 'receipt/invoice mismatch', 'duplicate invoice', 'vendor liability unsupported', 'inventory not updated after receipt']
+  },
+  {
+    id: 'dla-inventory-valuation',
+    short: 'inventory valuation',
+    title: 'DLA Inventory Valuation and Movement Path',
+    description: 'Shows how catalog, warehouse, movement, valuation, GL, reporting, and statement controls support DLA inventory assertions.',
+    path: ['webflis-fedlog', 'dss-distribution', 'dla-inventory', 'dla-material-master', 'dla-inventory-detail', 'dla-inventory-gl', 'dla-ebs-reporting', 'dla-wcf-statement'],
+    steps: [
+      'Authoritative catalog and NSN data establish material identity and key logistics attributes.',
+      'Depot and distribution events update inventory quantity, location, condition, and movement history.',
+      'EBS inventory and valuation detail records stock balances and financial value.',
+      'Inventory subledger balances reconcile to GL and working-capital reporting.',
+      'Audit extracts and statements tie inventory lines to material, movement, and valuation support.'
+    ],
+    exceptionTests: ['invalid material/NSN link', 'physical/book inventory mismatch', 'condition code not financially reflected', 'inventory subledger not tied to GL', 'unsupported adjustment']
+  },
+  {
+    id: 'dla-close-reporting',
+    short: 'close reporting',
+    title: 'DLA EBS Close, Treasury, and Statement Path',
+    description: 'Shows how EBS financial records move through close, adjusted trial balance, DDRS, GTAS, Treasury, and DoD statement support.',
+    path: ['dla-finance-core', 'dla-ap-accounting', 'dla-ar-accounting', 'dla-inventory-gl', 'dla-budgetary', 'dla-ddrs-gtas', 'dla-sbr', 'dla-balance-notes'],
+    steps: [
+      'EBS subledgers and GL are reconciled for AP, AR, inventory, cost, revenue, and budgetary activity.',
+      'Manual adjustments and close entries are documented, approved, posted, and reversed where required.',
+      'Adjusted trial balance and reporting extracts are prepared and reconciled to EBS GL.',
+      'DDRS, GTAS, Treasury, and intragovernmental edits are cleared with evidence.',
+      'Statement and note schedules tie back to trial balance, subsidiary ledgers, and source populations.'
+    ],
+    exceptionTests: ['AP/AR not reconciled to GL', 'inventory/GL mismatch', 'unsupported manual journal', 'GTAS edit failure', 'note schedule does not tie']
+  }
+];
+
+const dlaEbsSupportServices = [
+  { title: 'DLA Mission Context', detail: 'DLA manages the end-to-end global defense supply chain across military services, combatant commands, federal agencies, partners, and allied nations.' },
+  { title: 'ERP Platform Profile', detail: 'Modeled as DLA EBS with a BSM commercial ERP modernization lineage and SAP-style process/tables where public sources support an ERP interpretation; exact configuration requires DLA authority.' },
+  { title: 'Data Standards & DAAS', detail: 'DLMS, MILS, DAAS routing, DoDAAC, fund code, NSN, CAGE, and logistics data standards connect operational logistics transactions to financial consequences.' },
+  { title: 'Master Data Governance', detail: 'NSN/material, vendor, customer, catalog, plant/storage, condition, valuation class, fund, TAS, USSGL, and trading-partner values drive traceability.' },
+  { title: 'Close & Reporting', detail: 'Subledger-to-GL tie-outs, inventory valuation reconciliations, AP/AR aging, ATB, DDRS, GTAS, Treasury/FBwT, and statement package controls.' },
+  { title: 'Audit Evidence', detail: 'Customer orders, DLMS messages, catalog records, POs, receipts, WAWF invoices, warehouse movements, shipments, GL documents, extracts, and reconciliations.' }
+];
+
+const dlaEbsCaveats = [
+  'DLA EBS is modeled as the current operational DLA enterprise business system/supply-chain finance environment with a public BSM commercial ERP modernization lineage.',
+  'Public evidence supports treating the system as a COTS ERP/SAP-style DLA logistics and financial backbone, but exact current modules, tables, interfaces, hosting, and customizations require authoritative DLA program documentation.',
+  'Feeder counts are modeled source-system categories represented in this blueprint, not a certified DLA EBS interface inventory.',
+  'DLA has multiple supply-chain and mission contexts, including Energy, Troop Support, Weapons Support, Distribution, Disposition Services, and strategic/material programs; local workflows may differ by commodity and role.'
+];
+
+const dlaEbsSources = [
+  { name: 'DLA official mission and organization', url: 'https://www.dla.mil/' },
+  { name: 'DLA Applications', url: 'https://www.dla.mil/Working-With-DLA/Applications/' },
+  { name: 'GAO-04-615 DOD Business Systems Modernization', url: 'https://www.gao.gov/products/gao-04-615' },
+  { name: 'DoD Financial Management Regulation', url: 'https://comptroller.defense.gov/FMR/' },
+  { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+  { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
+  { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -2512,6 +2949,39 @@ export const systems = [
     supportServices: cefmsSupportServices,
     caveats: cefmsCaveats,
     sources: cefmsSources
+  },
+  {
+    slug: 'dla-ebs',
+    shortName: 'DLA EBS',
+    name: 'DLA EBS',
+    longName: 'DLA EBS / Enterprise Business System Blueprint',
+    agency: 'Defense Logistics Agency',
+    eyebrow: 'DLA EBS blueprint for supply-chain finance and working-capital reporting',
+    description: 'Explore DLA EBS as the Defense Logistics Agency enterprise business system for global supply-chain finance, connecting FedMall, DAAS/DLMS, PIEE/WAWF, DIBBS, VSM, WebFLIS/FED LOG, DSS, ERP logistics, inventory valuation, AP, AR, GL, Treasury reporting, and statement support.',
+    metric: '4',
+    metricLabel: 'Core DLA EBS lineage scenarios',
+    metricDetail: 'Demand -> EBS -> Inventory/GL -> Statement',
+    referenceImage: '/dla-ebs-blueprint-reference.svg',
+    referenceTitle: 'DLA EBS static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/dla-ebs-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'DLA EBS is modeled as the Defense Logistics Agency enterprise business system and supply-chain finance backbone, with a public BSM commercial ERP modernization lineage.',
+      whoUsesIt: 'DLA supply chains, DLA Finance, DLA Distribution, DLA Energy, Troop Support, Weapons Support, Disposition Services, vendors, customers, DFAS/reporting partners, and auditors rely on EBS data or outputs.',
+      howItIsUsed: 'It supports demand, customer orders, procurement, inventory, warehouse/distribution, vendor shipment, AP, AR, working-capital cost recovery, GL, reporting, and audit traceability.',
+      currentStatus: 'Operational DLA enterprise environment in this model; DLA public pages show the surrounding application ecosystem, while exact current EBS modules and custom interfaces require DLA authority.',
+      whyItIsUsed: 'It integrates DLA logistics and finance so global supply-chain events can be controlled, fulfilled, valued, billed, reported, and audited from source transaction to statement.',
+      feederCount: 6,
+      feederSystems: ['FedMall / EEBP', 'DAAS / DLMS / MILS', 'PIEE / WAWF', 'DIBBS / VSM', 'WebFLIS / FED LOG / Cataloging', 'DSS / Distribution / Depot Events'],
+      feederNote: 'The blueprint models 6 major DLA EBS feeder/source categories from the public DLA application ecosystem; authoritative interface counts require DLA documentation.'
+    },
+    layers: dlaEbsLayers,
+    nodes: dlaEbsNodes,
+    lineageScenarios: dlaEbsLineageScenarios,
+    supportServices: dlaEbsSupportServices,
+    caveats: dlaEbsCaveats,
+    sources: dlaEbsSources
   }
 ];
 
