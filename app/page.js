@@ -6,7 +6,7 @@ import TopNav from '../components/TopNav';
 export default function Page() {
   return (
     <main>
-      <TopNav />
+      <TopNav showTabs={false} />
 
       <section className="hero suite-hero">
         <div className="hero-copy">
@@ -17,23 +17,8 @@ export default function Page() {
             UoT lineage, source-to-statement model.
           </p>
           <div className="hero-actions">
-            <Link href="/systems/gfebs" className="primary-action">Open GFEBS</Link>
-            <Link href="/systems/gcss-army" className="secondary-action">Open GCSS-Army</Link>
-            <Link href="/systems/lmp" className="secondary-action">Open LMP</Link>
-            <Link href="/systems/gcss-mc" className="secondary-action">Open GCSS-MC</Link>
-            <Link href="/systems/stars" className="secondary-action">Open STARS</Link>
-            <Link href="/systems/sabrs" className="secondary-action">Open SABRS</Link>
-            <Link href="/systems/famis" className="secondary-action">Open FAMIS</Link>
-            <Link href="/systems/ddrs" className="secondary-action">Open DDRS</Link>
-            <Link href="/systems/gtas-cars" className="secondary-action">Open GTAS/CARS</Link>
-            <Link href="/systems/navy-erp" className="secondary-action">Open Navy ERP</Link>
-            <Link href="/systems/dai" className="secondary-action">Open DAI</Link>
-            <Link href="/systems/deams" className="secondary-action">Open DEAMS</Link>
-            <Link href="/systems/gafs" className="secondary-action">Open GAFS</Link>
-            <Link href="/systems/gafs-jv" className="secondary-action">Open GAFS JV</Link>
-            <Link href="/systems/cefms" className="secondary-action">Open CEFMS</Link>
-            <Link href="/systems/dla-ebs" className="secondary-action">Open DLA EBS</Link>
-            <Link href="/systems/abss" className="secondary-action">Open ABSS</Link>
+            <a href="#directory" className="primary-action">Browse all {systems.length} systems</a>
+            <Link href="/appendix" className="secondary-action">Open research paper appendix</Link>
           </div>
         </div>
         <div className="hero-card">
@@ -43,7 +28,7 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="system-directory">
+      <section className="system-directory" id="directory">
         <div className="section-heading">
           <div>
             <p className="eyebrow">System navigation</p>
