@@ -116,7 +116,7 @@
   <text class="node-text" x="1523" y="345">SBR</text>
   <text class="small" x="1523" y="370">obligation to outlay</text>
   <rect class="node statement" x="1505" y="435" width="210" height="76"/>
-  <text class="node-text" x="1523" y="465">Inventory / PP&E</text>
+  <text class="node-text" x="1523" y="465">Inventory / PP&amp;E</text>
   <text class="small" x="1523" y="490">existence + valuation</text>
   <rect class="node statement" x="1505" y="555" width="210" height="76"/>
   <text class="node-text" x="1523" y="585">Net cost / notes</text>
