@@ -1,25 +1,26 @@
-# GFEBS / SAP-Based Financial Management Architecture Blueprint
+# DoD FM System Architecture Blueprints
 
-Interactive Next.js blueprint for explaining GFEBS financial-management architecture, DoD audit readiness, and Universe of Transactions traceability.
+Interactive Next.js blueprint suite for explaining DoD financial-management architecture, audit readiness, and Universe of Transactions traceability.
 
 ## What is included
 
-- Clickable architecture cards across six layers:
-  1. Source / Feeder / Peer Systems
-  2. GFEBS Business Process Areas
-  3. Detailed Transaction Objects / Subsidiary Ledgers
-  4. Accounting Layer
-  5. Reporting & External Layer
-  6. DoD Financial Statements
-- Scenario lineage explorer:
-  - DTS Travel
-  - Procure-to-Pay
-  - Reimbursables
-  - PP&E Asset
-  - Payroll Cost
-- Search and layer filters
-- Audit lens for common UoT exception tests
-- Static blueprint reference image under `/public/gfebs-blueprint-reference.png`
+- Multi-page navigation:
+  - `/` system directory
+  - `/systems/gfebs` GFEBS architecture blueprint
+  - `/systems/navy-erp` Navy ERP architecture blueprint
+- Shared controls across systems:
+  - system navigation tabs
+  - architecture search
+  - layer filters
+  - scenario lineage explorer
+  - audit lens
+  - static reference image toggle
+- Navy ERP assets appended from the static V2 build:
+  - `/public/navy-erp-blueprint-v2.svg`
+  - `/public/navy-erp-blueprint-v2.png`
+  - `/public/navy-erp-blueprint-v2-hires.png`
+- Existing GFEBS static reference:
+  - `/public/gfebs-blueprint-reference.png`
 
 ## Local development
 
@@ -30,31 +31,33 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-## Deploy on Vercel through GitHub
-
-1. Create a new GitHub repository.
-2. Copy this project into the repository root.
-3. Commit and push:
+## Build
 
 ```bash
-git init
-git add .
-git commit -m "Add interactive GFEBS blueprint"
-git branch -M main
-git remote add origin https://github.com/<your-user>/<your-repo>.git
-git push -u origin main
+npm run build
 ```
 
-4. In Vercel, import the GitHub repository.
-5. Keep the default Next.js settings unless your organization requires a custom build command.
-6. Deploy.
+## Deploy on Vercel through GitHub Actions
+
+The repo includes `.github/workflows/vercel.yml`.
+
+Add these repository secrets in GitHub:
+
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+
+The workflow builds pull requests and deploys pushes to `main` when the Vercel secrets are present.
+
+You can also import the repository directly in Vercel and use the default Next.js settings.
 
 ## Suggested customization
 
-- Edit `data/architecture.js` to change nodes, T-code examples, SAP tables, audit questions, or scenarios.
+- Add future DoD FM systems in `data/systems.js`.
+- Edit `data/architecture.js` to change the GFEBS nodes, T-code examples, SAP tables, audit questions, or scenarios.
 - Edit `app/globals.css` to change colors, layout, spacing, and print behavior.
-- Replace `/public/gfebs-blueprint-reference.png` with an updated static diagram if needed.
+- Replace or add reference images under `public`.
 
 ## Important disclaimer
 
-This project is an educational architecture model. Exact GFEBS tables, T-codes, custom reports, interfaces, and functionality vary by Army configuration, role permissions, release, and modernization state.
+This project is an educational architecture model. Exact tables, T-codes, custom reports, interfaces, and functionality vary by system configuration, role permissions, release, modernization state, and authoritative program data.

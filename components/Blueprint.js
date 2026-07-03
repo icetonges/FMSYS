@@ -1,9 +1,11 @@
 'use client';
 
+import Link from 'next/link';
+import Image from 'next/image';
 import { useMemo, useState } from 'react';
-import { layers, layerOrder, lineageScenarios, nodes, supportServices } from '../data/architecture';
+import { systems } from '../data/systems';
 
-const initialNode = 'dts';
+const defaultSystem = systems[0];
 
 function classNames(...items) {
   return items.filter(Boolean).join(' ');
@@ -103,7 +105,7 @@ function DetailPanel({ node, relatedScenario, onSelectScenario }) {
         <section className="related-scenario">
           <h3>Related lineage</h3>
           <button onClick={() => onSelectScenario(relatedScenario.id)}>
-            Open {relatedScenario.short} path →
+            Open {relatedScenario.short} path
           </button>
         </section>
       )}
@@ -112,6 +114,8 @@ function DetailPanel({ node, relatedScenario, onSelectScenario }) {
 }
 
 function ScenarioPanel({ scenario, nodeLookup, onNodeSelect }) {
+  if (!scenario) return null;
+
   return (
     <section className="scenario-panel">
       <div className="section-heading scenario-heading">
@@ -126,13 +130,13 @@ function ScenarioPanel({ scenario, nodeLookup, onNodeSelect }) {
         {scenario.path.map((nodeId, index) => {
           const node = nodeLookup.get(nodeId);
           return (
-            <div className="lineage-step" key={nodeId}>
+            <div className="lineage-step" key={`${nodeId}-${index}`}>
               <button onClick={() => onNodeSelect(nodeId)}>
                 <span>{node?.icon}</span>
                 <strong>{node?.title}</strong>
                 <small>{node?.subtitle}</small>
               </button>
-              {index < scenario.path.length - 1 && <span className="flow-arrow">→</span>}
+              {index < scenario.path.length - 1 && <span className="flow-arrow">-&gt;</span>}
             </div>
           );
         })}
@@ -156,19 +160,26 @@ function ScenarioPanel({ scenario, nodeLookup, onNodeSelect }) {
   );
 }
 
-export default function Blueprint() {
+export default function Blueprint({ system = defaultSystem }) {
+  const layers = system.layers;
+  const nodes = system.nodes;
+  const lineageScenarios = system.lineageScenarios;
+  const supportServices = system.supportServices;
+  const initialNode = nodes[0]?.id;
+  const initialScenario = lineageScenarios[0]?.id;
+
   const [selectedNodeId, setSelectedNodeId] = useState(initialNode);
-  const [selectedScenarioId, setSelectedScenarioId] = useState('dts-travel');
+  const [selectedScenarioId, setSelectedScenarioId] = useState(initialScenario);
   const [activeLayer, setActiveLayer] = useState('all');
   const [query, setQuery] = useState('');
   const [showRisks, setShowRisks] = useState(true);
   const [showReference, setShowReference] = useState(false);
 
-  const nodeLookup = useMemo(() => new Map(nodes.map((node) => [node.id, node])), []);
+  const nodeLookup = useMemo(() => new Map(nodes.map((node) => [node.id, node])), [nodes]);
   const selectedNode = nodeLookup.get(selectedNodeId) || nodeLookup.get(initialNode);
   const selectedScenario = lineageScenarios.find((scenario) => scenario.id === selectedScenarioId) || lineageScenarios[0];
-  const activePath = new Set(selectedScenario.path);
-  const tags = useMemo(() => uniqueTags(nodes), []);
+  const activePath = new Set(selectedScenario?.path || []);
+  const tags = useMemo(() => uniqueTags(nodes), [nodes]);
 
   const filteredNodes = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -181,34 +192,49 @@ export default function Blueprint() {
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [activeLayer, query]);
+  }, [activeLayer, nodes, query]);
 
   const nodesByLayer = useMemo(() => {
-    const map = new Map(layerOrder.map((layer) => [layer, []]));
+    const map = new Map(layers.map((layer) => [layer.id, []]));
     filteredNodes.forEach((node) => map.get(node.layer)?.push(node));
     return map;
-  }, [filteredNodes]);
+  }, [filteredNodes, layers]);
 
   const relatedScenario = lineageScenarios.find((scenario) => scenario.path.includes(selectedNodeId));
 
   return (
     <main>
-      <section className="hero">
+      <nav className="system-tabs" aria-label="DoD financial management systems">
+        <Link href="/" className="suite-link">DoD FM Systems</Link>
+        <div className="system-tab-list">
+          {systems.map((item) => (
+            <Link
+              key={item.slug}
+              className={classNames('system-tab', item.slug === system.slug && 'active')}
+              href={`/systems/${item.slug}`}
+              aria-current={item.slug === system.slug ? 'page' : undefined}
+            >
+              <span>{item.shortName}</span>
+              <small>{item.agency}</small>
+            </Link>
+          ))}
+        </div>
+      </nav>
+
+      <section className="hero" style={{ '--hero-image': `url(${system.referenceImage})` }}>
         <div className="hero-copy">
-          <p className="eyebrow">Interactive DoD FM architecture</p>
-          <h1>GFEBS / SAP-Based Financial Management Architecture Blueprint</h1>
-          <p>
-            Explore how feeder systems, GFEBS business process areas, detailed transaction objects, USSGL accounting, reporting layers, and DoD financial statements connect for audit readiness and Universe of Transactions traceability.
-          </p>
+          <p className="eyebrow">{system.eyebrow}</p>
+          <h1>{system.longName}</h1>
+          <p>{system.description}</p>
           <div className="hero-actions">
             <a href="#blueprint" className="primary-action">Explore blueprint</a>
             <a href="#lineage" className="secondary-action">Open lineage explorer</a>
           </div>
         </div>
         <div className="hero-card">
-          <span className="hero-metric">6</span>
-          <p>Core GFEBS business process areas</p>
-          <span className="hero-metric small">Feeder → Detail → GL → Statement</span>
+          <span className="hero-metric">{system.metric}</span>
+          <p>{system.metricLabel}</p>
+          <span className="hero-metric small">{system.metricDetail}</span>
         </div>
       </section>
 
@@ -261,11 +287,24 @@ export default function Blueprint() {
           <div className="section-heading">
             <div>
               <p className="eyebrow">Static reference</p>
-              <h2>Original corrected blueprint image</h2>
+              <h2>{system.referenceTitle}</h2>
               <p>Use this as a visual comparison while exploring the interactive version below.</p>
             </div>
           </div>
-          <img src="/gfebs-blueprint-reference.png" alt="Static GFEBS architecture blueprint reference" />
+          {system.downloadLinks && (
+            <div className="download-row">
+              {system.downloadLinks.map((link) => (
+                <a href={link.href} key={link.href} download>{link.label}</a>
+              ))}
+            </div>
+          )}
+          <Image
+            src={system.referenceImage}
+            alt={`Static ${system.name} architecture blueprint reference`}
+            width={1800}
+            height={1100}
+            sizes="100vw"
+          />
         </section>
       )}
 
@@ -275,7 +314,7 @@ export default function Blueprint() {
             <div>
               <p className="eyebrow">Clickable architecture map</p>
               <h2>End-to-end flow: business event to financial statement</h2>
-              <p>Cards in the selected scenario path are highlighted. Click any card to inspect fields, T-codes, audit questions, and risks.</p>
+              <p>Cards in the selected {system.shortName} scenario path are highlighted. Click any card to inspect fields, T-codes, audit questions, and risks.</p>
             </div>
           </div>
 
@@ -328,11 +367,11 @@ export default function Blueprint() {
           <div className="audit-grid">
             <article>
               <h3>Completeness</h3>
-              <p>Source events missing from GFEBS, subledger items not posted to GL, or financial statement balances without supporting populations.</p>
+              <p>Source events missing from the ERP, subledger items not posted to GL, or financial statement balances without supporting populations.</p>
             </article>
             <article>
               <h3>Traceability</h3>
-              <p>Broken reference keys across feeder, IDoc/GEX, subledger object, GL document, trial balance, and statement line item.</p>
+              <p>Broken reference keys across feeder, interface, subledger object, GL document, trial balance, and statement line item.</p>
             </article>
             <article>
               <h3>Timing</h3>
@@ -364,9 +403,18 @@ export default function Blueprint() {
       </section>
 
       <footer>
-        <p>
-          Design note: this is an educational architecture model. Exact GFEBS tables, T-codes, custom reports, interface names, and release-specific functionality vary by Army configuration, role, and modernization state.
-        </p>
+        {system.caveats?.map((caveat) => <p key={caveat}>{caveat}</p>)}
+        {system.sources?.length > 0 && (
+          <p className="source-links">
+            Sources:{' '}
+            {system.sources.map((source, index) => (
+              <span key={source.url}>
+                <a href={source.url} target="_blank" rel="noreferrer">{source.name}</a>
+                {index < system.sources.length - 1 ? ', ' : ''}
+              </span>
+            ))}
+          </p>
+        )}
       </footer>
     </main>
   );

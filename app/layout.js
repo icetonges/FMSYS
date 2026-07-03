@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'GFEBS Architecture Blueprint',
-  description: 'Interactive GFEBS / SAP-based financial management architecture blueprint for DoD audit readiness and UoT traceability.'
+  title: 'DoD FM System Architecture Blueprints',
+  description: 'Interactive DoD financial management architecture blueprints for GFEBS, Navy ERP, audit readiness, and UoT traceability.'
 };
 
 export default function RootLayout({ children }) {
