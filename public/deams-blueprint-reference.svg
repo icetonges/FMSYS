@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="1400" viewBox="0 0 2200 1400" role="img" aria-labelledby="title desc">
+  <title id="title">DEAMS static financial management architecture blueprint</title>
+  <desc id="desc">Information-rich static blueprint for the Defense Enterprise Accounting and Management System, showing Air Force and Space Force source systems, Oracle-based financial business processes, transaction detail, subledger accounting, general ledger, Treasury reporting, and financial statements.</desc>
+  <defs>
+    <linearGradient id="hero" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#061b36"/>
+      <stop offset="0.45" stop-color="#123d70"/>
+      <stop offset="1" stop-color="#2f65b7"/>
+    </linearGradient>
+    <linearGradient id="lineage" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#eaf1ff"/>
+      <stop offset="1" stop-color="#f8fbff"/>
+    </linearGradient>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#10213d" flood-opacity="0.16"/>
+    </filter>
+    <style>
+      .font { font-family: Inter, Arial, Helvetica, sans-serif; }
+      .eyebrow { fill: #b9d7ff; font-size: 30px; font-weight: 900; letter-spacing: 5px; }
+      .title { fill: #ffffff; font-size: 58px; font-weight: 900; }
+      .subtitle { fill: #dbeaff; font-size: 24px; }
+      .layer-title { fill: #172033; font-size: 24px; font-weight: 900; }
+      .layer-sub { fill: #52637a; font-size: 16px; font-weight: 700; }
+      .card-text { fill: #172033; font-size: 17px; font-weight: 850; }
+      .small { fill: #475467; font-size: 15px; }
+      .tiny { fill: #667085; font-size: 13px; }
+      .section { fill: #2f65b7; font-size: 18px; font-weight: 900; letter-spacing: 3px; }
+      .body { fill: #344054; font-size: 18px; }
+      .risk { fill: #8a1f11; font-size: 16px; font-weight: 800; }
+      .check { fill: #075a3a; font-size: 16px; font-weight: 800; }
+    </style>
+  </defs>
+
+  <rect width="2200" height="1400" fill="#f4f7fb"/>
+
+  <rect x="44" y="34" width="2112" height="198" rx="32" fill="url(#hero)" filter="url(#shadow)"/>
+  <text class="font eyebrow" x="88" y="104">DEPARTMENT OF THE AIR FORCE FINANCIAL MANAGEMENT</text>
+  <text class="font title" x="88" y="168">DEAMS / Defense Enterprise Accounting and Management System Blueprint</text>
+  <text class="font subtitle" x="88" y="207">Static representative architecture for Oracle-based accounting, audit readiness, UoT traceability, and source-to-statement reporting.</text>
+
+  <g class="font" transform="translate(44 272)" filter="url(#shadow)">
+    <rect width="2112" height="690" rx="28" fill="#ffffff" stroke="#d7e0ee"/>
+
+    <g transform="translate(26 26)">
+      <rect width="320" height="638" rx="20" fill="#ede7fb" stroke="#7a51c2"/>
+      <text class="layer-title" x="20" y="42">1. Source / Feeder Systems</text>
+      <text class="layer-sub" x="20" y="72">Business events and authoritative evidence</text>
+      <g fill="#ffffff" stroke="#c8b8ef">
+        <rect x="20" y="105" width="280" height="58" rx="14"/><text class="card-text" x="38" y="140">DTS travel authorizations / vouchers</text>
+        <rect x="20" y="178" width="280" height="58" rx="14"/><text class="card-text" x="38" y="213">PIEE / WAWF invoice, receipt, acceptance</text>
+        <rect x="20" y="251" width="280" height="58" rx="14"/><text class="card-text" x="38" y="286">Contract writing / EDA award support</text>
+        <rect x="20" y="324" width="280" height="58" rx="14"/><text class="card-text" x="38" y="359">DCPS / civilian pay and labor sources</text>
+        <rect x="20" y="397" width="280" height="58" rx="14"/><text class="card-text" x="38" y="432">Mission, logistics, asset source systems</text>
+        <rect x="20" y="470" width="280" height="58" rx="14"/><text class="card-text" x="38" y="505">G-Invoicing / IPAC trading partners</text>
+        <rect x="20" y="543" width="280" height="58" rx="14"/><text class="card-text" x="38" y="578">Bank, disbursing, Treasury confirmations</text>
+      </g>
+    </g>
+
+    <g transform="translate(372 26)">
+      <rect width="320" height="638" rx="20" fill="#e7f4ef" stroke="#13895a"/>
+      <text class="layer-title" x="20" y="42">2. DEAMS Core Processes</text>
+      <text class="layer-sub" x="20" y="72">Oracle-based federal financial operations</text>
+      <g fill="#ffffff" stroke="#b7dfcf">
+        <rect x="20" y="105" width="280" height="64" rx="14"/><text class="card-text" x="38" y="133">Budget-to-Report</text><text class="small" x="38" y="154">funds control, execution, trial balance</text>
+        <rect x="20" y="188" width="280" height="64" rx="14"/><text class="card-text" x="38" y="216">Procure-to-Pay</text><text class="small" x="38" y="237">requisition, PO, receipt, invoice, pay</text>
+        <rect x="20" y="271" width="280" height="64" rx="14"/><text class="card-text" x="38" y="299">Order-to-Cash / Reimbursables</text><text class="small" x="38" y="320">agreements, billing, AR, collections</text>
+        <rect x="20" y="354" width="280" height="64" rx="14"/><text class="card-text" x="38" y="382">Cost / Project / Labor Accounting</text><text class="small" x="38" y="403">program cost, labor, allocations</text>
+        <rect x="20" y="437" width="280" height="64" rx="14"/><text class="card-text" x="38" y="465">Acquire-to-Retire</text><text class="small" x="38" y="486">asset additions, depreciation, retirements</text>
+        <rect x="20" y="520" width="280" height="64" rx="14"/><text class="card-text" x="38" y="548">Period Close / Reconciliation</text><text class="small" x="38" y="569">subledger close, GL close, controls</text>
+      </g>
+    </g>
+
+    <g transform="translate(718 26)">
+      <rect width="320" height="638" rx="20" fill="#e7f4f7" stroke="#16839b"/>
+      <text class="layer-title" x="20" y="42">3. Transaction Detail</text>
+      <text class="layer-sub" x="20" y="72">Universe of Transactions evidence</text>
+      <g fill="#ffffff" stroke="#b9dee6">
+        <rect x="20" y="105" width="280" height="58" rx="14"/><text class="card-text" x="38" y="140">PO line / distribution / receipt</text>
+        <rect x="20" y="178" width="280" height="58" rx="14"/><text class="card-text" x="38" y="213">AP invoice / hold / payment detail</text>
+        <rect x="20" y="251" width="280" height="58" rx="14"/><text class="card-text" x="38" y="286">AR invoice / collection detail</text>
+        <rect x="20" y="324" width="280" height="58" rx="14"/><text class="card-text" x="38" y="359">Budgetary commitment / obligation</text>
+        <rect x="20" y="397" width="280" height="58" rx="14"/><text class="card-text" x="38" y="432">Cost object / project / labor detail</text>
+        <rect x="20" y="470" width="280" height="58" rx="14"/><text class="card-text" x="38" y="505">Asset master / depreciation detail</text>
+        <rect x="20" y="543" width="280" height="58" rx="14"/><text class="card-text" x="38" y="578">Interface batch / error / control totals</text>
+      </g>
+    </g>
+
+    <g transform="translate(1064 26)">
+      <rect width="320" height="638" rx="20" fill="#eaf1ff" stroke="#255ba8"/>
+      <text class="layer-title" x="20" y="42">4. Accounting Layer</text>
+      <text class="layer-sub" x="20" y="72">SLA, USSGL, GL, audit drillback</text>
+      <g fill="#ffffff" stroke="#bfd0ef">
+        <rect x="20" y="115" width="280" height="74" rx="14"/><text class="card-text" x="38" y="144">Oracle Subledger Accounting</text><text class="small" x="38" y="167">events, classes, derivation rules, references</text>
+        <rect x="20" y="214" width="280" height="74" rx="14"/><text class="card-text" x="38" y="243">Budgetary Accounting</text><text class="small" x="38" y="266">USSGL 4xxxxx, authority, obligations, outlays</text>
+        <rect x="20" y="313" width="280" height="74" rx="14"/><text class="card-text" x="38" y="342">Proprietary Accounting</text><text class="small" x="38" y="365">assets, liabilities, expense, revenue</text>
+        <rect x="20" y="412" width="280" height="74" rx="14"/><text class="card-text" x="38" y="441">General Ledger</text><text class="small" x="38" y="464">journal header, line, ledger, period, account</text>
+        <rect x="20" y="511" width="280" height="74" rx="14"/><text class="card-text" x="38" y="540">Reconciliation Controls</text><text class="small" x="38" y="563">source-to-subledger-to-GL-to-report totals</text>
+      </g>
+    </g>
+
+    <g transform="translate(1410 26)">
+      <rect width="320" height="638" rx="20" fill="#f0e9fb" stroke="#6c43b7"/>
+      <text class="layer-title" x="20" y="42">5. Reporting / Treasury</text>
+      <text class="layer-sub" x="20" y="72">Operational, DoD, and federal reporting</text>
+      <g fill="#ffffff" stroke="#d1c0ec">
+        <rect x="20" y="105" width="280" height="64" rx="14"/><text class="card-text" x="38" y="133">DEAMS operational reporting</text><text class="small" x="38" y="154">AP aging, open obligations, close reports</text>
+        <rect x="20" y="188" width="280" height="64" rx="14"/><text class="card-text" x="38" y="216">DDRS / reporting package</text><text class="small" x="38" y="237">trial balance edits and adjustments</text>
+        <rect x="20" y="271" width="280" height="64" rx="14"/><text class="card-text" x="38" y="299">GTAS adjusted trial balance</text><text class="small" x="38" y="320">TAS, USSGL, BETC, trading partner</text>
+        <rect x="20" y="354" width="280" height="64" rx="14"/><text class="card-text" x="38" y="382">USSGL / A-136 crosswalks</text><text class="small" x="38" y="403">statement mapping and note schedules</text>
+        <rect x="20" y="437" width="280" height="64" rx="14"/><text class="card-text" x="38" y="465">FBwT / CARS / Treasury</text><text class="small" x="38" y="486">fund balance, collections, disbursements</text>
+        <rect x="20" y="520" width="280" height="64" rx="14"/><text class="card-text" x="38" y="548">G-Invoicing / IPAC status</text><text class="small" x="38" y="569">GT&amp;C, orders, performance, settlement</text>
+      </g>
+    </g>
+
+    <g transform="translate(1756 26)">
+      <rect width="320" height="638" rx="20" fill="#fff0e2" stroke="#a45518"/>
+      <text class="layer-title" x="20" y="42">6. DAF / DoD Statements</text>
+      <text class="layer-sub" x="20" y="72">Statement lines and audit support</text>
+      <g fill="#ffffff" stroke="#ebc49d">
+        <rect x="20" y="105" width="280" height="64" rx="14"/><text class="card-text" x="38" y="133">Balance Sheet</text><text class="small" x="38" y="154">FBwT, AP, AR, assets, liabilities</text>
+        <rect x="20" y="188" width="280" height="64" rx="14"/><text class="card-text" x="38" y="216">Statement of Net Cost</text><text class="small" x="38" y="237">program costs, payroll, depreciation</text>
+        <rect x="20" y="271" width="280" height="64" rx="14"/><text class="card-text" x="38" y="299">Statement of Changes in Net Position</text><text class="small" x="38" y="320">financing sources and net cost bridge</text>
+        <rect x="20" y="354" width="280" height="64" rx="14"/><text class="card-text" x="38" y="382">Statement of Budgetary Resources</text><text class="small" x="38" y="403">authority, obligations, outlays</text>
+        <rect x="20" y="437" width="280" height="64" rx="14"/><text class="card-text" x="38" y="465">Notes / Required Schedules</text><text class="small" x="38" y="486">FBwT, PP&amp;E, IGT, reconciliation support</text>
+        <rect x="20" y="520" width="280" height="64" rx="14"/><text class="card-text" x="38" y="548">Audit Evidence Package</text><text class="small" x="38" y="569">population, control totals, drillback, approvals</text>
+      </g>
+    </g>
+
+    <g stroke="#174b9a" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.72">
+      <path d="M346 344 H372"/>
+      <path d="M692 344 H718"/>
+      <path d="M1038 344 H1064"/>
+      <path d="M1384 344 H1410"/>
+      <path d="M1730 344 H1756"/>
+    </g>
+  </g>
+
+  <g class="font" transform="translate(44 1000)" filter="url(#shadow)">
+    <rect width="2112" height="154" rx="26" fill="url(#lineage)" stroke="#d7e0ee"/>
+    <text class="section" x="28" y="44">PRIMARY UOT LINEAGE</text>
+    <text class="layer-title" x="28" y="86">Business event -> Source transaction -> Interface control -> DEAMS subledger event -> SLA journal -> GL journal line -> Trial balance -> GTAS/DDRS -> Statement line</text>
+    <text class="body" x="28" y="124">Key trace keys: source document, batch/interface ID, PO/requisition, invoice, receipt, vendor/customer, fund/TAS, organization, project/cost object, USSGL, accounting date, journal line, reporting period.</text>
+  </g>
+
+  <g class="font" transform="translate(44 1186)">
+    <rect width="1028" height="154" rx="22" fill="#ffffff" stroke="#d7e0ee" filter="url(#shadow)"/>
+    <text class="section" x="24" y="40">AUDIT / AI TEST FOCUS</text>
+    <text class="check" x="24" y="75">Completeness: source accepted + rejected populations reconcile to subledger and GL.</text>
+    <text class="check" x="24" y="103">Traceability: SLA supporting references preserve source, fund, project, vendor/customer, and trading-partner context.</text>
+    <text class="risk" x="24" y="131">Risk signals: unaccounted SLA events, unsupported manual journals, aged interface rejects, stale obligations, AP/AR/asset subledger-to-GL breaks.</text>
+
+    <rect x="1084" width="1072" height="154" rx="22" fill="#ffffff" stroke="#d7e0ee" filter="url(#shadow)"/>
+    <text class="section" x="1108" y="40">SOURCE BASIS AND CAVEAT</text>
+    <text class="body" x="1108" y="75">Built from public DEAMS/DAF framing plus Oracle EBS Purchasing/SLA patterns, DoD FMR policy framing, and Treasury GTAS/USSGL/G-Invoicing/IPAC reporting mechanics.</text>
+    <text class="body" x="1108" y="103">Representative model only. Exact DEAMS modules, interfaces, responsibilities, ledgers, reports, and configuration require authoritative DEAMS program data.</text>
+    <text class="tiny" x="1108" y="131">Refs: SAF/FM mission; Oracle Purchasing User Guide; Oracle SLA Implementation Guide; DoD FMR; Treasury GTAS, USSGL, G-Invoicing/IPAC.</text>
+  </g>
+</svg>

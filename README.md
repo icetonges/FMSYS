@@ -9,6 +9,7 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/systems/gfebs` GFEBS architecture blueprint
   - `/systems/navy-erp` Navy ERP architecture blueprint
   - `/systems/dai` Defense Agencies Initiative blueprint
+  - `/systems/deams` Defense Enterprise Accounting and Management System blueprint
 - Shared controls across systems:
   - system navigation tabs
   - architecture search
@@ -22,6 +23,8 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/public/navy-erp-blueprint-v2-hires.png`
 - DAI static reference asset:
   - `/public/dai-blueprint-reference.svg`
+- DEAMS static reference asset:
+  - `/public/deams-blueprint-reference.svg`
 - DAI verification notes:
   - `/docs/DAI_BLUEPRINT_VERIFICATION.md`
 - Existing GFEBS static reference:
