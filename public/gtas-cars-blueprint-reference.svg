@@ -1,0 +1,191 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040" role="img" aria-labelledby="title desc">
+  <title id="title">GTAS and CARS Treasury Reporting Blueprint</title>
+  <desc id="desc">Static source-to-statement blueprint for Treasury GTAS and CARS central accounting reporting lineage.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f5f8fc; }
+      .panel { fill: #ffffff; stroke: #d5e1f2; stroke-width: 2; }
+      .title { fill: #08234a; font: 800 43px Arial, sans-serif; }
+      .subtitle { fill: #415778; font: 21px Arial, sans-serif; }
+      .layer-title { fill: #0b2f66; font: 800 20px Arial, sans-serif; letter-spacing: .8px; }
+      .box-title { fill: #ffffff; font: 800 20px Arial, sans-serif; }
+      .box-text { fill: #e9f2ff; font: 15px Arial, sans-serif; }
+      .note { fill: #253b5b; font: 16px Arial, sans-serif; }
+      .arrow { stroke: #163e7a; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .source { fill: #174f9a; }
+      .core { fill: #155f77; }
+      .detail { fill: #7152b8; }
+      .finance { fill: #b05a1f; }
+      .report { fill: #7a3d86; }
+      .statement { fill: #132f58; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#163e7a"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1600" height="1040"/>
+  <text class="title" x="70" y="88">GTAS and CARS / Treasury Reporting Blueprint</text>
+  <text class="subtitle" x="70" y="124">Governmentwide adjusted trial balance plus central accounting record for TAS-BETC, FBWT, MTS, Combined Statement, and U.S. Government Financial Report support</text>
+
+  <rect class="panel" x="55" y="165" width="1490" height="710" rx="18"/>
+
+  <text class="layer-title" x="90" y="215">AGENCY / TREASURY SOURCES</text>
+  <text class="layer-title" x="340" y="215">GTAS / CARS CORE</text>
+  <text class="layer-title" x="610" y="215">DETAIL RECORDS</text>
+  <text class="layer-title" x="880" y="215">VALIDATION CONTROL</text>
+  <text class="layer-title" x="1160" y="215">TREASURY OUTPUTS</text>
+  <text class="layer-title" x="1360" y="215">REPORTS</text>
+
+  <g transform="translate(85 250)">
+    <rect class="source" width="190" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Agency ATB</text>
+    <text class="box-text" x="18" y="58">TAS, USSGL, attributes,</text>
+    <text class="box-text" x="18" y="76">budget execution</text>
+  </g>
+  <g transform="translate(85 370)">
+    <rect class="source" width="190" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">DDRS / ERPs</text>
+    <text class="box-text" x="18" y="58">Component reporting</text>
+    <text class="box-text" x="18" y="76">and close tie-outs</text>
+  </g>
+  <g transform="translate(85 490)">
+    <rect class="source" width="190" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Payments / Collections</text>
+    <text class="box-text" x="18" y="58">TAS-BETC, IPAC,</text>
+    <text class="box-text" x="18" y="76">disbursing, receipts</text>
+  </g>
+  <g transform="translate(85 610)">
+    <rect class="source" width="190" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">FBWT / General Fund</text>
+    <text class="box-text" x="18" y="58">Fund balance, receipt</text>
+    <text class="box-text" x="18" y="76">and appropriation data</text>
+  </g>
+
+  <g transform="translate(340 250)">
+    <rect class="core" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">GTAS</text>
+    <text class="box-text" x="18" y="58">Adjusted trial balance</text>
+    <text class="box-text" x="18" y="76">submission and edits</text>
+  </g>
+  <g transform="translate(340 370)">
+    <rect class="core" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">CARS</text>
+    <text class="box-text" x="18" y="58">Central accounting</text>
+    <text class="box-text" x="18" y="76">system of record</text>
+  </g>
+  <g transform="translate(340 490)">
+    <rect class="core" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Classification</text>
+    <text class="box-text" x="18" y="58">TAS-BETC, component</text>
+    <text class="box-text" x="18" y="76">TAS, USSGL</text>
+  </g>
+  <g transform="translate(340 610)">
+    <rect class="core" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Monthly Close</text>
+    <text class="box-text" x="18" y="58">Reporting windows,</text>
+    <text class="box-text" x="18" y="76">edits, statements</text>
+  </g>
+
+  <g transform="translate(610 250)">
+    <rect class="detail" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">ATB Line</text>
+    <text class="box-text" x="18" y="58">TAS, USSGL, domain,</text>
+    <text class="box-text" x="18" y="76">attribute, amount</text>
+  </g>
+  <g transform="translate(610 370)">
+    <rect class="detail" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">CARS Transaction</text>
+    <text class="box-text" x="18" y="58">TAS-BETC, ALC,</text>
+    <text class="box-text" x="18" y="76">payment/collection</text>
+  </g>
+  <g transform="translate(610 490)">
+    <rect class="detail" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">FBWT Detail</text>
+    <text class="box-text" x="18" y="58">Agency balance,</text>
+    <text class="box-text" x="18" y="76">Treasury balance</text>
+  </g>
+  <g transform="translate(610 610)">
+    <rect class="detail" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">IGT Detail</text>
+    <text class="box-text" x="18" y="58">Trading partner, IPAC,</text>
+    <text class="box-text" x="18" y="76">buyer/seller</text>
+  </g>
+
+  <g transform="translate(885 250)">
+    <rect class="finance" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">GTAS Edits</text>
+    <text class="box-text" x="18" y="58">Fatal, warning,</text>
+    <text class="box-text" x="18" y="76">accounting edits</text>
+  </g>
+  <g transform="translate(885 370)">
+    <rect class="finance" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">CARS Reconciliation</text>
+    <text class="box-text" x="18" y="58">TAS-BETC, FBWT,</text>
+    <text class="box-text" x="18" y="76">transaction detail</text>
+  </g>
+  <g transform="translate(885 490)">
+    <rect class="finance" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Agency Certification</text>
+    <text class="box-text" x="18" y="58">Submit, certify,</text>
+    <text class="box-text" x="18" y="76">re-submit evidence</text>
+  </g>
+  <g transform="translate(885 610)">
+    <rect class="finance" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Audit Tie-Out</text>
+    <text class="box-text" x="18" y="58">Source, ATB, CARS,</text>
+    <text class="box-text" x="18" y="76">reports, statements</text>
+  </g>
+
+  <g transform="translate(1160 300)">
+    <rect class="report" width="160" height="100" rx="12"/>
+    <text class="box-title" x="18" y="34">Fiscal Service</text>
+    <text class="box-text" x="18" y="61">Governmentwide</text>
+    <text class="box-text" x="18" y="80">accounting data</text>
+  </g>
+  <g transform="translate(1160 480)">
+    <rect class="report" width="160" height="100" rx="12"/>
+    <text class="box-title" x="18" y="34">Treasury Reports</text>
+    <text class="box-text" x="18" y="61">MTS, Combined</text>
+    <text class="box-text" x="18" y="80">Statement, FR</text>
+  </g>
+
+  <g transform="translate(1370 280)">
+    <rect class="statement" width="135" height="88" rx="12"/>
+    <text class="box-title" x="18" y="34">GTAS</text>
+    <text class="box-text" x="18" y="61">ATB status</text>
+  </g>
+  <g transform="translate(1370 390)">
+    <rect class="statement" width="135" height="88" rx="12"/>
+    <text class="box-title" x="18" y="34">MTS / CS</text>
+    <text class="box-text" x="18" y="61">Budgetary reports</text>
+  </g>
+  <g transform="translate(1370 500)">
+    <rect class="statement" width="135" height="88" rx="12"/>
+    <text class="box-title" x="18" y="34">FR-USG</text>
+    <text class="box-text" x="18" y="61">Governmentwide FR</text>
+  </g>
+  <g transform="translate(1370 610)">
+    <rect class="statement" width="135" height="88" rx="12"/>
+    <text class="box-title" x="18" y="34">FBWT</text>
+    <text class="box-text" x="18" y="61">Tie-out support</text>
+  </g>
+
+  <path class="arrow" d="M 280 294 H 330"/>
+  <path class="arrow" d="M 545 294 H 600"/>
+  <path class="arrow" d="M 815 294 H 875"/>
+  <path class="arrow" d="M 1090 294 H 1150"/>
+  <path class="arrow" d="M 1325 350 H 1360"/>
+  <path class="arrow" d="M 280 414 H 330"/>
+  <path class="arrow" d="M 545 414 H 600"/>
+  <path class="arrow" d="M 815 414 H 875"/>
+  <path class="arrow" d="M 1090 414 C 1120 414 1130 500 1150 520"/>
+  <path class="arrow" d="M 1325 530 H 1360"/>
+  <path class="arrow" d="M 280 534 H 330"/>
+  <path class="arrow" d="M 545 534 H 600"/>
+  <path class="arrow" d="M 815 534 H 875"/>
+  <path class="arrow" d="M 1090 534 H 1150"/>
+
+  <rect class="panel" x="70" y="905" width="1460" height="90" rx="14"/>
+  <text class="note" x="95" y="940">Scope note: GTAS is the adjusted trial balance submission/edit path; CARS is Treasury central accounting and reporting system of record.</text>
+  <text class="note" x="95" y="970">Audit lens: reconcile agency ATB, TAS-BETC transactions, FBWT, IPAC/IGT, monthly reporting, Combined Statement, and Financial Report outputs.</text>
+</svg>

@@ -5594,6 +5594,418 @@ const ddrsSources = [
   { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
 ];
 
+const gtasCarsLayers = [
+  { id: 'source', label: 'Agency and Treasury Source Events', short: 'Source', description: 'Agency ATB, DDRS, ERP, payment, collection, disbursing, IPAC, FBWT, and General Fund events that feed Treasury reporting.' },
+  { id: 'base', label: 'GTAS and CARS Core Processing', short: 'GTAS/CARS', description: 'GTAS adjusted trial-balance submission and edit processing plus CARS central accounting and TAS-BETC transaction reporting.' },
+  { id: 'detail', label: 'Treasury Reporting Detail', short: 'Detail', description: 'ATB line, TAS/USSGL, domain attributes, TAS-BETC, ALC, payment/collection, FBWT, IPAC, IGT, and certification detail.' },
+  { id: 'accounting', label: 'Validation and Reconciliation', short: 'Control', description: 'GTAS fatal/edit checks, USSGL validation, CARS classification, FBWT reconciliation, TAS-BETC tie-outs, certification, and audit control.' },
+  { id: 'reporting', label: 'Treasury Outputs', short: 'Outputs', description: 'Fiscal Service accounting data, GTAS status, MTS, Combined Statement, Financial Report support, Fiscal Data, and agency feedback outputs.' },
+  { id: 'statements', label: 'Governmentwide Reports', short: 'Reports', description: 'Monthly Treasury Statement, Combined Statement, Financial Report of the U.S. Government, FBWT support, and agency reporting evidence.' }
+];
+
+const gtasCarsNodes = [
+  {
+    id: 'gtas-agency-atb-source',
+    layer: 'source',
+    title: 'Agency Adjusted Trial Balance',
+    subtitle: 'TAS, USSGL, attributes, budget execution',
+    icon: 'ATB',
+    tags: ['gtas', 'adjusted trial balance', 'agency', 'ussgl'],
+    summary: 'Agencies submit adjusted trial balance data with TAS, USSGL, proprietary and budgetary attributes, and budget-execution information through GTAS.',
+    examples: ['monthly ATB', 'year-end ATB', 'proprietary balances', 'budgetary execution'],
+    auditQuestions: ['Does the ATB tie to the agency GL or DDRS output?', 'Are TAS/USSGL attributes complete?', 'Are re-submissions controlled?'],
+    keyFields: ['TAS', 'USSGL', 'domain attribute', 'period', 'beginning balance', 'activity', 'ending balance'],
+    risks: ['ATB not tied to GL', 'missing attribute', 'uncontrolled re-submission']
+  },
+  {
+    id: 'gtas-ddrs-erp-source',
+    layer: 'source',
+    title: 'DDRS / ERP Reporting Sources',
+    subtitle: 'Agency financial reporting and close tie-outs',
+    icon: 'ERP',
+    tags: ['ddrs', 'erp', 'trial balance', 'close'],
+    summary: 'Represents agency ERP, DDRS, and reporting-layer outputs used to prepare, validate, and reconcile GTAS submissions.',
+    examples: ['DDRS tie-out', 'ERP trial balance', 'statement package', 'close reconciliation'],
+    auditQuestions: ['Do GTAS submissions reconcile to agency reporting packages?', 'Are close adjustments visible?', 'Are source versions retained?'],
+    keyFields: ['source system', 'reporting batch', 'TAS', 'USSGL', 'period', 'amount', 'reconciliation ID'],
+    risks: ['source-to-GTAS mismatch', 'late adjustment not reflected', 'version confusion']
+  },
+  {
+    id: 'cars-payment-collection-source',
+    layer: 'source',
+    title: 'Payments, Collections, and Disbursing',
+    subtitle: 'TAS-BETC, ALC, voucher, deposit, receipt activity',
+    icon: 'PAY',
+    tags: ['cars', 'payment', 'collection', 'tas-betc'],
+    summary: 'Payment, collection, disbursing, deposit, and receipt activity is classified for central accounting using TAS-BETC, ALC, and transaction-level identifiers.',
+    examples: ['disbursement', 'collection', 'deposit ticket', 'payment voucher', 'receipt'],
+    auditQuestions: ['Are payments and collections classified to the right TAS-BETC?', 'Do agency records reconcile to Treasury?', 'Are adjustments traceable?'],
+    keyFields: ['TAS', 'BETC', 'ALC', 'voucher', 'deposit ticket', 'amount', 'effective date'],
+    risks: ['TAS-BETC misclassification', 'unmatched transaction', 'FBWT difference']
+  },
+  {
+    id: 'cars-fbwt-source',
+    layer: 'source',
+    title: 'FBWT / General Fund / Central Accounts',
+    subtitle: 'Fund Balance with Treasury and central accounting balances',
+    icon: 'FBW',
+    tags: ['fbwt', 'general fund', 'cars', 'treasury'],
+    summary: 'Fund Balance with Treasury, General Fund, receipt, appropriation, warrant, and central accounting data provide the Treasury control environment for agency balances.',
+    examples: ['FBWT balance', 'appropriation warrant', 'receipt account', 'Treasury balance'],
+    auditQuestions: ['Does agency FBWT reconcile to Treasury/CARS?', 'Are warrants and transfers recorded correctly?', 'Are differences aged and resolved?'],
+    keyFields: ['TAS', 'fund symbol', 'warrant', 'receipt account', 'Treasury balance', 'agency balance', 'difference'],
+    risks: ['FBWT unreconciled', 'warrant/appropriation mismatch', 'central account difference unresolved']
+  },
+  {
+    id: 'cars-igt-source',
+    layer: 'source',
+    title: 'IPAC / G-Invoicing / IGT',
+    subtitle: 'Intragovernmental settlement and trading partner data',
+    icon: 'IGT',
+    tags: ['ipac', 'g-invoicing', 'igt', 'trading partner'],
+    summary: 'Intragovernmental payments, collections, orders, and trading partner data support CARS classification, GTAS attributes, and governmentwide eliminations.',
+    examples: ['IPAC settlement', 'G-Invoicing order', 'trading partner record', 'buyer/seller pair'],
+    auditQuestions: ['Are trading partner attributes complete?', 'Do buyer and seller records agree?', 'Are IPAC settlements applied to the right TAS?'],
+    keyFields: ['agreement/order', 'IPAC document', 'trading partner', 'buyer TAS', 'seller TAS', 'BETC', 'amount'],
+    risks: ['trading partner mismatch', 'IPAC misapplied', 'IGT elimination difference']
+  },
+  {
+    id: 'gtas-core',
+    layer: 'base',
+    title: 'GTAS Core Submission',
+    subtitle: 'Governmentwide TAS Adjusted Trial Balance System',
+    icon: 'GTA',
+    tags: ['gtas', 'submission', 'atb', 'monthly reporting'],
+    summary: 'GTAS receives agency adjusted trial balances for proprietary financial reporting and budget-execution information used by Treasury, OMB, Congress, and the Financial Report.',
+    examples: ['ATB submission', 'reporting window', 'agency certification', 'bulk file upload'],
+    auditQuestions: ['Was the submission made in the right window?', 'Is the certification supported?', 'Do fatal edits clear before close?'],
+    keyFields: ['agency identifier', 'reporting period', 'submission version', 'TAS', 'USSGL', 'status', 'certifier'],
+    risks: ['late or incomplete submission', 'uncleared fatal edit', 'certification not supported']
+  },
+  {
+    id: 'cars-core',
+    layer: 'base',
+    title: 'CARS Core Accounting',
+    subtitle: 'Central Accounting Reporting System',
+    icon: 'CAR',
+    tags: ['cars', 'central accounting', 'tas-betc', 'fbwt'],
+    summary: 'CARS is modeled as Treasury Fiscal Service central accounting system of record for TAS-BETC classified transactions, FBWT support, and Treasury reporting outputs.',
+    examples: ['TAS-BETC transaction', 'central accounting record', 'FBWT support', 'MTS feed'],
+    auditQuestions: ['Do agency classified transactions reconcile to CARS?', 'Are TAS-BETC values valid?', 'Are central accounting adjustments supported?'],
+    keyFields: ['TAS', 'BETC', 'ALC', 'transaction ID', 'amount', 'effective date', 'source'],
+    risks: ['central accounting mismatch', 'classification error', 'unsupported adjustment']
+  },
+  {
+    id: 'gtas-cars-classification',
+    layer: 'base',
+    title: 'TAS / BETC / USSGL Classification',
+    subtitle: 'Standardized Treasury and accounting attributes',
+    icon: 'CLS',
+    tags: ['tas', 'betc', 'ussgl', 'classification'],
+    summary: 'Links GTAS USSGL/TAS reporting with CARS TAS-BETC classification so agency balances, transactions, and Treasury reports can reconcile.',
+    examples: ['TAS validation', 'BETC classification', 'USSGL mapping', 'Treasury account symbol attribute'],
+    auditQuestions: ['Are TAS, BETC, and USSGL attributes valid and consistent?', 'Do classification changes have support?', 'Are abnormal balances explained?'],
+    keyFields: ['TAS', 'BETC', 'USSGL', 'domain attribute', 'fund type', 'authority type', 'period'],
+    risks: ['invalid classification', 'GTAS/CARS mismatch', 'crosswalk error']
+  },
+  {
+    id: 'gtas-cars-monthly-close',
+    layer: 'base',
+    title: 'Monthly Reporting Close',
+    subtitle: 'Windows, edits, re-submission, certification',
+    icon: 'CLS',
+    tags: ['monthly reporting', 'close', 'certification', 'edits'],
+    summary: 'Controls monthly reporting windows, edit resolution, agency certification, re-submission, reconciliation, and status reporting.',
+    examples: ['reporting window', 'edit resolution', 'certified submission', 're-submission'],
+    auditQuestions: ['Are edits cleared before certification?', 'Are changes after certification controlled?', 'Are late submissions tracked?'],
+    keyFields: ['reporting window', 'submission status', 'edit count', 'certifier', 'submission timestamp', 'version'],
+    risks: ['late reporting', 'uncleared edit', 'uncontrolled post-certification change']
+  },
+  {
+    id: 'gtas-atb-line',
+    layer: 'detail',
+    title: 'GTAS ATB Line Detail',
+    subtitle: 'TAS, USSGL, attributes, beginning/activity/ending balances',
+    icon: 'LIN',
+    tags: ['atb', 'line detail', 'ussgl', 'tas'],
+    summary: 'Preserves line-level GTAS adjusted trial balance detail used for edits, reconciliations, governmentwide reporting, and audit support.',
+    examples: ['TAS/USSGL line', 'domain attribute line', 'budgetary line', 'proprietary line'],
+    auditQuestions: ['Can each line trace to agency GL or DDRS?', 'Are balances mathematically consistent?', 'Do attributes satisfy GTAS edit rules?'],
+    keyFields: ['TAS', 'USSGL', 'domain attribute', 'beginning balance', 'debit/credit activity', 'ending balance', 'period'],
+    risks: ['line not traceable', 'balance roll-forward error', 'attribute missing']
+  },
+  {
+    id: 'cars-transaction-detail',
+    layer: 'detail',
+    title: 'CARS Transaction Detail',
+    subtitle: 'TAS-BETC, ALC, payment, collection, receipt',
+    icon: 'TRX',
+    tags: ['cars', 'transaction', 'tas-betc', 'alc'],
+    summary: 'Captures central accounting transaction detail for payments, collections, receipts, disbursements, ALC, TAS-BETC, and effective dates.',
+    examples: ['payment record', 'collection record', 'deposit record', 'IPAC settlement'],
+    auditQuestions: ['Does CARS transaction detail match agency source support?', 'Are TAS-BETC classifications correct?', 'Are corrections traceable?'],
+    keyFields: ['transaction ID', 'ALC', 'TAS', 'BETC', 'voucher/deposit', 'amount', 'effective date'],
+    risks: ['transaction not matched', 'incorrect TAS-BETC', 'correction lacks support']
+  },
+  {
+    id: 'cars-fbwt-detail',
+    layer: 'detail',
+    title: 'FBWT Reconciliation Detail',
+    subtitle: 'Agency balance, Treasury balance, differences',
+    icon: 'FBW',
+    tags: ['fbwt', 'reconciliation', 'treasury', 'difference'],
+    summary: 'Tracks agency Fund Balance with Treasury and Treasury/CARS balances, reconciling items, difference aging, ownership, and resolution evidence.',
+    examples: ['FBWT tie-out', 'Treasury difference', 'agency reconciling item', 'aged difference'],
+    auditQuestions: ['Are FBWT differences aged and assigned?', 'Do reconciling items have support?', 'Are corrections posted in both records?'],
+    keyFields: ['TAS', 'agency balance', 'Treasury balance', 'difference', 'owner', 'age', 'resolution'],
+    risks: ['unresolved FBWT difference', 'unsupported reconciling item', 'timing issue not cleared']
+  },
+  {
+    id: 'cars-igt-detail',
+    layer: 'detail',
+    title: 'IGT / Trading Partner Detail',
+    subtitle: 'IPAC, G-Invoicing, buyer/seller, TAS-BETC',
+    icon: 'IGT',
+    tags: ['igt', 'ipac', 'g-invoicing', 'trading partner'],
+    summary: 'Preserves intragovernmental settlement and trading partner attributes that support CARS classification, GTAS reporting, and governmentwide eliminations.',
+    examples: ['IPAC document', 'G-Invoicing order', 'buyer/seller pair', 'trading partner difference'],
+    auditQuestions: ['Are trading partner identifiers valid?', 'Do buyer and seller records agree?', 'Are settlement differences explained?'],
+    keyFields: ['IPAC document', 'agreement/order', 'trading partner', 'buyer TAS', 'seller TAS', 'BETC', 'amount'],
+    risks: ['trading partner mismatch', 'one-sided IGT activity', 'settlement misclassified']
+  },
+  {
+    id: 'gtas-edit-control',
+    layer: 'accounting',
+    title: 'GTAS Edits and Validations',
+    subtitle: 'Fatal edits, warnings, accounting edits, attributes',
+    icon: 'EDT',
+    tags: ['gtas', 'edits', 'validations', 'fatal edit'],
+    summary: 'Controls GTAS fatal edits, warning edits, accounting edits, USSGL/TAS rules, attribute completeness, and data-quality validation.',
+    examples: ['fatal edit', 'warning edit', 'USSGL validation', 'domain attribute edit'],
+    auditQuestions: ['Are fatal edits cleared?', 'Are warnings reviewed and explained?', 'Are overrides or resubmissions approved?'],
+    keyFields: ['edit code', 'severity', 'TAS', 'USSGL', 'attribute', 'owner', 'resolution'],
+    risks: ['fatal edit unresolved', 'warning ignored', 'data-quality defect']
+  },
+  {
+    id: 'cars-reconciliation-control',
+    layer: 'accounting',
+    title: 'CARS and FBWT Reconciliation',
+    subtitle: 'TAS-BETC, Treasury, FBWT, agency tie-outs',
+    icon: 'REC',
+    tags: ['cars', 'fbwt', 'reconciliation', 'treasury'],
+    summary: 'Reconciles CARS transaction classifications, agency FBWT, Treasury balances, TAS-BETC activity, and central accounting outputs.',
+    examples: ['CARS tie-out', 'FBWT reconciliation', 'TAS-BETC difference', 'Treasury correction'],
+    auditQuestions: ['Do agency and Treasury balances reconcile?', 'Are reconciling items aged and resolved?', 'Do corrections preserve source evidence?'],
+    keyFields: ['reconciliation ID', 'TAS', 'BETC', 'agency amount', 'Treasury amount', 'difference', 'resolution'],
+    risks: ['unreconciled FBWT', 'TAS-BETC mismatch', 'unsupported correction']
+  },
+  {
+    id: 'gtas-certification-control',
+    layer: 'accounting',
+    title: 'Agency Certification and Re-submission Control',
+    subtitle: 'Submitter, certifier, version, status, evidence',
+    icon: 'CERT',
+    tags: ['certification', 'submission', 'resubmission', 'evidence'],
+    summary: 'Controls agency GTAS submission status, certifier accountability, re-submissions, review evidence, and reporting-window compliance.',
+    examples: ['certified ATB', 'resubmission', 'review evidence', 'status report'],
+    auditQuestions: ['Who certified the submission?', 'Are re-submissions approved and explained?', 'Was source evidence retained?'],
+    keyFields: ['submission ID', 'submitter', 'certifier', 'status', 'timestamp', 'version', 'evidence link'],
+    risks: ['uncertified submission', 'uncontrolled resubmission', 'review evidence missing']
+  },
+  {
+    id: 'gtas-cars-audit-control',
+    layer: 'accounting',
+    title: 'Audit Tie-Out Control',
+    subtitle: 'Agency source, GTAS, CARS, reports, evidence',
+    icon: 'AUD',
+    tags: ['audit', 'tie-out', 'evidence', 'reporting'],
+    summary: 'Connects agency source records, GTAS ATB lines, CARS transactions, FBWT reconciliations, Treasury reports, and audit-support packages.',
+    examples: ['ATB-to-GL tie-out', 'CARS-to-agency tie-out', 'FBWT package', 'MTS support'],
+    auditQuestions: ['Can report amounts trace to agency and Treasury records?', 'Are differences explained?', 'Are support packages complete and retained?'],
+    keyFields: ['support package', 'source system', 'GTAS line', 'CARS transaction', 'report line', 'difference', 'owner'],
+    risks: ['report amount unsupported', 'difference unresolved', 'evidence gap']
+  },
+  {
+    id: 'gtas-status-output',
+    layer: 'reporting',
+    title: 'GTAS Status and Data Outputs',
+    subtitle: 'Submission status, edits, data-readable files',
+    icon: 'OUT',
+    tags: ['gtas', 'status', 'output', 'data'],
+    summary: 'Provides GTAS submission status, edit results, agency feedback, data-readable outputs, and data used for Treasury/OMB/governmentwide reporting.',
+    examples: ['GTAS status report', 'edit report', 'TFM API data-readable share file', 'agency feedback'],
+    auditQuestions: ['Do status outputs match certified submissions?', 'Are edit reports retained?', 'Are public/reporting extracts traceable?'],
+    keyFields: ['status report', 'edit report', 'submission ID', 'TAS', 'USSGL', 'period', 'amount'],
+    risks: ['status/report mismatch', 'edit evidence missing', 'extract not traceable']
+  },
+  {
+    id: 'cars-treasury-output',
+    layer: 'reporting',
+    title: 'CARS Treasury Outputs',
+    subtitle: 'MTS, Combined Statement, central accounting data',
+    icon: 'RPT',
+    tags: ['cars', 'mts', 'combined statement', 'central accounting'],
+    summary: 'CARS supports Treasury central accounting outputs, including data for the Monthly Treasury Statement, Combined Statement, and other key Treasury accounting reports.',
+    examples: ['Monthly Treasury Statement data', 'Combined Statement data', 'central accounting extract', 'receipt/outlay data'],
+    auditQuestions: ['Do outputs tie to CARS classified transactions?', 'Are TAS-BETC classifications accurate?', 'Are report changes controlled?'],
+    keyFields: ['report ID', 'TAS', 'BETC', 'receipt/outlay', 'period', 'amount', 'source transaction'],
+    risks: ['report output not tied to CARS', 'classification error', 'change not controlled']
+  },
+  {
+    id: 'gtas-financial-report-output',
+    layer: 'reporting',
+    title: 'Financial Report Support',
+    subtitle: 'Financial Report of the U.S. Government and OMB support',
+    icon: 'FR',
+    tags: ['financial report', 'omb', 'governmentwide', 'treasury'],
+    summary: 'GTAS data supports Treasury and OMB requirements and compilation of the Financial Report of the U.S. Government.',
+    examples: ['FR support', 'OMB reporting support', 'governmentwide financial data', 'agency data quality support'],
+    auditQuestions: ['Do FR amounts tie to certified GTAS data?', 'Are reclassifications and adjustments documented?', 'Are agency explanations retained?'],
+    keyFields: ['FR line', 'agency', 'TAS', 'USSGL', 'amount', 'period', 'support package'],
+    risks: ['FR amount not tied to GTAS', 'unsupported reclassification', 'agency explanation missing']
+  },
+  {
+    id: 'gtas-atb-report',
+    layer: 'statements',
+    title: 'GTAS Adjusted Trial Balance Status',
+    subtitle: 'Certified ATB, edits, reporting window status',
+    icon: 'ATB',
+    tags: ['gtas', 'adjusted trial balance', 'certification', 'status'],
+    summary: 'Shows the agency ATB reporting status, edit clearance, certification, and data-quality posture for the reporting period.',
+    examples: ['certified ATB', 'status report', 'edit clearance', 're-submission history'],
+    auditQuestions: ['Is the ATB certified and complete?', 'Were edits cleared before close?', 'Are versions controlled?'],
+    keyFields: ['agency', 'period', 'status', 'certifier', 'edit count', 'version', 'timestamp'],
+    risks: ['late/uncertified ATB', 'edit not cleared', 'version mismatch']
+  },
+  {
+    id: 'cars-mts-combined-statement',
+    layer: 'statements',
+    title: 'MTS / Combined Statement',
+    subtitle: 'Receipts, outlays, balances, Treasury reporting',
+    icon: 'MTS',
+    tags: ['monthly treasury statement', 'combined statement', 'receipts', 'outlays'],
+    summary: 'Supports Treasury budgetary reporting outputs such as the Monthly Treasury Statement and Combined Statement of Receipts, Outlays, and Balances.',
+    examples: ['MTS receipt/outlay', 'Combined Statement account', 'TAS activity', 'central accounting report'],
+    auditQuestions: ['Do receipts and outlays tie to CARS source detail?', 'Are TAS-BETC classifications correct?', 'Are timing differences explained?'],
+    keyFields: ['TAS', 'BETC', 'receipt/outlay', 'period', 'amount', 'report line', 'source transaction'],
+    risks: ['receipt/outlay misclassification', 'timing difference unresolved', 'report line unsupported']
+  },
+  {
+    id: 'gtas-fr-usg',
+    layer: 'statements',
+    title: 'Financial Report of the U.S. Government',
+    subtitle: 'Governmentwide proprietary and budget execution support',
+    icon: 'FR',
+    tags: ['financial report', 'governmentwide', 'proprietary', 'budget execution'],
+    summary: 'Supports compilation of the Financial Report of the U.S. Government using GTAS proprietary financial and budget execution information.',
+    examples: ['governmentwide statement support', 'agency financial data', 'OMB/Treasury requirement', 'FR data package'],
+    auditQuestions: ['Do governmentwide amounts trace to certified agency submissions?', 'Are data edits resolved?', 'Are eliminations and reclasses supported?'],
+    keyFields: ['agency', 'TAS', 'USSGL', 'FR line', 'period', 'amount', 'support package'],
+    risks: ['governmentwide amount unsupported', 'agency edit unresolved', 'reclass not documented']
+  },
+  {
+    id: 'cars-fbwt-report',
+    layer: 'statements',
+    title: 'FBWT and Central Accounting Support',
+    subtitle: 'Agency/Treasury balance reconciliation',
+    icon: 'FBW',
+    tags: ['fbwt', 'central accounting', 'reconciliation', 'treasury'],
+    summary: 'Supports agency and governmentwide Fund Balance with Treasury assertions using CARS, Treasury balances, agency records, and reconciliation evidence.',
+    examples: ['FBWT reconciliation', 'Treasury balance', 'agency balance', 'difference aging'],
+    auditQuestions: ['Are FBWT balances reconciled?', 'Are differences aged and owned?', 'Do corrections post to both agency and Treasury records?'],
+    keyFields: ['TAS', 'agency balance', 'Treasury balance', 'difference', 'owner', 'resolution status', 'period'],
+    risks: ['FBWT unreconciled', 'unsupported difference', 'correction not posted']
+  }
+];
+
+const gtasCarsLineageScenarios = [
+  {
+    id: 'gtas-atb-to-fr',
+    short: 'GTAS ATB',
+    title: 'Agency ATB to GTAS and Financial Report Support',
+    description: 'Traces agency adjusted trial balance data through GTAS submission, edits, certification, and Financial Report support.',
+    path: ['gtas-agency-atb-source', 'gtas-core', 'gtas-atb-line', 'gtas-edit-control', 'gtas-financial-report-output', 'gtas-fr-usg'],
+    steps: [
+      'The agency prepares adjusted trial balance data from ERP, DDRS, or close packages.',
+      'GTAS receives the ATB by TAS, USSGL, reporting attributes, period, and balance/activity amounts.',
+      'Line-level detail preserves the submission population for edit resolution and audit support.',
+      'GTAS fatal, warning, and accounting edits validate the data before certification.',
+      'Certified GTAS data supports Treasury, OMB, and the Financial Report of the U.S. Government.'
+    ],
+    exceptionTests: ['ATB not tied to GL', 'fatal edit unresolved', 'missing attribute', 'late submission', 'FR amount not tied to certified GTAS']
+  },
+  {
+    id: 'cars-transaction-to-mts',
+    short: 'CARS',
+    title: 'Payment or Collection to CARS and Treasury Reports',
+    description: 'Shows how payment/collection activity is classified in CARS and supports MTS and Combined Statement outputs.',
+    path: ['cars-payment-collection-source', 'cars-core', 'cars-transaction-detail', 'cars-reconciliation-control', 'cars-treasury-output', 'cars-mts-combined-statement'],
+    steps: [
+      'Payment, collection, receipt, or disbursement activity is classified using TAS-BETC and ALC data.',
+      'CARS records the central accounting transaction and effective-date classification.',
+      'Transaction detail preserves voucher, deposit, TAS, BETC, amount, and source references.',
+      'CARS reconciliation verifies agency records, Treasury balances, and classification correctness.',
+      'Treasury outputs support Monthly Treasury Statement and Combined Statement reporting.'
+    ],
+    exceptionTests: ['invalid TAS-BETC', 'agency/CARS transaction mismatch', 'unmatched collection', 'report line not tied to CARS', 'timing difference unresolved']
+  },
+  {
+    id: 'cars-fbwt-tieout',
+    short: 'FBWT',
+    title: 'FBWT Agency-to-Treasury Reconciliation',
+    description: 'Traces agency FBWT balances against CARS/Treasury central accounting support and reconciliation evidence.',
+    path: ['cars-fbwt-source', 'cars-core', 'cars-fbwt-detail', 'cars-reconciliation-control', 'gtas-cars-audit-control', 'cars-fbwt-report'],
+    steps: [
+      'Agency and Treasury FBWT balances are compared by TAS, period, and supporting transactions.',
+      'CARS central accounting data provides Treasury-side balance and transaction support.',
+      'FBWT detail tracks differences, owners, aging, and resolution evidence.',
+      'Reconciliation controls tie differences to timing, classification, or correction actions.',
+      'FBWT report support preserves agency/Treasury balance assertions for audit.'
+    ],
+    exceptionTests: ['FBWT difference aged', 'reconciling item lacks support', 'correction only posted on one side', 'TAS mismatch', 'audit package incomplete']
+  },
+  {
+    id: 'gtas-cars-igt',
+    short: 'IGT',
+    title: 'IGT/IPAC to GTAS, CARS, and Governmentwide Elimination Support',
+    description: 'Connects IPAC/G-Invoicing trading partner data to CARS classification, GTAS attributes, and governmentwide reporting support.',
+    path: ['cars-igt-source', 'gtas-cars-classification', 'cars-igt-detail', 'cars-reconciliation-control', 'gtas-cars-audit-control', 'gtas-fr-usg'],
+    steps: [
+      'IPAC, G-Invoicing, and trading partner records establish buyer/seller and TAS-BETC context.',
+      'GTAS/CARS classification validates TAS, BETC, USSGL, and trading partner attributes.',
+      'IGT detail preserves settlement, order, trading partner, buyer/seller, and amount support.',
+      'Reconciliation controls resolve trading partner and settlement differences.',
+      'Governmentwide reporting uses the supported data for eliminations and Financial Report support.'
+    ],
+    exceptionTests: ['missing trading partner', 'IPAC settlement misclassified', 'buyer/seller mismatch', 'GTAS attribute missing', 'elimination support incomplete']
+  }
+];
+
+const gtasCarsSupportServices = [
+  { title: 'GTAS Submission Governance', detail: 'Monthly reporting windows, ATB load, fatal/warning edits, certification, resubmission control, source tie-outs, and status reporting.' },
+  { title: 'CARS Central Accounting', detail: 'TAS-BETC classification, ALC, payment and collection detail, receipt/outlay reporting, CARS transaction correction, and central accounting controls.' },
+  { title: 'FBWT Reconciliation', detail: 'Agency and Treasury balance comparison, CARS source detail, reconciling items, timing differences, corrections, owner assignment, and evidence retention.' },
+  { title: 'IGT and Trading Partner Controls', detail: 'IPAC, G-Invoicing, TAS/BETC, buyer/seller pairs, trading partner attributes, settlement differences, and governmentwide elimination support.' },
+  { title: 'Governmentwide Reporting', detail: 'Monthly Treasury Statement, Combined Statement, Financial Report of the U.S. Government, OMB/Treasury reporting, and Fiscal Service outputs.' },
+  { title: 'Audit Evidence', detail: 'Agency GL/DDRS tie-outs, GTAS ATB lines, CARS transactions, FBWT packages, edit reports, certification evidence, and report-to-source reconciliation.' }
+];
+
+const gtasCarsCaveats = [
+  'GTAS and CARS are Treasury/Fiscal Service systems, not DoD-owned accounting systems. This page models their relationship to DoD FM systems through federal reporting, central accounting, FBWT, and Treasury reconciliation.',
+  'GTAS is modeled as the adjusted trial balance submission/edit path. CARS is modeled as the Treasury central accounting reporting system for TAS-BETC classified transactions, central accounting, FBWT, and Treasury reports.',
+  'Exact file formats, edit logic, role workflows, and release behavior change with Treasury guidance and require current Fiscal Service documentation.',
+  'Feeder counts are modeled source/partner categories represented in this blueprint, not a certified production interface inventory.'
+];
+
+const gtasCarsSources = [
+  { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+  { name: 'Treasury CARS', url: 'https://fiscal.treasury.gov/accounting/central-accounting-reporting-system-cars' },
+  { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
+  { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' },
+  { name: 'Treasury Combined Statement', url: 'https://fiscal.treasury.gov/reports-statements/combined-statement' },
+  { name: 'Financial Report of the U.S. Government', url: 'https://fiscal.treasury.gov/reports-statements/financial-report' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -5857,6 +6269,39 @@ export const systems = [
     supportServices: ddrsSupportServices,
     caveats: ddrsCaveats,
     sources: ddrsSources
+  },
+  {
+    slug: 'gtas-cars',
+    shortName: 'GTAS/CARS',
+    name: 'GTAS and CARS',
+    longName: 'GTAS and CARS / Treasury Reporting Blueprint',
+    agency: 'Treasury',
+    eyebrow: 'Treasury GTAS and CARS blueprint for governmentwide reporting and central accounting',
+    description: 'Explore GTAS and CARS as Treasury/Fiscal Service reporting systems: GTAS for agency adjusted trial balance submission and edits, and CARS for central accounting, TAS-BETC classified transactions, FBWT, MTS, Combined Statement, and Financial Report support.',
+    metric: '4',
+    metricLabel: 'Core GTAS/CARS lineage scenarios',
+    metricDetail: 'ATB / TAS-BETC -> Treasury -> Reports',
+    referenceImage: '/gtas-cars-blueprint-reference.svg',
+    referenceTitle: 'GTAS and CARS static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/gtas-cars-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'GTAS is the Governmentwide Treasury Account Symbol Adjusted Trial Balance System used for agency ATB reporting; CARS is the Central Accounting Reporting System for Treasury central accounting and TAS-BETC transaction reporting.',
+      whoUsesIt: 'Federal agency financial-reporting teams, Treasury/Fiscal Service, OMB reporting stakeholders, disbursing and collections partners, FBWT reconciliation teams, IGT/trading-partner teams, and auditors rely on GTAS/CARS data or outputs.',
+      howItIsUsed: 'GTAS collects agency proprietary and budget-execution ATB data with edits and certification; CARS records central accounting transactions, TAS-BETC classifications, FBWT support, and Treasury report data.',
+      currentStatus: 'Active Treasury/Fiscal Service reporting systems per official Fiscal Service pages; exact file formats, edit logic, and role workflows require current Treasury documentation.',
+      whyItIsUsed: 'Together they connect agency trial balances and Treasury central accounting so the government can produce accurate monthly reporting, Combined Statement, Financial Report, FBWT support, and audit evidence.',
+      feederCount: 6,
+      feederSystems: ['Agency Adjusted Trial Balances', 'DDRS / ERP Reporting Sources', 'Payments / Collections / Disbursing', 'FBWT / General Fund / Central Accounts', 'IPAC / G-Invoicing / IGT', 'Agency Certification / Audit Support'],
+      feederNote: 'The blueprint models 6 GTAS/CARS source/partner categories; authoritative interface counts require Treasury records.'
+    },
+    layers: gtasCarsLayers,
+    nodes: gtasCarsNodes,
+    lineageScenarios: gtasCarsLineageScenarios,
+    supportServices: gtasCarsSupportServices,
+    caveats: gtasCarsCaveats,
+    sources: gtasCarsSources
   },
   {
     slug: 'navy-erp',
