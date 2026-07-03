@@ -8,6 +8,7 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/` system directory
   - `/systems/gfebs` GFEBS architecture blueprint
   - `/systems/navy-erp` Navy ERP architecture blueprint
+  - `/systems/dai` Defense Agencies Initiative blueprint
 - Shared controls across systems:
   - system navigation tabs
   - architecture search
@@ -19,6 +20,8 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/public/navy-erp-blueprint-v2.svg`
   - `/public/navy-erp-blueprint-v2.png`
   - `/public/navy-erp-blueprint-v2-hires.png`
+- DAI static reference asset:
+  - `/public/dai-blueprint-reference.svg`
 - Existing GFEBS static reference:
   - `/public/gfebs-blueprint-reference.png`
 

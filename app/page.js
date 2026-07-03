@@ -21,12 +21,13 @@ export default function Page() {
           <p className="eyebrow">DoD FM system suite</p>
           <h1>Financial Management System Architecture Blueprints</h1>
           <p>
-            Navigate between GFEBS, Navy ERP, and future DoD financial management systems using a shared audit-readiness,
+            Navigate between GFEBS, Navy ERP, DAI, and future DoD financial management systems using a shared audit-readiness,
             UoT lineage, source-to-statement model.
           </p>
           <div className="hero-actions">
             <Link href="/systems/gfebs" className="primary-action">Open GFEBS</Link>
             <Link href="/systems/navy-erp" className="secondary-action">Open Navy ERP</Link>
+            <Link href="/systems/dai" className="secondary-action">Open DAI</Link>
           </div>
         </div>
         <div className="hero-card">

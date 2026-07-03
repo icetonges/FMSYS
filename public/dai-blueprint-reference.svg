@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1080" viewBox="0 0 1800 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Defense Agencies Initiative Oracle-based financial accounting architecture blueprint</title>
+  <desc id="desc">Static six-layer DAI blueprint from Fourth Estate source systems through Oracle financial capabilities, transaction detail, subledger accounting, reporting, and financial statements.</desc>
+  <defs>
+    <linearGradient id="hero" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#071c38"/>
+      <stop offset="0.52" stop-color="#123d70"/>
+      <stop offset="1" stop-color="#245c8f"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#10213d" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="1800" height="1080" fill="#f4f7fb"/>
+  <rect x="42" y="36" width="1716" height="178" rx="30" fill="url(#hero)" filter="url(#shadow)"/>
+  <text x="82" y="100" fill="#b9d7ff" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="800" letter-spacing="5">FOURTH ESTATE FINANCIAL MANAGEMENT</text>
+  <text x="82" y="162" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-size="58" font-weight="900">Defense Agencies Initiative / Oracle Financial Accounting Blueprint</text>
+  <text x="82" y="198" fill="#dbeaff" font-family="Inter, Arial, sans-serif" font-size="24">Representative public-information model for audit readiness, UoT traceability, and source-to-statement navigation.</text>
+
+  <g transform="translate(42 258)" filter="url(#shadow)">
+    <rect width="1716" height="560" rx="24" fill="#ffffff" stroke="#d7e0ee"/>
+    <g font-family="Inter, Arial, sans-serif">
+      <g transform="translate(24 24)">
+        <rect width="254" height="512" rx="18" fill="#ede7fb" stroke="#7a51c2"/>
+        <text x="18" y="42" fill="#3d2573" font-size="22" font-weight="900">1. Source / Feeder</text>
+        <text x="18" y="75" fill="#5a4b75" font-size="16">Agency business events</text>
+        <g fill="#ffffff" stroke="#c8b8ef" font-size="18" font-weight="800">
+          <rect x="18" y="108" width="218" height="52" rx="13"/><text x="34" y="141" fill="#172033">DTS travel</text>
+          <rect x="18" y="174" width="218" height="52" rx="13"/><text x="34" y="207" fill="#172033">PIEE / WAWF</text>
+          <rect x="18" y="240" width="218" height="52" rx="13"/><text x="34" y="273" fill="#172033">Contract writing / EDA</text>
+          <rect x="18" y="306" width="218" height="52" rx="13"/><text x="34" y="339" fill="#172033">DCPS / HR sources</text>
+          <rect x="18" y="372" width="218" height="52" rx="13"/><text x="34" y="405" fill="#172033">Agency mission systems</text>
+          <rect x="18" y="438" width="218" height="52" rx="13"/><text x="34" y="471" fill="#172033">G-Invoicing / IPAC</text>
+        </g>
+      </g>
+
+      <g transform="translate(306 24)">
+        <rect width="254" height="512" rx="18" fill="#e7f4ef" stroke="#13895a"/>
+        <text x="18" y="42" fill="#075a3a" font-size="22" font-weight="900">2. Oracle Financials</text>
+        <text x="18" y="75" fill="#3e6656" font-size="16">DAI core capabilities</text>
+        <g fill="#ffffff" stroke="#b7dfcf" font-size="18" font-weight="800">
+          <rect x="18" y="108" width="218" height="52" rx="13"/><text x="34" y="141" fill="#172033">Budgetary control</text>
+          <rect x="18" y="174" width="218" height="52" rx="13"/><text x="34" y="207" fill="#172033">Procure-to-pay</text>
+          <rect x="18" y="240" width="218" height="52" rx="13"/><text x="34" y="273" fill="#172033">Projects / cost acct</text>
+          <rect x="18" y="306" width="218" height="52" rx="13"/><text x="34" y="339" fill="#172033">Receivables</text>
+          <rect x="18" y="372" width="218" height="52" rx="13"/><text x="34" y="405" fill="#172033">Fixed assets</text>
+        </g>
+      </g>
+
+      <g transform="translate(588 24)">
+        <rect width="254" height="512" rx="18" fill="#e7f4f7" stroke="#16839b"/>
+        <text x="18" y="42" fill="#0d5a6a" font-size="22" font-weight="900">3. Detail Objects</text>
+        <text x="18" y="75" fill="#45656b" font-size="16">Transaction evidence</text>
+        <g fill="#ffffff" stroke="#b9dee6" font-size="18" font-weight="800">
+          <rect x="18" y="108" width="218" height="52" rx="13"/><text x="34" y="141" fill="#172033">AP invoice detail</text>
+          <rect x="18" y="174" width="218" height="52" rx="13"/><text x="34" y="207" fill="#172033">Budgetary detail</text>
+          <rect x="18" y="240" width="218" height="52" rx="13"/><text x="34" y="273" fill="#172033">Project / cost detail</text>
+          <rect x="18" y="306" width="218" height="52" rx="13"/><text x="34" y="339" fill="#172033">Asset detail</text>
+          <rect x="18" y="372" width="218" height="52" rx="13"/><text x="34" y="405" fill="#172033">Interface controls</text>
+        </g>
+      </g>
+
+      <g transform="translate(870 24)">
+        <rect width="254" height="512" rx="18" fill="#eaf1ff" stroke="#255ba8"/>
+        <text x="18" y="42" fill="#153f78" font-size="22" font-weight="900">4. Accounting</text>
+        <text x="18" y="75" fill="#4b6284" font-size="16">SLA to GL journal lines</text>
+        <g fill="#ffffff" stroke="#bfd0ef" font-size="18" font-weight="800">
+          <rect x="18" y="126" width="218" height="58" rx="13"/><text x="34" y="162" fill="#172033">Subledger accounting</text>
+          <rect x="18" y="210" width="218" height="58" rx="13"/><text x="34" y="246" fill="#172033">Budgetary accounting</text>
+          <rect x="18" y="294" width="218" height="58" rx="13"/><text x="34" y="330" fill="#172033">Proprietary accounting</text>
+          <rect x="18" y="378" width="218" height="58" rx="13"/><text x="34" y="414" fill="#172033">General ledger</text>
+        </g>
+      </g>
+
+      <g transform="translate(1152 24)">
+        <rect width="254" height="512" rx="18" fill="#f0e9fb" stroke="#6c43b7"/>
+        <text x="18" y="42" fill="#43267c" font-size="22" font-weight="900">5. Reporting</text>
+        <text x="18" y="75" fill="#5f5476" font-size="16">DAI, DDRS, GTAS, Treasury</text>
+        <g fill="#ffffff" stroke="#d1c0ec" font-size="18" font-weight="800">
+          <rect x="18" y="126" width="218" height="58" rx="13"/><text x="34" y="162" fill="#172033">Operational reports</text>
+          <rect x="18" y="210" width="218" height="58" rx="13"/><text x="34" y="246" fill="#172033">DDRS</text>
+          <rect x="18" y="294" width="218" height="58" rx="13"/><text x="34" y="330" fill="#172033">GTAS</text>
+          <rect x="18" y="378" width="218" height="58" rx="13"/><text x="34" y="414" fill="#172033">External reporting</text>
+        </g>
+      </g>
+
+      <g transform="translate(1434 24)">
+        <rect width="254" height="512" rx="18" fill="#fff0e2" stroke="#a45518"/>
+        <text x="18" y="42" fill="#77380f" font-size="22" font-weight="900">6. Statements</text>
+        <text x="18" y="75" fill="#76543a" font-size="16">Fourth Estate / DoD outputs</text>
+        <g fill="#ffffff" stroke="#ebc49d" font-size="18" font-weight="800">
+          <rect x="18" y="108" width="218" height="52" rx="13"/><text x="34" y="141" fill="#172033">Balance Sheet</text>
+          <rect x="18" y="174" width="218" height="52" rx="13"/><text x="34" y="207" fill="#172033">Statement of Net Cost</text>
+          <rect x="18" y="240" width="218" height="52" rx="13"/><text x="34" y="273" fill="#172033">SBR</text>
+          <rect x="18" y="306" width="218" height="52" rx="13"/><text x="34" y="339" fill="#172033">Notes / schedules</text>
+          <rect x="18" y="372" width="218" height="52" rx="13"/><text x="34" y="405" fill="#172033">Audit support</text>
+        </g>
+      </g>
+
+      <g stroke="#174b9a" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.72">
+        <path d="M278 280 H306"/>
+        <path d="M560 280 H588"/>
+        <path d="M842 280 H870"/>
+        <path d="M1124 280 H1152"/>
+        <path d="M1406 280 H1434"/>
+      </g>
+    </g>
+  </g>
+
+  <g transform="translate(42 858)" font-family="Inter, Arial, sans-serif">
+    <rect width="1716" height="166" rx="24" fill="#ffffff" stroke="#d7e0ee" filter="url(#shadow)"/>
+    <text x="28" y="48" fill="#2f65b7" font-size="20" font-weight="900" letter-spacing="3">UOT LINEAGE CHECKPOINTS</text>
+    <text x="28" y="92" fill="#172033" font-size="30" font-weight="900">Business event -> Source transaction -> Interface control -> Subledger event -> SLA accounting -> GL journal -> Trial balance -> Statement line</text>
+    <text x="28" y="133" fill="#667085" font-size="21">Representative model only. Exact DAI configuration, ledgers, interfaces, reports, and Oracle objects vary by supported Defense Agency and authoritative program data.</text>
+  </g>
+</svg>

@@ -304,6 +304,7 @@ export default function Blueprint({ system = defaultSystem }) {
             width={1800}
             height={1100}
             sizes="100vw"
+            unoptimized={system.referenceImage.endsWith('.svg')}
           />
         </section>
       )}
