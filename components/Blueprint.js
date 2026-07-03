@@ -165,6 +165,7 @@ export default function Blueprint({ system = defaultSystem }) {
   const nodes = system.nodes;
   const lineageScenarios = system.lineageScenarios;
   const supportServices = system.supportServices;
+  const profile = system.profile;
   const initialNode = nodes[0]?.id;
   const initialScenario = lineageScenarios[0]?.id;
 
@@ -180,6 +181,9 @@ export default function Blueprint({ system = defaultSystem }) {
   const selectedScenario = lineageScenarios.find((scenario) => scenario.id === selectedScenarioId) || lineageScenarios[0];
   const activePath = new Set(selectedScenario?.path || []);
   const tags = useMemo(() => uniqueTags(nodes), [nodes]);
+  const feederNodes = nodes.filter((node) => node.layer === 'source');
+  const feederCount = profile?.feederCount ?? feederNodes.length;
+  const feederSystems = profile?.feederSystems ?? feederNodes.map((node) => node.title);
 
   const filteredNodes = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -237,6 +241,49 @@ export default function Blueprint({ system = defaultSystem }) {
           <span className="hero-metric small">{system.metricDetail}</span>
         </div>
       </section>
+
+      {profile && (
+        <section className="system-profile" aria-label={`${system.name} profile`}>
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">System profile</p>
+              <h2>What it is, who uses it, and why it matters</h2>
+            </div>
+          </div>
+          <div className="profile-grid">
+            <article>
+              <span>What it is</span>
+              <p>{profile.whatItIs}</p>
+            </article>
+            <article>
+              <span>Who uses it</span>
+              <p>{profile.whoUsesIt}</p>
+            </article>
+            <article>
+              <span>How it is used</span>
+              <p>{profile.howItIsUsed}</p>
+            </article>
+            <article>
+              <span>Current status</span>
+              <p>{profile.currentStatus}</p>
+            </article>
+            <article>
+              <span>Why it is used</span>
+              <p>{profile.whyItIsUsed}</p>
+            </article>
+            <article className="feeder-profile">
+              <span>Modeled feeder systems</span>
+              <strong>{feederCount}</strong>
+              <p>{profile.feederNote || 'Count is based on source-system nodes represented in this blueprint, not an authoritative interface-control inventory.'}</p>
+            </article>
+          </div>
+          {feederSystems.length > 0 && (
+            <div className="feeder-list" aria-label="Modeled feeder and source systems">
+              {feederSystems.map((item) => <span key={item}>{item}</span>)}
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="controls" aria-label="Blueprint controls">
         <div className="control-block search-block">

@@ -1923,6 +1923,341 @@ const gafsSources = [
   { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
 ];
 
+const cefmsLayers = [
+  { id: 'source', label: 'Source / Mission / Feeder Events', short: 'Source', description: 'USACE project, procurement, labor, disbursing, reimbursable, real-property, regulatory, and customer activity that creates accounting demand.' },
+  { id: 'core', label: 'CEFMS Core Financial Processing', short: 'CEFMS', description: 'USACE funds control, commitments, obligations, AP, AR, disbursing, collections, project accounting, and close processing in the Corps of Engineers Financial Management System.' },
+  { id: 'detail', label: 'Project / Cost / Subsidiary Detail', short: 'Detail', description: 'Project, cost, reimbursable, contract, asset, customer, and management-reporting detail needed to preserve source-to-statement lineage.' },
+  { id: 'accounting', label: 'Accounting Layer', short: 'Accounting', description: 'Budgetary and proprietary USSGL classification, journal vouchers, trial balance, accruals, reversals, eliminations, and close adjustments.' },
+  { id: 'reporting', label: 'Reporting / Treasury Layer', short: 'Reporting', description: 'CEEMIS, operational reporting, DDRS, GTAS, Treasury/CARS/FBwT, IPAC/G-Invoicing, and audit extracts.' },
+  { id: 'statements', label: 'Financial Statement Support', short: 'Statements', description: 'Civil Works, Military Programs, revolving/trust-fund, SBR, Balance Sheet, Net Cost, and note-support reporting.' }
+];
+
+const cefmsNodes = [
+  {
+    id: 'project-systems',
+    layer: 'source',
+    title: 'P2 / PROMIS / Project Sources',
+    subtitle: 'Planning, programming, project and schedule evidence',
+    icon: 'PRJ',
+    tags: ['project', 'planning', 'Civil Works', 'Military Programs'],
+    summary: 'Provides project, program, work item, schedule, funding, and execution context for Civil Works, Military Programs, and other USACE mission work.',
+    examples: ['Project authorization', 'work item', 'project schedule', 'program funding record', 'milestone update'],
+    auditQuestions: ['Does each project cost trace to a valid project/work item?', 'Are project funding and execution records aligned?', 'Do project totals reconcile to financial postings?'],
+    keyFields: ['project ID', 'work item', 'program', 'appropriation', 'district', 'fiscal year', 'amount'],
+    risks: ['project and accounting records out of sync', 'cost posted to wrong work item', 'missing funding authority']
+  },
+  {
+    id: 'cefms-contract-sources',
+    layer: 'source',
+    title: 'SPS / Procurement Sources',
+    subtitle: 'Awards, modifications, funding, and contract line detail',
+    icon: 'CTR',
+    tags: ['contract', 'procurement', 'obligation', 'award'],
+    summary: 'Provides contract awards, modifications, CLIN/SLIN detail, funding citations, and obligation-supporting evidence used by CEFMS procure-to-pay activity.',
+    examples: ['award', 'modification', 'funding document', 'CLIN/SLIN', 'purchase request'],
+    auditQuestions: ['Does each obligation trace to valid award and funding evidence?', 'Are contract modifications reflected in CEFMS?', 'Do funded lines preserve project/cost-object detail?'],
+    keyFields: ['PIID', 'mod number', 'CLIN', 'fund cite', 'vendor', 'project ID', 'amount'],
+    risks: ['award not obligated', 'modification not reflected', 'line detail lost in accounting summary']
+  },
+  {
+    id: 'cefms-wawf',
+    layer: 'source',
+    title: 'WAWF / PIEE',
+    subtitle: 'Invoice, receipt, acceptance, and payment support',
+    icon: 'P2P',
+    tags: ['invoice', 'receipt', 'acceptance', 'payment'],
+    summary: 'Captures vendor invoice, receipt, acceptance, and payment-support evidence for contract and purchase activity that should reconcile to CEFMS AP and disbursing records.',
+    examples: ['vendor invoice', 'receiving report', 'acceptance record', 'combo document', 'payment request'],
+    auditQuestions: ['Does every payment have invoice, receipt, and acceptance support?', 'Do invoice quantities and prices agree to contract terms?', 'Are rejected interface items resolved?'],
+    keyFields: ['invoice number', 'receiving report', 'PIID', 'CLIN', 'vendor', 'acceptance date', 'amount'],
+    risks: ['payment without acceptance', 'duplicate invoice', 'failed interface not resolved']
+  },
+  {
+    id: 'cefms-labor',
+    layer: 'source',
+    title: 'Labor / Payroll Sources',
+    subtitle: 'Time, payroll, benefits, and labor distribution',
+    icon: 'LAB',
+    tags: ['labor', 'payroll', 'cost', 'expense'],
+    summary: 'Provides time, payroll, labor-distribution, benefits, and cost-assignment activity used for project cost, reimbursable billing, and statement expense recognition.',
+    examples: ['labor hours', 'payroll cost', 'benefits', 'labor distribution', 'pay correction'],
+    auditQuestions: ['Do labor totals reconcile to accepted CEFMS postings?', 'Are labor costs assigned to the correct project and program?', 'Are accruals complete and reversed?'],
+    keyFields: ['person identifier', 'pay period', 'labor hours', 'project ID', 'organization', 'fund cite', 'amount'],
+    risks: ['labor population incomplete', 'misassigned project cost', 'missing accrual']
+  },
+  {
+    id: 'cefms-cash-igt',
+    layer: 'source',
+    title: 'Collections / IPAC / Treasury',
+    subtitle: 'Cash, reimbursable settlement, and intragovernmental activity',
+    icon: 'CASH',
+    tags: ['collections', 'IPAC', 'FBwT', 'reimbursable'],
+    summary: 'Provides collections, disbursement evidence, intragovernmental settlement, Treasury cash activity, and customer/trading-partner records for reconciliation.',
+    examples: ['collection', 'deposit', 'IPAC settlement', 'Treasury cash record', 'trading-partner billing'],
+    auditQuestions: ['Do collections and disbursements reconcile to Treasury?', 'Are trading partners complete and valid?', 'Are unmatched cash differences researched?'],
+    keyFields: ['TAS', 'BETC', 'ALC', 'voucher', 'customer', 'trading partner', 'amount'],
+    risks: ['FBwT difference', 'unmatched collection', 'trading partner mismatch', 'wrong TAS/BETC']
+  },
+  {
+    id: 'cefms-funds',
+    layer: 'core',
+    title: 'Funds Control',
+    subtitle: 'Budget authority, allotment, commitment, obligation',
+    icon: 'FUND',
+    tags: ['budgetary', 'funds control', 'SBR', 'obligation'],
+    summary: 'Controls USACE budget execution from authority and allocation through commitments, obligations, expenditures, outlays, recoveries, and unobligated balances.',
+    examples: ['budget authority', 'allotment', 'commitment', 'obligation', 'expenditure', 'outlay'],
+    auditQuestions: ['Can SBR balances trace to source budgetary events?', 'Are commitments and obligations valid and timely?', 'Are upward/downward adjustments documented?'],
+    keyFields: ['appropriation', 'TAS', 'fund', 'project ID', 'object class', 'document number', 'amount'],
+    risks: ['over-obligation', 'stale ULO', 'invalid fund cite', 'unsupported budgetary adjustment']
+  },
+  {
+    id: 'cefms-p2p-core',
+    layer: 'core',
+    title: 'Procure-to-Pay / AP',
+    subtitle: 'Obligation, invoice, receiving, payment, accrual',
+    icon: 'AP',
+    tags: ['procure-to-pay', 'AP', 'invoice', 'payment'],
+    summary: 'Processes obligations, vendor invoices, receipt/acceptance matches, payment requests, disbursement updates, accruals, and liquidation activity.',
+    examples: ['obligation', 'invoice', 'receipt/acceptance match', 'payment', 'accrual', 'liquidation'],
+    auditQuestions: ['Does each payment trace to obligation, invoice, receipt, and acceptance?', 'Are AP subsidiary balances reconciled?', 'Are accruals reversed after payment?'],
+    keyFields: ['obligation number', 'invoice', 'vendor', 'PIID', 'project ID', 'payment voucher', 'amount'],
+    risks: ['payment without support', 'unliquidated obligation not valid', 'duplicate invoice', 'AP/GL mismatch']
+  },
+  {
+    id: 'cefms-ar-reimb',
+    layer: 'core',
+    title: 'Reimbursables / AR',
+    subtitle: 'Customer orders, billing, collections, debt',
+    icon: 'AR',
+    tags: ['reimbursable', 'AR', 'billing', 'collections'],
+    summary: 'Manages reimbursable agreements, customer orders, billings, accounts receivable, collections, write-offs, and related trading-partner evidence.',
+    examples: ['customer order', 'reimbursable agreement', 'billing', 'collection', 'aged receivable', 'write-off'],
+    auditQuestions: ['Are reimbursable orders valid and billable?', 'Do collections liquidate the correct receivables?', 'Are aged AR balances supported?'],
+    keyFields: ['customer', 'agreement/order', 'project ID', 'invoice', 'collection', 'trading partner', 'amount'],
+    risks: ['unbilled reimbursable work', 'aged AR unsupported', 'collection not applied', 'trading partner mismatch']
+  },
+  {
+    id: 'cefms-jv-close',
+    layer: 'core',
+    title: 'JV / Close Controls',
+    subtitle: 'Corrections, accruals, reclasses, reversals, period close',
+    icon: 'JV',
+    tags: ['journal voucher', 'close', 'accrual', 'reclass'],
+    summary: 'Supports controlled corrections, accruals, reversals, reclasses, eliminations, and close adjustments where normal source processing requires documented adjustment.',
+    examples: ['accrual JV', 'reversal', 'reclassification', 'elimination', 'close package adjustment'],
+    auditQuestions: ['Is the adjustment tied to source evidence?', 'Are debits and credits valid and approved?', 'Were required reversals posted?'],
+    keyFields: ['JV number', 'reason code', 'TAS', 'USSGL', 'project ID', 'debit', 'credit', 'approval'],
+    risks: ['unsupported manual adjustment', 'wrong period', 'missing reversal', 'JV masks source-system defect']
+  },
+  {
+    id: 'cefms-project-detail',
+    layer: 'detail',
+    title: 'Project / WBS Detail',
+    subtitle: 'Project cost, work item, and execution structure',
+    icon: 'WBS',
+    tags: ['project', 'WBS', 'cost', 'execution'],
+    summary: 'Preserves project and work-item detail needed for cost reporting, reimbursable billing, capital project support, and management analytics.',
+    examples: ['project cost ledger', 'work item actuals', 'project commitments', 'project budget', 'execution report'],
+    auditQuestions: ['Do project totals reconcile to CEFMS GL?', 'Are costs charged to valid work items?', 'Can project cost support billing or capitalization?'],
+    keyFields: ['project ID', 'work item', 'district', 'fund', 'cost element', 'document number', 'amount'],
+    risks: ['project ledger not tied to GL', 'wrong work item', 'capital/reimbursable misclassification']
+  },
+  {
+    id: 'cefms-assets',
+    layer: 'detail',
+    title: 'Real Property / Asset Detail',
+    subtitle: 'Capitalization, construction-in-progress, transfer, disposal',
+    icon: 'AST',
+    tags: ['asset', 'real property', 'CIP', 'PP&E'],
+    summary: 'Supports asset, real-property, construction-in-progress, capitalization, transfer, depreciation, disposal, and note-disclosure evidence.',
+    examples: ['CIP project', 'placed in service', 'asset transfer', 'disposal', 'capital improvement'],
+    auditQuestions: ['Do capital costs trace to project detail?', 'Are placed-in-service dates supportable?', 'Do asset balances reconcile to GL?'],
+    keyFields: ['asset ID', 'project ID', 'location', 'CIP amount', 'placed-in-service date', 'disposal date', 'USSGL'],
+    risks: ['CIP not timely capitalized', 'asset not recorded', 'unsupported disposal', 'GL/subsidiary mismatch']
+  },
+  {
+    id: 'cefms-ceemis',
+    layer: 'detail',
+    title: 'CEEMIS / Management Information',
+    subtitle: 'Enterprise reporting, query, and management analytics',
+    icon: 'MI',
+    tags: ['CEEMIS', 'reporting', 'analytics', 'query'],
+    summary: 'Provides enterprise management information, reporting, and query capability associated with CEFMS financial and operational data.',
+    examples: ['management query', 'district report', 'project status report', 'audit population extract', 'control total report'],
+    auditQuestions: ['Do extracts reconcile to CEFMS control totals?', 'Are report filters documented?', 'Can users query financial data real time where authorized?'],
+    keyFields: ['report ID', 'extract date', 'selection criteria', 'project ID', 'TAS', 'USSGL', 'amount'],
+    risks: ['report logic undocumented', 'extract not reconciled', 'stale reporting store', 'wrong population']
+  },
+  {
+    id: 'cefms-budgetary-accounting',
+    layer: 'accounting',
+    title: 'Budgetary Accounting',
+    subtitle: 'USSGL budgetary accounts and SBR support',
+    icon: 'BUD',
+    tags: ['USSGL', 'budgetary', 'SBR'],
+    summary: 'Classifies authority, commitments, obligations, expenditures, outlays, recoveries, and unobligated balance activity into budgetary USSGL accounts.',
+    examples: ['budgetary posting', 'obligation', 'expenditure', 'outlay', 'recovery', 'year-end close'],
+    auditQuestions: ['Are budgetary accounts valid for transaction type?', 'Do budgetary balances tie to SBR?', 'Do adjustments preserve source lineage?'],
+    keyFields: ['TAS', 'budgetary USSGL', 'fund', 'project ID', 'document number', 'period', 'amount'],
+    risks: ['invalid USSGL', 'SBR mismatch', 'unsupported adjustment', 'period cutoff error']
+  },
+  {
+    id: 'cefms-proprietary-accounting',
+    layer: 'accounting',
+    title: 'Proprietary Accounting / GL',
+    subtitle: 'Assets, liabilities, net cost, AP, AR, FBwT',
+    icon: 'GL',
+    tags: ['general ledger', 'proprietary', 'trial balance'],
+    summary: 'Records proprietary accounting for assets, liabilities, expenses, revenue, FBwT, AP, AR, and net-cost support, then feeds trial-balance reporting.',
+    examples: ['GL posting', 'AP liability', 'AR balance', 'expense', 'revenue', 'FBwT posting'],
+    auditQuestions: ['Do proprietary balances reconcile to subsidiary detail?', 'Are debit/credit postings balanced?', 'Do proprietary accounts crosswalk to statements and notes?'],
+    keyFields: ['TAS', 'USSGL', 'document number', 'project ID', 'debit', 'credit', 'ending balance'],
+    risks: ['subsidiary/GL mismatch', 'wrong proprietary account', 'manual entry not supported', 'note schedule does not tie']
+  },
+  {
+    id: 'cefms-ddrs-gtas',
+    layer: 'reporting',
+    title: 'DDRS / GTAS / ATB',
+    subtitle: 'Adjusted trial balance and federal reporting edits',
+    icon: 'ATB',
+    tags: ['DDRS', 'GTAS', 'trial balance', 'reporting'],
+    summary: 'Supports adjusted trial balance, DDRS reporting, GTAS edit validation, USSGL/TAS reporting attributes, and reporting-package reconciliation.',
+    examples: ['adjusted trial balance', 'DDRS feed', 'GTAS submission', 'edit report', 'crosswalk'],
+    auditQuestions: ['Does ATB reconcile to CEFMS GL?', 'Are DDRS/GTAS edits resolved?', 'Do attributes support statement crosswalks?'],
+    keyFields: ['TAS', 'USSGL', 'GTAS attribute', 'beginning balance', 'debit', 'credit', 'ending balance'],
+    risks: ['ATB not tied to GL', 'GTAS edit failure', 'incorrect attribute', 'late adjustment after extract']
+  },
+  {
+    id: 'cefms-treasury',
+    layer: 'reporting',
+    title: 'Treasury / FBwT / IGT',
+    subtitle: 'CARS, IPAC, G-Invoicing, cash and trading partner reconciliation',
+    icon: 'TRY',
+    tags: ['Treasury', 'FBwT', 'IPAC', 'G-Invoicing'],
+    summary: 'Supports Fund Balance with Treasury, TAS/BETC, CARS, IPAC, G-Invoicing, collections, disbursements, and intragovernmental reconciliation.',
+    examples: ['FBwT reconciliation', 'CARS record', 'IPAC settlement', 'G-Invoicing order', 'trading-partner elimination'],
+    auditQuestions: ['Do cash balances reconcile to Treasury?', 'Are IPAC/G-Invoicing records tied to CEFMS?', 'Are trading-partner attributes complete?'],
+    keyFields: ['TAS', 'BETC', 'ALC', 'trading partner', 'IPAC document', 'collection', 'amount'],
+    risks: ['FBwT difference', 'unmatched IPAC', 'trading partner mismatch', 'wrong TAS/BETC']
+  },
+  {
+    id: 'cefms-sbr',
+    layer: 'statements',
+    title: 'SBR / Budgetary Statements',
+    subtitle: 'Budgetary resources, obligations, outlays, unobligated balance',
+    icon: 'SBR',
+    tags: ['SBR', 'budgetary', 'statement'],
+    summary: 'Supports Statement of Budgetary Resources reporting for USACE appropriated, revolving, and trust-fund activity through source-to-budgetary-accounting lineage.',
+    examples: ['budgetary resources', 'obligations incurred', 'outlays', 'recoveries', 'unobligated balance'],
+    auditQuestions: ['Can each SBR line trace to CEFMS budgetary detail?', 'Are obligations and outlays supportable?', 'Do recoveries and unobligated balances reconcile?'],
+    keyFields: ['TAS', 'budgetary USSGL', 'SBR line', 'fund', 'project ID', 'period', 'amount'],
+    risks: ['unsupported obligation', 'stale ULO', 'budgetary mismatch', 'wrong statement line']
+  },
+  {
+    id: 'cefms-financial-statements',
+    layer: 'statements',
+    title: 'Balance Sheet / Net Cost / Notes',
+    subtitle: 'FBwT, AP, AR, assets, cost, disclosures',
+    icon: 'FS',
+    tags: ['balance sheet', 'net cost', 'notes', 'audit'],
+    summary: 'Supports proprietary statement lines and disclosures including FBwT, AP, AR, project cost, assets, liabilities, net cost, and note schedules.',
+    examples: ['FBwT line', 'AP line', 'AR line', 'net cost', 'asset note', 'reimbursable disclosure'],
+    auditQuestions: ['Do statement lines tie to CEFMS trial balance?', 'Are subsidiary schedules reconciled?', 'Can note schedules trace back to project/source detail?'],
+    keyFields: ['TAS', 'USSGL', 'statement line', 'note schedule', 'project ID', 'document number', 'amount'],
+    risks: ['statement line not tied to ATB', 'note schedule mismatch', 'unsupported asset or liability', 'late close adjustment']
+  }
+];
+
+const cefmsLineageScenarios = [
+  {
+    id: 'cefms-project-p2p',
+    short: 'project P2P',
+    title: 'USACE Project Procure-to-Pay Path',
+    description: 'Shows how project work moves from planning and procurement evidence through CEFMS obligation, AP, project cost, GL, Treasury reporting, and statement support.',
+    path: ['project-systems', 'cefms-contract-sources', 'cefms-wawf', 'cefms-p2p-core', 'cefms-project-detail', 'cefms-proprietary-accounting', 'cefms-ddrs-gtas', 'cefms-financial-statements'],
+    steps: [
+      'A USACE project or work item establishes funding and execution context.',
+      'Procurement award and modification data create obligation-supporting evidence.',
+      'Invoice, receipt, and acceptance evidence supports payment processing.',
+      'CEFMS records obligation, AP, accrual, payment, and liquidation activity.',
+      'Project cost detail reconciles to GL and reporting balances.',
+      'DDRS, GTAS, Treasury, and statements receive reconciled trial-balance support.'
+    ],
+    exceptionTests: ['payment without receipt or acceptance', 'project cost not tied to GL', 'obligation not tied to award', 'duplicate invoice', 'ATB not reconciled']
+  },
+  {
+    id: 'cefms-reimbursable',
+    short: 'reimbursable',
+    title: 'USACE Reimbursable / Customer Order Path',
+    description: 'Shows how customer-funded work, billing, collections, and trading-partner data flow through CEFMS AR and reporting.',
+    path: ['project-systems', 'cefms-ar-reimb', 'cefms-project-detail', 'cefms-cash-igt', 'cefms-treasury', 'cefms-proprietary-accounting', 'cefms-financial-statements'],
+    steps: [
+      'A reimbursable project or customer agreement is established and funded.',
+      'CEFMS records customer order, billable activity, invoice, AR, and collection detail.',
+      'Project costs support billing and performance evidence.',
+      'Collections, IPAC, and trading-partner records reconcile to AR and cash postings.',
+      'Proprietary balances support receivables, revenue, net cost, and disclosure reporting.'
+    ],
+    exceptionTests: ['unbilled reimbursable work', 'collection not applied', 'aged AR unsupported', 'trading partner mismatch', 'project cost not billable']
+  },
+  {
+    id: 'cefms-civil-works-reporting',
+    short: 'Civil Works close',
+    title: 'Civil Works Close and Statement Path',
+    description: 'Shows how USACE close controls move from project and source data through CEFMS, CEEMIS, trial balance, Treasury, and financial statements.',
+    path: ['project-systems', 'cefms-jv-close', 'cefms-ceemis', 'cefms-budgetary-accounting', 'cefms-ddrs-gtas', 'cefms-treasury', 'cefms-sbr'],
+    steps: [
+      'District and program activity is reconciled to project/source populations.',
+      'Close adjustments are documented, approved, posted, and reversed when applicable.',
+      'CEEMIS and CEFMS reports support management review and extract reconciliation.',
+      'Budgetary and proprietary trial balances are prepared and validated.',
+      'DDRS, GTAS, Treasury, and statement packages are tied to accepted close data.'
+    ],
+    exceptionTests: ['unsupported close JV', 'CEEMIS extract not reconciled', 'GTAS edit failure', 'FBwT difference', 'SBR line not tied to CEFMS']
+  },
+  {
+    id: 'cefms-asset-project',
+    short: 'asset project',
+    title: 'USACE Project-to-Asset Path',
+    description: 'Shows how project costs can become real-property or asset balances with capitalization, transfer, disposal, and note-support controls.',
+    path: ['project-systems', 'cefms-p2p-core', 'cefms-project-detail', 'cefms-assets', 'cefms-proprietary-accounting', 'cefms-financial-statements'],
+    steps: [
+      'Project activity accumulates contract, labor, and other costs.',
+      'CEFMS records obligations, payments, accruals, and cost postings.',
+      'Project detail identifies capitalizable costs and placed-in-service events.',
+      'Asset records, CIP, transfers, depreciation, or disposals are updated.',
+      'Proprietary GL and note schedules support asset-related statement balances.'
+    ],
+    exceptionTests: ['CIP not capitalized timely', 'asset detail not reconciled', 'project cost miscoded', 'unsupported disposal', 'note schedule mismatch']
+  }
+];
+
+const cefmsSupportServices = [
+  { title: 'USACE Finance Center', detail: 'Provides operational finance and accounting support, CEFMS/CEEMIS maintenance, strategic direction, and finance/accounting functions for USACE worldwide.' },
+  { title: 'Project Accounting', detail: 'Project, work item, district, program, cost object, reimbursable, and capital-project structures preserve USACE mission context.' },
+  { title: 'Interface Control', detail: 'Source-to-target totals, accepted/rejected records, suspense, report extracts, management queries, and audit population reconciliation.' },
+  { title: 'Close Governance', detail: 'JV approvals, accruals, reversals, project reconciliations, trial-balance tie-outs, DDRS/GTAS edits, and statement package reviews.' },
+  { title: 'Treasury & IGT', detail: 'TAS/BETC, FBwT, CARS, IPAC, G-Invoicing, trading-partner, collections, and disbursement reconciliation.' },
+  { title: 'Audit Evidence', detail: 'Project records, awards, invoices, acceptance, labor detail, CEEMIS reports, trial balances, reconciliations, and financial statement support schedules.' }
+];
+
+const cefmsCaveats = [
+  'CEFMS is modeled from public USACE Finance Center descriptions and federal financial-management reporting patterns; exact application, database, interface, and hosting details require authoritative USACE/UFC documentation.',
+  'Public sources identify CEFMS and CEEMIS and describe CEFMS as complex and fully integrated, but they do not provide enough detail to honestly label the implementation as SAP, Oracle, PeopleSoft, or another commercial platform.',
+  'Feeder counts are modeled source-system categories represented in this blueprint, not a certified CEFMS interface inventory.',
+  'USACE has Civil Works, Military Programs, revolving, and trust-fund reporting contexts; local workflows may differ by district, center, mission area, fund type, and role.'
+];
+
+const cefmsSources = [
+  { name: 'USACE Finance Center', url: 'https://www.usace.army.mil/Who-We-Are/Finance-Center/' },
+  { name: 'USACE Headquarters mission and organization', url: 'https://www.usace.army.mil/' },
+  { name: 'DoD Financial Management Regulation', url: 'https://comptroller.defense.gov/FMR/' },
+  { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+  { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
+  { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -1937,6 +2272,16 @@ export const systems = [
     metricDetail: 'Feeder -> Detail -> GL -> Statement',
     referenceImage: '/gfebs-blueprint-reference.png',
     referenceTitle: 'Original corrected GFEBS blueprint image',
+    profile: {
+      whatItIs: 'GFEBS is the Army SAP-based general fund financial-management ERP used to record, control, and report appropriated-fund activity.',
+      whoUsesIt: 'Army commands, resource managers, budget analysts, contracting and logistics partners, financial managers, DFAS support functions, and auditors use or rely on GFEBS data.',
+      howItIsUsed: 'It supports funds management, procure-to-pay, cost management, reimbursables, real property, GL, trial balance, and financial-statement reporting.',
+      currentStatus: 'Operational Army enterprise system; this page models public and representative SAP/GFEBS process patterns rather than installation-specific configuration.',
+      whyItIsUsed: 'It standardizes Army financial execution, improves auditability, links business events to USSGL accounting, and supports Army/DoD reporting.',
+      feederCount: 8,
+      feederSystems: ['DTS', 'WAWF / PIEE', 'SPS / PD2 / EDA', 'DCPS / IPPS-A', 'GCSS-Army', 'LMP', 'AXOL / Bank / Disbursing', 'G-Invoicing / IPAC'],
+      feederNote: 'The blueprint models 8 major feeder/peer source categories represented on the GFEBS page.'
+    },
     layers: gfebsLayers,
     nodes: gfebsNodes,
     lineageScenarios: gfebsLineageScenarios,
@@ -1964,6 +2309,16 @@ export const systems = [
       { label: 'Download PNG', href: '/navy-erp-blueprint-v2.png' },
       { label: 'Download high-res PNG', href: '/navy-erp-blueprint-v2-hires.png' }
     ],
+    profile: {
+      whatItIs: 'Navy ERP is the Department of the Navy SAP-based enterprise resource planning environment for financial, supply-chain, acquisition, and workforce-related business activity.',
+      whoUsesIt: 'Navy commands, systems commands, budget and accounting offices, logistics and supply-chain users, contracting/payment partners, DON financial managers, and auditors rely on it.',
+      howItIsUsed: 'It records Navy financials, funds control, procure-to-pay, supply-chain and inventory activity, PP&E, reimbursables, labor cost, GL, and external reporting support.',
+      currentStatus: 'Operational DON ERP that has undergone large-scale cloud modernization; this model remains representative and public-information based.',
+      whyItIsUsed: 'It gives DON a common financial/logistics transaction backbone, improves source-to-statement traceability, and supports audit and financial reporting.',
+      feederCount: 6,
+      feederSystems: ['DTS', 'WAWF / PIEE', 'SPS / PD2 / EDA', 'DCPS / HR / Personnel', 'R-Supply / SMMM / NALCOMIS', 'One-Touch / G-Invoicing / IPAC'],
+      feederNote: 'The blueprint models 6 major Navy ERP feeder/source categories.'
+    },
     layers: navyLayers,
     nodes: navyNodes,
     lineageScenarios: navyLineageScenarios,
@@ -1992,6 +2347,16 @@ export const systems = [
     downloadLinks: [
       { label: 'Download SVG', href: '/dai-blueprint-reference.svg' }
     ],
+    profile: {
+      whatItIs: 'DAI is the Defense Agencies Initiative, an Oracle-based financial accounting system for Fourth Estate defense agencies and field activities.',
+      whoUsesIt: 'Participating Defense Agencies and Field Activities, resource managers, budget offices, accounting users, shared-service partners, and auditors use DAI data.',
+      howItIsUsed: 'It supports procure-to-pay, reimbursables, budget execution, AP, AR, projects/costs, subledger accounting, GL, trial balance, and DoD/Treasury reporting.',
+      currentStatus: 'Operational Fourth Estate Oracle-based system; exact modules and configurations vary by agency and require authoritative DAI program data.',
+      whyItIsUsed: 'It gives smaller and shared-service defense organizations a standardized financial-management platform with stronger audit lineage and reporting controls.',
+      feederCount: 5,
+      feederSystems: ['DTS', 'WAWF / PIEE', 'SPS / Procurement', 'DCPS / Payroll', 'G-Invoicing / IPAC / Treasury'],
+      feederNote: 'The blueprint models 5 major DAI feeder/source categories.'
+    },
     layers: daiLayers,
     nodes: daiNodes,
     lineageScenarios: daiLineageScenarios,
@@ -2021,6 +2386,16 @@ export const systems = [
     downloadLinks: [
       { label: 'Download SVG', href: '/deams-blueprint-reference.svg' }
     ],
+    profile: {
+      whatItIs: 'DEAMS is the Defense Enterprise Accounting and Management System, modeled here as the Department of the Air Force Oracle-based financial-management environment.',
+      whoUsesIt: 'Air Force and Space Force financial managers, resource advisors, budget users, acquisition/payment partners, DFAS and reporting stakeholders, and auditors rely on DEAMS outputs.',
+      howItIsUsed: 'It supports budget execution, procure-to-pay, travel accounting, reimbursables, cost accounting, assets, SLA, GL, Treasury reporting, and statement support.',
+      currentStatus: 'Operational DAF financial-management system; this page uses public information and Oracle federal-financial process patterns rather than claiming exact DEAMS configuration.',
+      whyItIsUsed: 'It standardizes DAF accounting, connects source events to GL/reporting, and supports auditability across Air Force and Space Force financial operations.',
+      feederCount: 7,
+      feederSystems: ['DTS', 'WAWF / PIEE', 'SPS / EDA', 'DCPS / Payroll', 'Mission / Logistics Sources', 'G-Invoicing / IPAC', 'Treasury / Disbursing'],
+      feederNote: 'The blueprint models 7 major DEAMS feeder/source categories.'
+    },
     layers: deamsLayers,
     nodes: deamsNodes,
     lineageScenarios: deamsLineageScenarios,
@@ -2052,6 +2427,16 @@ export const systems = [
     downloadLinks: [
       { label: 'Download SVG', href: '/gafs-blueprint-reference.svg' }
     ],
+    profile: {
+      whatItIs: 'GAFS is modeled as a legacy Air Force accounting/reporting suite with GAFS-BL base-level processing and GAFS-R central/rehost reporting.',
+      whoUsesIt: 'Legacy Air Force finance organizations, base-level accounting users, central reporting support, DFAS/DAF financial managers, and audit teams may rely on historical or transition data.',
+      howItIsUsed: 'It handles base-level accounting intake, funds control, suspense/reject resolution, central consolidation, JVs, trial balance, Treasury reporting, and statement support.',
+      currentStatus: 'Legacy/historical and transition-oriented in this model; public technical detail is limited, so exact current operational footprint requires authoritative DAF/DFAS confirmation.',
+      whyItIsUsed: 'It preserves legacy accounting history and supports source-to-reporting reconciliation where GAFS activity remains relevant to close, audit, or modernization paths.',
+      feederCount: 5,
+      feederSystems: ['DTS / Travel Feeds', 'Contract / Vendor Pay Sources', 'Payroll / Labor Sources', 'Disbursing / Collections', 'Manual Requests / Exception Inputs'],
+      feederNote: 'The blueprint models 5 GAFS feeder/source categories; this is not a certified interface inventory.'
+    },
     layers: gafsLayers,
     nodes: gafsNodes,
     lineageScenarios: gafsLineageScenarios,
@@ -2075,6 +2460,16 @@ export const systems = [
     downloadLinks: [
       { label: 'Download SVG', href: '/gafs-blueprint-reference.svg' }
     ],
+    profile: {
+      whatItIs: 'GAFS JV is a focused control view for manual accounting adjustments inside the broader GAFS legacy accounting model.',
+      whoUsesIt: 'Finance preparers, reviewers, approvers, close teams, reporting teams, and auditors use JV evidence to understand manual corrections, accruals, reversals, and reclasses.',
+      howItIsUsed: 'It documents the source exception, prepares debit/credit lines, routes approval, posts the adjustment, tracks reversal, and ties the impact to trial balance and reporting.',
+      currentStatus: 'Modeled as a high-risk legacy adjustment control surface; local current-state usage requires authoritative GAFS operating procedures.',
+      whyItIsUsed: 'Manual adjustments are sometimes needed for close, accrual, correction, or reclassification, but they require strong evidence because they can obscure source-system defects.',
+      feederCount: 5,
+      feederSystems: ['Manual Requests / Exception Inputs', 'DTS / Travel Feeds', 'Contract / Vendor Pay Sources', 'Payroll / Labor Sources', 'Disbursing / Collections'],
+      feederNote: 'The JV page reuses the GAFS source categories but emphasizes the manual request/exception path.'
+    },
     layers: gafsLayers,
     nodes: gafsNodes,
     lineageScenarios: gafsJvScenarios,
@@ -2084,6 +2479,39 @@ export const systems = [
       'This subpage isolates JV control because manual GAFS adjustments are high-risk and can obscure source-system defects if not tied to evidence, approval, reversal, and reconciliation.'
     ],
     sources: gafsSources
+  },
+  {
+    slug: 'cefms',
+    shortName: 'CEFMS',
+    name: 'CEFMS',
+    longName: 'CEFMS / Corps of Engineers Financial Management System Blueprint',
+    agency: 'USACE',
+    eyebrow: 'CEFMS blueprint for U.S. Army Corps of Engineers finance',
+    description: 'Explore CEFMS as the U.S. Army Corps of Engineers financial-management system, connecting USACE project sources, procurement, labor, reimbursables, AP/AR, disbursing, CEEMIS reporting, Treasury activity, and statement support.',
+    metric: '4',
+    metricLabel: 'Core CEFMS lineage scenarios',
+    metricDetail: 'Project -> CEFMS -> CEEMIS/ATB -> Statement',
+    referenceImage: '/cefms-blueprint-reference.svg',
+    referenceTitle: 'CEFMS static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/cefms-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'CEFMS is the Corps of Engineers Financial Management System, the USACE financial system maintained with CEEMIS support by the USACE Finance Center.',
+      whoUsesIt: 'USACE districts, divisions, centers, Finance Center staff, Civil Works and Military Programs finance users, project managers, resource managers, reporting teams, and auditors rely on CEFMS data.',
+      howItIsUsed: 'It supports customer service, payments, disbursing, accounting, financial reporting, project cost, reimbursables, Civil Works, Military Programs, revolving funds, and trust funds.',
+      currentStatus: 'Operational USACE financial-management environment per public USACE Finance Center descriptions; exact platform/vendor stack is not publicly stated with enough confidence to label it SAP or Oracle.',
+      whyItIsUsed: 'It standardizes and integrates USACE finance and accounting, supports worldwide mission execution, enables financial data query/reporting, and underpins audit and statement support.',
+      feederCount: 5,
+      feederSystems: ['P2 / PROMIS / Project Sources', 'SPS / Procurement Sources', 'WAWF / PIEE', 'Labor / Payroll Sources', 'Collections / IPAC / Treasury'],
+      feederNote: 'The blueprint models 5 major CEFMS feeder/source categories; authoritative interface counts require USACE/UFC documentation.'
+    },
+    layers: cefmsLayers,
+    nodes: cefmsNodes,
+    lineageScenarios: cefmsLineageScenarios,
+    supportServices: cefmsSupportServices,
+    caveats: cefmsCaveats,
+    sources: cefmsSources
   }
 ];
 

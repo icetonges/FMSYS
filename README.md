@@ -12,8 +12,10 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/systems/deams` Defense Enterprise Accounting and Management System blueprint
   - `/systems/gafs` GAFS-BL / GAFS-R legacy Air Force accounting blueprint
   - `/systems/gafs-jv` focused GAFS journal voucher control blueprint
+  - `/systems/cefms` Corps of Engineers Financial Management System blueprint
 - Shared controls across systems:
   - system navigation tabs
+  - system profile cards for what it is, who uses it, how it is used, current status, why it is used, and modeled feeder-system count
   - architecture search
   - layer filters
   - scenario lineage explorer
@@ -29,6 +31,8 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/public/deams-blueprint-reference.svg`
 - GAFS static reference asset:
   - `/public/gafs-blueprint-reference.svg`
+- CEFMS static reference asset:
+  - `/public/cefms-blueprint-reference.svg`
 - DAI verification notes:
   - `/docs/DAI_BLUEPRINT_VERIFICATION.md`
 - Existing GFEBS static reference:

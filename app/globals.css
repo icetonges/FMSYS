@@ -355,6 +355,7 @@ select:focus {
 .scenario-panel,
 .audit-lens,
 .support-section,
+.system-profile,
 .reference-image {
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid rgba(215, 224, 238, 0.92);
@@ -366,8 +367,72 @@ select:focus {
 .scenario-panel,
 .audit-lens,
 .support-section,
+.system-profile,
 .reference-image {
   padding: 20px;
+}
+
+.system-profile {
+  margin-top: 18px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-grid article {
+  min-height: 160px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.profile-grid span {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--brand-2);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-grid p {
+  color: var(--muted);
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
+
+.feeder-profile strong {
+  display: block;
+  margin: -4px 0 8px;
+  color: var(--brand);
+  font-size: 3.5rem;
+  line-height: 1;
+  letter-spacing: -0.08em;
+}
+
+.feeder-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.feeder-list span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #f8fbff;
+  color: var(--ink);
+  font-size: 0.83rem;
+  font-weight: 800;
 }
 
 .section-heading {
@@ -470,6 +535,7 @@ select:focus {
 .node-card.layer-source { background: var(--source); border-color: rgba(122, 81, 194, 0.28); }
 .node-card.layer-process { background: var(--process); border-color: rgba(19, 137, 90, 0.28); }
 .node-card.layer-base { background: var(--process); border-color: rgba(19, 137, 90, 0.28); }
+.node-card.layer-core { background: var(--process); border-color: rgba(19, 137, 90, 0.28); }
 .node-card.layer-capabilities { background: var(--capabilities); border-color: rgba(19, 137, 90, 0.28); }
 .node-card.layer-oracle { background: var(--process); border-color: rgba(19, 137, 90, 0.28); }
 .node-card.layer-detail { background: var(--detail); border-color: rgba(22, 131, 155, 0.28); }
@@ -863,6 +929,7 @@ footer p + p {
     max-height: none;
   }
 
+  .profile-grid,
   .support-grid,
   .audit-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -905,6 +972,7 @@ footer p + p {
   }
 
   .support-grid,
+  .profile-grid,
   .audit-grid,
   .directory-grid {
     grid-template-columns: 1fr;

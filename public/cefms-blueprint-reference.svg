@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1100" viewBox="0 0 1800 1100" role="img" aria-labelledby="title desc">
+  <title id="title">CEFMS / Corps of Engineers Financial Management System Blueprint</title>
+  <desc id="desc">Static reference blueprint for CEFMS showing USACE source systems, CEFMS accounting, project cost controls, reporting, Treasury, and financial statement support.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f4f7fb; }
+      .title { fill: #0f2f66; font: 900 58px Arial, sans-serif; }
+      .subtitle { fill: #40506a; font: 700 24px Arial, sans-serif; }
+      .layer { fill: #ffffff; stroke: #d7e0ee; stroke-width: 3; }
+      .layer-title { fill: #0f2f66; font: 900 25px Arial, sans-serif; }
+      .node { rx: 16; stroke-width: 3; }
+      .node-text { fill: #172033; font: 800 20px Arial, sans-serif; }
+      .small { fill: #556273; font: 600 15px Arial, sans-serif; }
+      .source { fill: #ede7fb; stroke: #7a51c2; }
+      .core { fill: #e7f4ef; stroke: #13895a; }
+      .detail { fill: #e7f4f7; stroke: #16839b; }
+      .accounting { fill: #eaf1ff; stroke: #255ba8; }
+      .reporting { fill: #f0e9fb; stroke: #6c43b7; }
+      .statement { fill: #fff0e2; stroke: #a45518; }
+      .arrow { stroke: #0f2f66; stroke-width: 5; fill: none; marker-end: url(#arrow); }
+      .callout { fill: #0f2f66; }
+      .callout-text { fill: #ffffff; font: 800 20px Arial, sans-serif; }
+      .caveat { fill: #667085; font: 600 16px Arial, sans-serif; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f2f66"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1800" height="1100"/>
+  <text class="title" x="70" y="88">CEFMS / Corps of Engineers Financial Management System Blueprint</text>
+  <text class="subtitle" x="70" y="130">USACE project funds, obligations, payments, disbursing, accounting, reporting, and statement support</text>
+
+  <rect class="layer" x="55" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="340" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="625" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="910" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="1195" y="175" width="260" height="720" rx="22"/>
+  <rect class="layer" x="1480" y="175" width="260" height="720" rx="22"/>
+
+  <text class="layer-title" x="80" y="222">Source / Mission Events</text>
+  <text class="layer-title" x="365" y="222">CEFMS Core</text>
+  <text class="layer-title" x="650" y="222">Project Detail</text>
+  <text class="layer-title" x="935" y="222">Accounting</text>
+  <text class="layer-title" x="1220" y="222">Reporting / Treasury</text>
+  <text class="layer-title" x="1505" y="222">Statements</text>
+
+  <rect class="node source" x="80" y="255" width="210" height="76"/>
+  <text class="node-text" x="98" y="285">P2 / PROMIS /</text>
+  <text class="node-text" x="98" y="310">project systems</text>
+  <rect class="node source" x="80" y="355" width="210" height="76"/>
+  <text class="node-text" x="98" y="385">SPS / Procurement</text>
+  <text class="small" x="98" y="410">awards + mods</text>
+  <rect class="node source" x="80" y="455" width="210" height="76"/>
+  <text class="node-text" x="98" y="485">WAWF / PIEE</text>
+  <text class="small" x="98" y="510">invoice, receipt, accept</text>
+  <rect class="node source" x="80" y="555" width="210" height="76"/>
+  <text class="node-text" x="98" y="585">Labor / payroll</text>
+  <text class="small" x="98" y="610">cost distribution</text>
+  <rect class="node source" x="80" y="655" width="210" height="76"/>
+  <text class="node-text" x="98" y="685">Collections / IPAC</text>
+  <text class="small" x="98" y="710">reimbursable + IGT</text>
+
+  <rect class="node core" x="365" y="255" width="210" height="76"/>
+  <text class="node-text" x="383" y="285">Funds control</text>
+  <text class="small" x="383" y="310">authority to outlay</text>
+  <rect class="node core" x="365" y="355" width="210" height="76"/>
+  <text class="node-text" x="383" y="385">Obligations</text>
+  <text class="small" x="383" y="410">commitments + awards</text>
+  <rect class="node core" x="365" y="455" width="210" height="76"/>
+  <text class="node-text" x="383" y="485">AP / AR</text>
+  <text class="small" x="383" y="510">invoice, billing, debt</text>
+  <rect class="node core" x="365" y="555" width="210" height="76"/>
+  <text class="node-text" x="383" y="585">Disbursing</text>
+  <text class="small" x="383" y="610">payments + collections</text>
+  <rect class="node core" x="365" y="655" width="210" height="76"/>
+  <text class="node-text" x="383" y="685">JV / close</text>
+  <text class="small" x="383" y="710">corrections + accruals</text>
+
+  <rect class="node detail" x="650" y="255" width="210" height="76"/>
+  <text class="node-text" x="668" y="285">Project / WBS</text>
+  <text class="small" x="668" y="310">civil + military works</text>
+  <rect class="node detail" x="650" y="355" width="210" height="76"/>
+  <text class="node-text" x="668" y="385">Cost objects</text>
+  <text class="small" x="668" y="410">labor, contract, overhead</text>
+  <rect class="node detail" x="650" y="455" width="210" height="76"/>
+  <text class="node-text" x="668" y="485">Reimbursables</text>
+  <text class="small" x="668" y="510">customer orders + bills</text>
+  <rect class="node detail" x="650" y="555" width="210" height="76"/>
+  <text class="node-text" x="668" y="585">Real property / assets</text>
+  <text class="small" x="668" y="610">capital + stewardship</text>
+  <rect class="node detail" x="650" y="655" width="210" height="76"/>
+  <text class="node-text" x="668" y="685">CEEMIS / analytics</text>
+  <text class="small" x="668" y="710">management data</text>
+
+  <rect class="node accounting" x="935" y="305" width="210" height="76"/>
+  <text class="node-text" x="953" y="335">Budgetary USSGL</text>
+  <text class="small" x="953" y="360">SBR support</text>
+  <rect class="node accounting" x="935" y="425" width="210" height="76"/>
+  <text class="node-text" x="953" y="455">Proprietary USSGL</text>
+  <text class="small" x="953" y="480">assets, AP, AR, cost</text>
+  <rect class="node accounting" x="935" y="545" width="210" height="76"/>
+  <text class="node-text" x="953" y="575">General ledger</text>
+  <text class="small" x="953" y="600">trial balance basis</text>
+
+  <rect class="node reporting" x="1220" y="305" width="210" height="76"/>
+  <text class="node-text" x="1238" y="335">CEEMIS reports</text>
+  <text class="small" x="1238" y="360">real-time browser query</text>
+  <rect class="node reporting" x="1220" y="425" width="210" height="76"/>
+  <text class="node-text" x="1238" y="455">DDRS / GTAS</text>
+  <text class="small" x="1238" y="480">ATB + edits</text>
+  <rect class="node reporting" x="1220" y="545" width="210" height="76"/>
+  <text class="node-text" x="1238" y="575">Treasury / FBwT</text>
+  <text class="small" x="1238" y="600">CARS, IPAC, cash</text>
+
+  <rect class="node statement" x="1505" y="305" width="210" height="76"/>
+  <text class="node-text" x="1523" y="335">SBR</text>
+  <text class="small" x="1523" y="360">authority to outlay</text>
+  <rect class="node statement" x="1505" y="425" width="210" height="76"/>
+  <text class="node-text" x="1523" y="455">Balance sheet</text>
+  <text class="small" x="1523" y="480">FBwT, AP, AR, assets</text>
+  <rect class="node statement" x="1505" y="545" width="210" height="76"/>
+  <text class="node-text" x="1523" y="575">Net cost / notes</text>
+  <text class="small" x="1523" y="600">project + program cost</text>
+
+  <path class="arrow" d="M 293 493 H 358"/>
+  <path class="arrow" d="M 578 493 H 643"/>
+  <path class="arrow" d="M 863 493 H 928"/>
+  <path class="arrow" d="M 1148 493 H 1213"/>
+  <path class="arrow" d="M 1433 493 H 1498"/>
+
+  <rect class="callout" x="70" y="935" width="1660" height="92" rx="20"/>
+  <text class="callout-text" x="100" y="970">Tech-stack note: public USACE pages identify CEFMS as the Corps of Engineers Financial Management System and describe it as complex and fully integrated.</text>
+  <text class="callout-text" x="100" y="1000">The exact vendor database/application stack is not asserted here; use USACE/UFC authority for implementation-specific platform details.</text>
+  <text class="caveat" x="70" y="1060">Source basis: USACE Finance Center, DoD/Treasury financial reporting requirements, and public federal accounting control patterns.</text>
+</svg>
