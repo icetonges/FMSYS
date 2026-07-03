@@ -7,6 +7,8 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
 - Multi-page navigation:
   - `/` system directory
   - `/systems/gfebs` GFEBS architecture blueprint
+  - `/systems/gcss-army` GCSS-Army logistics-to-finance blueprint
+  - `/systems/gcss-mc` GCSS-MC logistics-to-finance blueprint
   - `/systems/navy-erp` Navy ERP architecture blueprint
   - `/systems/dai` Defense Agencies Initiative blueprint
   - `/systems/deams` Defense Enterprise Accounting and Management System blueprint
@@ -39,6 +41,8 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/public/dla-ebs-blueprint-reference.svg`
 - ABSS static reference asset:
   - `/public/abss-blueprint-reference.svg`
+- GCSS static reference asset:
+  - `/public/gcss-blueprint-reference.svg`
 - DAI verification notes:
   - `/docs/DAI_BLUEPRINT_VERIFICATION.md`
 - Existing GFEBS static reference:

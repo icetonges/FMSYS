@@ -3109,6 +3109,422 @@ const abssSources = [
   { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
 ];
 
+const gcssLayers = [
+  { id: 'source', label: 'Unit / Logistics / Partner Source Events', short: 'Source', description: 'Unit supply, maintenance, property, catalog, distribution, vendor, and finance partner events that originate before GCSS transaction control.' },
+  { id: 'core', label: 'GCSS Core Logistics Capabilities', short: 'GCSS', description: 'Supply, maintenance, property, inventory, and readiness capabilities that control operational logistics activity before financial impact is summarized or interfaced.' },
+  { id: 'detail', label: 'Logistics Transaction Detail', short: 'Detail', description: 'Document-level logistics objects used to preserve the Universe of Transactions for material, requisition, work-order, asset, and inventory activity.' },
+  { id: 'accounting', label: 'Financial Impact / Interface Layer', short: 'Finance', description: 'Budgetary, cost, inventory valuation, reimbursable, AP, and GL-facing activity exchanged with financial-management systems.' },
+  { id: 'reporting', label: 'Readiness, ERP, and Treasury Reporting', short: 'Reporting', description: 'Operational readiness, logistics status, ERP extracts, trial-balance support, DDRS, GTAS, and reconciliation outputs.' },
+  { id: 'statements', label: 'Financial Statement Assertions', short: 'Statements', description: 'Statement line items and audit assertions supported by logistics-to-finance lineage, reconciliations, and retained evidence.' }
+];
+
+const gcssNodes = [
+  {
+    id: 'gcss-unit-supply',
+    layer: 'source',
+    title: 'Unit Supply / SSA / Supply Section',
+    subtitle: 'Demand, issue, turn-in, and receipt initiation',
+    icon: 'SUP',
+    tags: ['supply', 'unit', 'demand', 'receipt'],
+    summary: 'Creates and updates supply demand, issue, turn-in, due-in, due-out, receipt, and stockage activity that may drive inventory, expense, reimbursable, or readiness impact.',
+    examples: ['Supply request', 'Receipt', 'Issue', 'Turn-in', 'Due-in/due-out'],
+    auditQuestions: ['Can every high-value issue trace to an authorized request?', 'Are receipts matched to source demand and shipment evidence?', 'Are aged due-ins and open requests reviewed?'],
+    keyFields: ['document number', 'DoDAAC', 'UIC/RIC', 'NSN/material', 'quantity', 'condition code', 'priority', 'fund cite'],
+    risks: ['Unsupported issue', 'Open requisition not reviewed', 'Receipt without financial/accountability follow-through']
+  },
+  {
+    id: 'gcss-maintenance-shop',
+    layer: 'source',
+    title: 'Maintenance Shops / Motor Pool',
+    subtitle: 'Work orders, faults, parts, labor, and equipment status',
+    icon: 'MNT',
+    tags: ['maintenance', 'work order', 'parts', 'readiness'],
+    summary: 'Generates work orders, faults, parts demand, labor/status updates, and equipment condition data that support readiness reporting and parts-related financial lineage.',
+    examples: ['Maintenance work order', 'Fault', 'Parts request', 'Equipment status update'],
+    auditQuestions: ['Do parts consumed on work orders tie to supply issue records?', 'Is equipment status timely and supportable?', 'Are high-cost maintenance events reviewable?'],
+    keyFields: ['work order', 'equipment ID', 'fault code', 'NSN/material', 'quantity', 'labor/status date', 'priority'],
+    risks: ['Parts consumed without work-order support', 'Readiness status not tied to maintenance evidence', 'Manual correction hides root cause']
+  },
+  {
+    id: 'gcss-property-accountability-source',
+    layer: 'source',
+    title: 'Property Book / Responsible Officer',
+    subtitle: 'Asset assignment, custody, and hand-receipt evidence',
+    icon: 'PBO',
+    tags: ['property', 'asset', 'custody', 'hand receipt'],
+    summary: 'Maintains property accountability, asset assignment, serial-number custody, gains, losses, transfers, and hand-receipt evidence for accountable equipment.',
+    examples: ['Asset gain', 'Asset transfer', 'Hand receipt', 'Loss adjustment', 'Inventory count'],
+    auditQuestions: ['Can accountable assets be traced to custody and location?', 'Are gains/losses approved and reflected in financial reporting where required?', 'Are inventories performed and exceptions resolved?'],
+    keyFields: ['asset/equipment number', 'serial number', 'UIC', 'custodian', 'location', 'acquisition value', 'status'],
+    risks: ['Missing custody evidence', 'Asset existence/completeness gap', 'Financial PP&E or inventory support mismatch']
+  },
+  {
+    id: 'gcss-dla-daas-dlms',
+    layer: 'source',
+    title: 'DLA / DAAS / DLMS / FED LOG',
+    subtitle: 'Catalog, requisition, shipping, and distribution partners',
+    icon: 'DLA',
+    tags: ['dlms', 'catalog', 'distribution', 'supply chain'],
+    summary: 'Provides item catalog, requisition status, shipping, distribution, and logistics-transaction exchange patterns used by GCSS and downstream finance partners.',
+    examples: ['DLMS requisition/status', 'FED LOG catalog data', 'Shipment status', 'Distribution event'],
+    auditQuestions: ['Do interface control totals reconcile?', 'Are item master and unit price changes governed?', 'Are rejected logistics transactions researched?'],
+    keyFields: ['document number', 'NSN', 'routing identifier', 'status code', 'quantity', 'unit price', 'shipment number'],
+    risks: ['Rejected DLMS transaction', 'Catalog/price mismatch', 'Shipment not received or financially cleared']
+  },
+  {
+    id: 'gcss-finance-partner',
+    layer: 'source',
+    title: 'Finance ERP Partner',
+    subtitle: 'GFEBS, SABRS, Navy ERP, DFAS, Treasury',
+    icon: 'FIN',
+    tags: ['finance', 'erp', 'interface', 'accounting'],
+    summary: 'Represents the financial-management system or shared-service partner that receives GCSS-supported logistics impacts for commitment, obligation, cost, AP, GL, or reporting treatment.',
+    examples: ['GFEBS interface', 'SABRS/DoN finance handoff', 'DFAS support', 'Treasury/IPAC settlement'],
+    auditQuestions: ['Do logistics events reconcile to finance postings?', 'Are rejects and suspense cleared?', 'Can statement samples trace back to GCSS source detail?'],
+    keyFields: ['fund cite', 'TAS', 'USSGL', 'document number', 'interface batch', 'posting period', 'amount'],
+    risks: ['Logistics-to-finance timing break', 'Manual finance correction without source support', 'Unreconciled interface suspense']
+  },
+  {
+    id: 'gcss-supply-execution',
+    layer: 'core',
+    title: 'Supply Execution',
+    subtitle: 'Request, source, issue, receipt, and return control',
+    icon: 'REQ',
+    tags: ['supply', 'request', 'receipt', 'issue'],
+    summary: 'Controls the lifecycle from supply demand through sourcing, issue, receipt, turn-in, backorder, cancellation, and status updates.',
+    examples: ['Request validation', 'Issue posting', 'Receipt posting', 'Turn-in processing'],
+    auditQuestions: ['Are quantities and statuses complete at period end?', 'Do cancellations and substitutions retain evidence?', 'Are high-dollar demands tied to mission authority?'],
+    keyFields: ['document number', 'line item', 'NSN/material', 'quantity', 'status', 'posting date', 'fund cite'],
+    risks: ['Incomplete request lifecycle', 'Quantity/status mismatch', 'Unsupported cancellation or substitution']
+  },
+  {
+    id: 'gcss-maintenance-management',
+    layer: 'core',
+    title: 'Maintenance Management',
+    subtitle: 'Work order execution and equipment status',
+    icon: 'WO',
+    tags: ['maintenance', 'work order', 'equipment', 'readiness'],
+    summary: 'Manages maintenance work orders, parts demand, task status, equipment availability, and readiness-related updates.',
+    examples: ['Open work order', 'Parts reservation/request', 'Completion update', 'Deadline status'],
+    auditQuestions: ['Are work-order closures supported?', 'Do parts and labor align to the work performed?', 'Are status changes timely?'],
+    keyFields: ['work order', 'equipment ID', 'task/status', 'part number', 'quantity', 'completion date'],
+    risks: ['Closed work order without evidence', 'Parts cost not tied to repair', 'Status not reliable for readiness']
+  },
+  {
+    id: 'gcss-property-accountability',
+    layer: 'core',
+    title: 'Property Accountability',
+    subtitle: 'Custody, serial-number, location, and inventory control',
+    icon: 'AST',
+    tags: ['property', 'asset', 'custody', 'inventory'],
+    summary: 'Controls accountable property records, serial-number detail, custodian assignment, location, gains, losses, transfers, and inventories.',
+    examples: ['Property record update', 'Hand receipt', 'Transfer', 'Inventory count adjustment'],
+    auditQuestions: ['Are asset populations complete?', 'Can assets be physically verified?', 'Are adjustments approved and financially evaluated?'],
+    keyFields: ['asset/equipment number', 'serial number', 'UIC', 'custodian', 'location', 'condition', 'value'],
+    risks: ['Existence/completeness failure', 'Unauthorized adjustment', 'Lost financial valuation link']
+  },
+  {
+    id: 'gcss-inventory-control',
+    layer: 'core',
+    title: 'Inventory Control',
+    subtitle: 'Stockage, warehouse, condition, and valuation support',
+    icon: 'INV',
+    tags: ['inventory', 'warehouse', 'valuation', 'stockage'],
+    summary: 'Maintains inventory balances, condition, location, receipt/issue history, adjustments, and valuation support needed for logistics and reporting.',
+    examples: ['Inventory balance', 'Condition code change', 'Warehouse movement', 'Inventory adjustment'],
+    auditQuestions: ['Do on-hand balances reconcile to counts and movements?', 'Are condition-code and valuation changes governed?', 'Are adjustments supported?'],
+    keyFields: ['NSN/material', 'location', 'condition code', 'quantity', 'unit price', 'movement type', 'posting date'],
+    risks: ['Inventory valuation error', 'Unsupported adjustment', 'Quantity mismatch between logistics and finance']
+  },
+  {
+    id: 'gcss-readiness-status',
+    layer: 'core',
+    title: 'Readiness / Equipment Status',
+    subtitle: 'Operational availability and mission support',
+    icon: 'RDY',
+    tags: ['readiness', 'equipment', 'status', 'mission'],
+    summary: 'Uses supply, maintenance, and property data to support equipment status, mission capability, and readiness-related reporting.',
+    examples: ['Equipment availability', 'Deadline status', 'Readiness exception', 'Status report extract'],
+    auditQuestions: ['Can readiness status trace to current supply and maintenance records?', 'Are exceptions aged and owned?', 'Are status feeds complete?'],
+    keyFields: ['equipment ID', 'UIC', 'status code', 'fault/work order', 'part demand', 'as-of date'],
+    risks: ['Readiness overstatement', 'Untimely status update', 'Missing support for reported condition']
+  },
+  {
+    id: 'gcss-material-master',
+    layer: 'detail',
+    title: 'Material / NSN Master',
+    subtitle: 'Catalog identity and pricing attributes',
+    icon: 'NSN',
+    tags: ['material', 'nsn', 'catalog', 'master data'],
+    summary: 'Stores or consumes material identity, NSN, description, unit of issue, price, condition, source of supply, and logistics attributes.',
+    examples: ['NSN record', 'Unit of issue', 'Standard price', 'Source of supply'],
+    auditQuestions: ['Are catalog changes authorized?', 'Do price updates reconcile to authoritative sources?', 'Are obsolete or duplicate items controlled?'],
+    keyFields: ['NSN/material', 'unit of issue', 'price', 'source of supply', 'condition', 'effective date'],
+    risks: ['Incorrect price drives valuation error', 'Duplicate catalog identity', 'Unauthorized master-data change']
+  },
+  {
+    id: 'gcss-requisition-detail',
+    layer: 'detail',
+    title: 'Requisition / Supply Document Detail',
+    subtitle: 'Line-level demand and status history',
+    icon: 'DOC',
+    tags: ['requisition', 'document', 'supply', 'uott'],
+    summary: 'Preserves document-number and line-level supply demand, status, quantity, priority, funding, and fulfillment history.',
+    examples: ['Requisition line', 'Status update', 'Cancellation', 'Backorder'],
+    auditQuestions: ['Is the Universe of Transactions complete for sampled requisitions?', 'Are status changes retained?', 'Can open lines be aged and explained?'],
+    keyFields: ['document number', 'suffix/line', 'status', 'priority', 'quantity', 'fund cite', 'date'],
+    risks: ['Incomplete UoT extract', 'Open line unsupported', 'Funding/status disconnect']
+  },
+  {
+    id: 'gcss-work-order-detail',
+    layer: 'detail',
+    title: 'Work Order / Fault / Parts Detail',
+    subtitle: 'Maintenance transaction evidence',
+    icon: 'WRK',
+    tags: ['work order', 'fault', 'maintenance', 'parts'],
+    summary: 'Captures the detailed maintenance object that ties a fault or repair event to requested parts, status, completion, and equipment readiness.',
+    examples: ['Work order', 'Fault', 'Parts list', 'Completion status'],
+    auditQuestions: ['Are part demands justified by work-order evidence?', 'Are work orders closed timely?', 'Do completion records match equipment status?'],
+    keyFields: ['work order', 'fault code', 'equipment ID', 'NSN/material', 'quantity', 'completion date'],
+    risks: ['Maintenance cost unsupported', 'Parts consumed outside repair context', 'Status/completion mismatch']
+  },
+  {
+    id: 'gcss-asset-equipment-detail',
+    layer: 'detail',
+    title: 'Asset / Equipment Detail',
+    subtitle: 'Serialized property and accountable equipment',
+    icon: 'EQP',
+    tags: ['asset', 'equipment', 'serial', 'custody'],
+    summary: 'Maintains serialized equipment, accountable property, location, custodian, condition, acquisition support, and disposition data.',
+    examples: ['Equipment record', 'Serial-number asset', 'Transfer', 'Disposition'],
+    auditQuestions: ['Can sampled assets be located and tied to custody?', 'Are transfers and disposals approved?', 'Is financial value support retained where applicable?'],
+    keyFields: ['equipment/asset number', 'serial number', 'UIC', 'location', 'custodian', 'acquisition value', 'disposition date'],
+    risks: ['Asset not found', 'Disposal not reflected financially', 'Custody break']
+  },
+  {
+    id: 'gcss-inventory-movement-detail',
+    layer: 'detail',
+    title: 'Inventory Movement Detail',
+    subtitle: 'Receipt, issue, adjustment, transfer, and count history',
+    icon: 'MOV',
+    tags: ['inventory', 'movement', 'receipt', 'issue'],
+    summary: 'Preserves the movement history needed to trace inventory balances, quantities, conditions, and valuation from transaction to report.',
+    examples: ['Receipt movement', 'Issue movement', 'Transfer', 'Inventory adjustment', 'Count variance'],
+    auditQuestions: ['Do movements support ending balances?', 'Are adjustments approved?', 'Can valuation impacts be recalculated from detail?'],
+    keyFields: ['movement/document number', 'NSN/material', 'location', 'condition', 'quantity', 'unit price', 'posting date'],
+    risks: ['Inventory balance not reconstructable', 'Unsupported adjustment', 'Valuation mismatch']
+  },
+  {
+    id: 'gcss-commitment-obligation',
+    layer: 'accounting',
+    title: 'Commitment / Obligation Signal',
+    subtitle: 'Funding impact and financial handoff',
+    icon: 'OBL',
+    tags: ['commitment', 'obligation', 'funds', 'interface'],
+    summary: 'Represents the finance-facing impact of logistics demand when a requisition, purchase, or external support event requires funds control or obligation treatment.',
+    examples: ['Funded requisition', 'Obligation interface', 'Commitment update', 'Reject/suspense correction'],
+    auditQuestions: ['Does each funded logistics event tie to valid budget authority?', 'Are obligation changes supported by source detail?', 'Are rejects cleared before reporting?'],
+    keyFields: ['fund cite', 'document number', 'TAS', 'USSGL', 'amount', 'posting period', 'interface batch'],
+    risks: ['Invalid fund cite', 'Obligation not tied to logistics source', 'Unreconciled suspense']
+  },
+  {
+    id: 'gcss-inventory-valuation',
+    layer: 'accounting',
+    title: 'Inventory / Asset Valuation',
+    subtitle: 'Quantity, condition, and price to financial value',
+    icon: 'VAL',
+    tags: ['valuation', 'inventory', 'asset', 'financial reporting'],
+    summary: 'Transforms supported quantity, condition, catalog, and acquisition-price detail into value used for inventory, operating material, supplies, or accountable property reporting.',
+    examples: ['Inventory value', 'Condition valuation', 'Asset value support', 'Adjustment value'],
+    auditQuestions: ['Can reported value be recalculated from source quantity and price?', 'Are condition changes reflected?', 'Are gains/losses supported?'],
+    keyFields: ['NSN/material', 'quantity', 'unit price', 'condition', 'asset value', 'posting period'],
+    risks: ['Overstated inventory', 'Unsupported asset value', 'Condition not considered in reporting']
+  },
+  {
+    id: 'gcss-finance-interface',
+    layer: 'accounting',
+    title: 'Finance Interface / Reconciliation',
+    subtitle: 'GCSS-to-ERP tie-out and suspense clearing',
+    icon: 'REC',
+    tags: ['interface', 'reconciliation', 'gl', 'audit'],
+    summary: 'Controls extract, interface, reject, suspense, and reconciliation activity between GCSS logistics records and the official accounting/reporting system.',
+    examples: ['Interface batch', 'Control totals', 'Reject report', 'Tie-out workbook'],
+    auditQuestions: ['Do control totals reconcile by batch and period?', 'Are rejected records resolved?', 'Can finance postings trace to GCSS detail?'],
+    keyFields: ['interface batch', 'source document', 'amount', 'count', 'reject reason', 'posted document', 'period'],
+    risks: ['Silent interface failure', 'Manual journal without source link', 'Period cutoff mismatch']
+  },
+  {
+    id: 'gcss-readiness-reporting',
+    layer: 'reporting',
+    title: 'Readiness / Logistics Reporting',
+    subtitle: 'Operational reports and command visibility',
+    icon: 'RPT',
+    tags: ['reporting', 'readiness', 'logistics', 'command'],
+    summary: 'Provides commanders and logisticians with supply, maintenance, equipment, open-requisition, deadline, inventory, and readiness views.',
+    examples: ['Open requisition report', 'Equipment status report', 'Maintenance backlog', 'Inventory exception report'],
+    auditQuestions: ['Are reports generated from controlled populations?', 'Do exceptions have owners?', 'Are as-of dates and filters documented?'],
+    keyFields: ['report ID', 'as-of date', 'UIC', 'document number', 'equipment ID', 'status', 'quantity'],
+    risks: ['Operational report not reconcilable', 'Outdated status', 'Unowned exception']
+  },
+  {
+    id: 'gcss-erp-reporting',
+    layer: 'reporting',
+    title: 'ERP / DDRS / GTAS Support',
+    subtitle: 'Financial reporting and Treasury path',
+    icon: 'GTAS',
+    tags: ['ddrs', 'gtas', 'treasury', 'financial reporting'],
+    summary: 'Supports trial-balance, DDRS, GTAS, USSGL, Treasury, and statement reporting when GCSS activity drives financial values or assertions.',
+    examples: ['Trial balance support', 'DDRS tie-out', 'GTAS crosswalk', 'Treasury reporting support'],
+    auditQuestions: ['Do statement amounts tie to trial balance and source detail?', 'Are USSGL and TAS attributes complete?', 'Are crosswalks governed?'],
+    keyFields: ['TAS', 'USSGL', 'period', 'amount', 'trading partner', 'statement line', 'source document'],
+    risks: ['Reporting crosswalk error', 'Unsupported statement amount', 'Trading partner/TAS mismatch']
+  },
+  {
+    id: 'gcss-audit-package',
+    layer: 'reporting',
+    title: 'Audit Package / Evidence Store',
+    subtitle: 'Sampling support and retained source trail',
+    icon: 'AUD',
+    tags: ['audit', 'evidence', 'uott', 'reconciliation'],
+    summary: 'Assembles source records, approvals, interface logs, reconciliations, reports, and screenshots/extracts needed to support audit samples.',
+    examples: ['Sample support package', 'Interface log', 'Reconciliation', 'Approval evidence'],
+    auditQuestions: ['Can evidence be retrieved for the sampled transaction?', 'Does support cover source, posting, and report?', 'Are extracts complete and immutable?'],
+    keyFields: ['sample ID', 'source document', 'interface batch', 'posted document', 'report line', 'evidence link'],
+    risks: ['Evidence unavailable', 'Extract not population-complete', 'Manual support cannot be reproduced']
+  },
+  {
+    id: 'gcss-sbr-statement',
+    layer: 'statements',
+    title: 'Statement of Budgetary Resources',
+    subtitle: 'Budgetary impact from logistics demand and execution',
+    icon: 'SBR',
+    tags: ['sbr', 'budgetary', 'obligation', 'outlay'],
+    summary: 'Shows how logistics events that consume funds can support budgetary resources, obligations, expenditures, outlays, and related disclosures.',
+    examples: ['Commitment/obligation support', 'Delivered order evidence', 'Outlay tie-out'],
+    auditQuestions: ['Are budgetary impacts complete and supported?', 'Do open obligations tie to valid logistics need?', 'Are deobligations timely?'],
+    keyFields: ['TAS', 'USSGL', 'fund cite', 'document number', 'obligation amount', 'outlay amount'],
+    risks: ['Unsupported ULO', 'Misstated obligation', 'Outlay not tied to source']
+  },
+  {
+    id: 'gcss-inventory-ppe-statement',
+    layer: 'statements',
+    title: 'Inventory / OM&S / PP&E Assertions',
+    subtitle: 'Existence, completeness, rights, valuation, presentation',
+    icon: 'INV',
+    tags: ['inventory', 'ppe', 'oms', 'assertions'],
+    summary: 'Supports financial-statement assertions for inventory, operating materials and supplies, and accountable equipment where GCSS records are part of the evidentiary trail.',
+    examples: ['Inventory value', 'Asset existence', 'Condition support', 'Gain/loss support'],
+    auditQuestions: ['Can quantities be physically verified?', 'Is valuation support complete?', 'Are ownership and custody clear?'],
+    keyFields: ['NSN/material', 'asset/equipment number', 'quantity', 'condition', 'unit price', 'value', 'location'],
+    risks: ['Existence/completeness error', 'Valuation unsupported', 'Condition or custody mismatch']
+  },
+  {
+    id: 'gcss-net-cost-notes',
+    layer: 'statements',
+    title: 'Net Cost / Notes / Audit Schedules',
+    subtitle: 'Expense, logistics cost, and disclosure support',
+    icon: 'NCT',
+    tags: ['net cost', 'expense', 'notes', 'audit'],
+    summary: 'Connects maintenance, supply, inventory consumption, and finance postings to net cost, notes, schedules, and audit-support packages.',
+    examples: ['Parts expense support', 'Maintenance cost support', 'Note schedule', 'Sample reconciliation'],
+    auditQuestions: ['Can expense be traced to supported logistics events?', 'Are note schedules tied to controlled populations?', 'Are cutoffs and accruals complete?'],
+    keyFields: ['cost object', 'document number', 'USSGL', 'period', 'amount', 'statement line', 'note schedule'],
+    risks: ['Expense classification error', 'Unsupported note schedule', 'Period cutoff issue']
+  }
+];
+
+const gcssLineageScenarios = [
+  {
+    id: 'gcss-requisition-to-finance',
+    short: 'requisition',
+    title: 'Supply Requisition to Finance Posting',
+    description: 'Traces a funded supply request from unit demand through GCSS supply execution, document detail, finance interface, and SBR support.',
+    path: ['gcss-unit-supply', 'gcss-supply-execution', 'gcss-requisition-detail', 'gcss-commitment-obligation', 'gcss-finance-interface', 'gcss-sbr-statement'],
+    steps: [
+      'A unit or supply activity creates a mission-supported demand with document number, item, quantity, priority, and funding data.',
+      'GCSS controls request status, sourcing, issue, receipt, backorder, cancellation, or turn-in activity.',
+      'The requisition detail preserves the transaction population and status history for audit sampling.',
+      'Finance-facing signals are exchanged with the applicable accounting system and reconciled by batch, count, amount, and period.',
+      'Budgetary reporting ties obligations, delivered orders, outlays, and ULO review back to source demand evidence.'
+    ],
+    exceptionTests: ['invalid fund cite', 'open requisition aged past policy', 'interface reject', 'finance posting without GCSS detail', 'manual journal missing source support']
+  },
+  {
+    id: 'gcss-maintenance-parts',
+    short: 'maintenance',
+    title: 'Maintenance Work Order and Parts Consumption',
+    description: 'Shows how maintenance faults and work orders create parts demand, readiness evidence, cost impact, and audit support.',
+    path: ['gcss-maintenance-shop', 'gcss-maintenance-management', 'gcss-work-order-detail', 'gcss-inventory-movement-detail', 'gcss-finance-interface', 'gcss-net-cost-notes'],
+    steps: [
+      'A maintenance shop opens or updates a work order tied to equipment, fault, priority, and required parts.',
+      'GCSS records parts demand, issue/receipt, equipment status, and work-order completion evidence.',
+      'Inventory movement detail supports the parts quantity and value consumed or returned.',
+      'Finance interface controls reconcile consumption, cost, or AP/GL impacts where applicable.',
+      'Net cost and audit schedules retain the repair, parts, and posting trail.'
+    ],
+    exceptionTests: ['parts issued without work order', 'work order closed without support', 'inventory movement not valued', 'readiness status not updated', 'period cutoff mismatch']
+  },
+  {
+    id: 'gcss-property-inventory',
+    short: 'property',
+    title: 'Property Accountability and Inventory Valuation',
+    description: 'Connects serialized property, custody, inventory balances, condition, valuation, and statement assertions.',
+    path: ['gcss-property-accountability-source', 'gcss-property-accountability', 'gcss-asset-equipment-detail', 'gcss-inventory-valuation', 'gcss-audit-package', 'gcss-inventory-ppe-statement'],
+    steps: [
+      'A property or inventory event records gain, transfer, loss, count, adjustment, or disposal activity.',
+      'GCSS maintains serial-number, custody, location, condition, and accountable-property control.',
+      'Asset and inventory detail provide the source population for existence, completeness, and valuation testing.',
+      'Valuation uses supported quantity, condition, price, and acquisition data where financial reporting is affected.',
+      'Audit packages connect source property records to statement assertions for inventory, OM&S, or PP&E.'
+    ],
+    exceptionTests: ['asset not located', 'custody not current', 'adjustment not approved', 'valuation cannot be recalculated', 'disposal not reflected financially']
+  },
+  {
+    id: 'gcss-readiness-to-reporting',
+    short: 'readiness',
+    title: 'Readiness Status to Reporting and Evidence',
+    description: 'Traces equipment status and logistics exceptions from operational records to reporting, reconciliation, and audit support.',
+    path: ['gcss-maintenance-shop', 'gcss-readiness-status', 'gcss-readiness-reporting', 'gcss-erp-reporting', 'gcss-audit-package', 'gcss-net-cost-notes'],
+    steps: [
+      'Supply and maintenance events update equipment status, open parts demand, deadline condition, and readiness indicators.',
+      'GCSS readiness/status views summarize operational availability and exception populations.',
+      'Reports are generated with documented as-of dates, filters, and source populations.',
+      'Where readiness activity has financial impact, ERP/DDRS/GTAS support is reconciled to controlled source detail.',
+      'Audit evidence preserves the status report, source records, and finance/reporting tie-out.'
+    ],
+    exceptionTests: ['stale equipment status', 'open exception lacks owner', 'report filter not documented', 'financial impact not reconciled', 'source extract incomplete']
+  }
+];
+
+const gcssSupportServices = [
+  { title: 'Supply and Maintenance Controls', detail: 'Demand validation, document-number control, work-order support, issue/receipt status, cancellation rules, and aged open-transaction review.' },
+  { title: 'Property and Inventory Governance', detail: 'Custody, serial-number control, location, condition, inventory count, adjustment approval, valuation support, and loss/disposal evidence.' },
+  { title: 'Interface and Reconciliation', detail: 'DLMS/partner exchange, finance-interface batch controls, reject/suspense resolution, period cutoff, control totals, and source-to-posting tie-outs.' },
+  { title: 'Readiness and Command Reporting', detail: 'Equipment status, open parts demand, maintenance backlog, mission-readiness exception reporting, as-of-date control, and report population ownership.' },
+  { title: 'Financial Reporting Support', detail: 'USSGL/TAS mapping where applicable, SBR support, inventory/OM&S/PP&E assertions, net cost, DDRS/GTAS tie-outs, and audit schedules.' },
+  { title: 'Master Data and Evidence', detail: 'NSN/material, DoDAAC/UIC/RIC, fund cite, unit price, condition code, equipment, custodian, document number, and retained sample-support packages.' }
+];
+
+const gcssArmyCaveats = [
+  'GCSS-Army is modeled as the Army tactical logistics ERP/SAP-style environment because public descriptions commonly characterize it as the Army GCSS logistics ERP; exact SAP modules, custom tables, interfaces, and reports require Army program authority.',
+  'This blueprint focuses on auditable logistics-to-finance business processes. It is not an official Army interface inventory, system security boundary, or configuration baseline.',
+  'Feeder counts are modeled source and partner categories represented in this page, not a certified count of GCSS-Army production interfaces.'
+];
+
+const gcssMcCaveats = [
+  'GCSS-MC public technical/platform detail is limited. This page does not label GCSS-MC as SAP or Oracle; it models the Marine Corps logistics-to-finance business process and marks platform specifics as requiring authoritative Marine Corps documentation.',
+  'MARCORSYSCOM public information supports the Marine Corps acquisition and IT-program context, but exact GCSS-MC modules, interfaces, reports, and current modernization state require program authority.',
+  'Feeder counts are modeled source and partner categories represented in this page, not a certified count of GCSS-MC production interfaces.'
+];
+
+const gcssSources = [
+  { name: 'Marine Corps Systems Command', url: 'https://www.marcorsyscom.marines.mil/' },
+  { name: 'DoD Financial Management Regulation', url: 'https://comptroller.defense.gov/FMR/' },
+  { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+  { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
+  { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -3141,6 +3557,72 @@ export const systems = [
       'This is an educational architecture model. Exact GFEBS tables, T-codes, custom reports, interfaces, and functionality vary by Army configuration, role permissions, release, and modernization state.'
     ],
     sources: []
+  },
+  {
+    slug: 'gcss-army',
+    shortName: 'GCSS-Army',
+    name: 'GCSS-Army',
+    longName: 'GCSS-Army / Global Combat Support System-Army Blueprint',
+    agency: 'Army',
+    eyebrow: 'GCSS-Army blueprint for tactical logistics and finance lineage',
+    description: 'Explore GCSS-Army as the Army tactical logistics ERP/SAP-style environment for supply, maintenance, property accountability, inventory, readiness, finance-interface reconciliation, and audit-ready logistics-to-statement traceability.',
+    metric: '4',
+    metricLabel: 'Core GCSS-Army lineage scenarios',
+    metricDetail: 'Supply -> Maintenance -> GFEBS -> Statement',
+    referenceImage: '/gcss-blueprint-reference.svg',
+    referenceTitle: 'GCSS logistics-to-finance static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/gcss-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'GCSS-Army is modeled as the Army tactical logistics ERP/SAP-style system for unit supply, maintenance, property accountability, inventory, and readiness-related logistics events.',
+      whoUsesIt: 'Army unit supply, SSA, maintenance, property book, sustainment, commanders, G-4/logistics staff, GFEBS/finance partners, DFAS/reporting stakeholders, and auditors rely on GCSS-Army data or outputs.',
+      howItIsUsed: 'It records supply requests, receipts, issues, turn-ins, work orders, parts demand, equipment status, property accountability, inventory movements, and finance-facing logistics impacts.',
+      currentStatus: 'Operational Army logistics system in this model; exact current modules, reports, interface names, and SAP configuration require authoritative Army GCSS-Army program documentation.',
+      whyItIsUsed: 'It standardizes tactical logistics, improves readiness visibility, preserves source transaction evidence, and helps connect logistics events to GFEBS, reporting, and financial-statement support.',
+      feederCount: 5,
+      feederSystems: ['Unit Supply / SSA', 'Maintenance Shops / Motor Pool', 'Property Book / Hand Receipt', 'DLA / DAAS / DLMS / FED LOG', 'GFEBS / Financial Accounting'],
+      feederNote: 'The blueprint models 5 major GCSS-Army source/partner categories; this is not a certified production interface count.'
+    },
+    layers: gcssLayers,
+    nodes: gcssNodes,
+    lineageScenarios: gcssLineageScenarios,
+    supportServices: gcssSupportServices,
+    caveats: gcssArmyCaveats,
+    sources: gcssSources
+  },
+  {
+    slug: 'gcss-mc',
+    shortName: 'GCSS-MC',
+    name: 'GCSS-MC',
+    longName: 'GCSS-MC / Global Combat Support System-Marine Corps Blueprint',
+    agency: 'Marine Corps',
+    eyebrow: 'GCSS-MC blueprint for Marine Corps logistics-to-finance lineage',
+    description: 'Explore GCSS-MC as a Marine Corps logistics support and business-process backbone for supply, maintenance, property accountability, inventory, readiness, finance handoff, and audit evidence without overclaiming the public technical stack.',
+    metric: '4',
+    metricLabel: 'Core GCSS-MC lineage scenarios',
+    metricDetail: 'Unit logistics -> Finance -> Statement',
+    referenceImage: '/gcss-blueprint-reference.svg',
+    referenceTitle: 'GCSS logistics-to-finance static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/gcss-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'GCSS-MC is modeled as the Marine Corps Global Combat Support System used for logistics support processes such as supply, maintenance, property accountability, inventory, and readiness-related data.',
+      whoUsesIt: 'Marine Corps supply, maintenance, responsible-officer/property, logistics command, MAGTF support, finance-interface, reporting, program-support, and audit stakeholders rely on GCSS-MC records or outputs.',
+      howItIsUsed: 'It supports Marine Corps requisitions, receipts, issues, maintenance work orders, equipment status, inventory/accountable property, logistics reporting, finance handoff, and evidence retention.',
+      currentStatus: 'Public platform details are limited; this model treats GCSS-MC as an operational Marine Corps logistics business system and marks exact modules, stack, and interfaces as requiring Marine Corps authority.',
+      whyItIsUsed: 'It gives Marine Corps units and logisticians a controlled transaction trail for mission logistics, readiness visibility, property accountability, and source evidence needed for finance and audit support.',
+      feederCount: 5,
+      feederSystems: ['Marine Unit Supply / Warehouse Inputs', 'Maintenance Shops', 'Responsible Officer / Property Inputs', 'DLA / DAAS / DLMS / FED LOG', 'SABRS / DoN Finance / DFAS Partners'],
+      feederNote: 'The blueprint models 5 major GCSS-MC source/partner categories; this is not a certified production interface count.'
+    },
+    layers: gcssLayers,
+    nodes: gcssNodes,
+    lineageScenarios: gcssLineageScenarios,
+    supportServices: gcssSupportServices,
+    caveats: gcssMcCaveats,
+    sources: gcssSources
   },
   {
     slug: 'navy-erp',
