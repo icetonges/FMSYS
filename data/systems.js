@@ -4786,6 +4786,417 @@ const sabrsSources = [
   { name: 'Procurement Integrated Enterprise Environment', url: 'https://piee.eb.mil/' }
 ];
 
+const famisLayers = [
+  { id: 'source', label: 'Source / Interface Events', short: 'Source', description: 'Funding, procurement, payroll, travel, logistics, WCF operating, disbursing, Treasury, and intragovernmental events that drive FAMIS accounting.' },
+  { id: 'base', label: 'FAMIS-GF / FAMIS-WCF Processing', short: 'FAMIS', description: 'General Fund and Working Capital Fund accounting, budgeting, cost recovery, AP, AR, GL, suspense, and close processing.' },
+  { id: 'detail', label: 'Transaction Detail', short: 'Detail', description: 'Fund cite, order, obligation, invoice, payment, customer order, billing, collection, inventory/cost, JV, and suspense detail.' },
+  { id: 'accounting', label: 'Accounting and Control Layer', short: 'Accounting', description: 'Budgetary GL, proprietary GL, WCF cost/revenue, AP/AR, FBWT, trial-balance, Treasury, and reconciliation controls.' },
+  { id: 'reporting', label: 'Execution and External Reporting', short: 'Reporting', description: 'Status of funds, WCF operating reports, trial balance, DDRS, GTAS, Treasury, audit extracts, and management reporting.' },
+  { id: 'statements', label: 'Financial Statement Support', short: 'Statements', description: 'SBR, net cost, WCF inventory/revenue/cost recovery, FBWT, AP/AR, ULO, suspense, notes, and audit assertions.' }
+];
+
+const famisNodes = [
+  {
+    id: 'famis-gf-funding-source',
+    layer: 'source',
+    title: 'FAMIS-GF Funding Inputs',
+    subtitle: 'Appropriation, allotment, LOA, authority',
+    icon: 'GF',
+    tags: ['general fund', 'funding', 'budget', 'loa'],
+    summary: 'Represents general fund budget authority, allotments, allocations, fiscal-year controls, fund cites, and execution authority recorded or controlled through FAMIS-GF.',
+    examples: ['Budget authority', 'Allotment', 'Fund cite', 'Status-of-funds update'],
+    auditQuestions: ['Is authority valid and available?', 'Are LOA elements complete?', 'Does execution stay within purpose, time, and amount controls?'],
+    keyFields: ['TAS', 'fund', 'fiscal year', 'appropriation', 'organization', 'object class', 'amount'],
+    risks: ['Invalid fund cite', 'Overexecution', 'Budget authority not tied to source support']
+  },
+  {
+    id: 'famis-wcf-operations-source',
+    layer: 'source',
+    title: 'FAMIS-WCF Operating Inputs',
+    subtitle: 'Customer orders, inventory, cost, revenue, rates',
+    icon: 'WCF',
+    tags: ['working capital fund', 'customer order', 'inventory', 'cost recovery'],
+    summary: 'Represents WCF customer demand, reimbursable or buyer/seller activity, inventory or service delivery, rate/cost drivers, billings, collections, and operating results.',
+    examples: ['Customer order', 'Inventory issue', 'Service order', 'Billing event', 'Collection'],
+    auditQuestions: ['Is the customer order valid?', 'Can billings trace to performance or delivery?', 'Are rates/costs supported?'],
+    keyFields: ['customer order', 'customer DoDAAC', 'trading partner', 'cost object', 'billing document', 'collection', 'amount'],
+    risks: ['Unsupported billing', 'Cost misallocation', 'Unreconciled collection']
+  },
+  {
+    id: 'famis-p2p-source',
+    layer: 'source',
+    title: 'Procure-to-Pay Sources',
+    subtitle: 'Awards, receipts, invoices, acceptance, payments',
+    icon: 'P2P',
+    tags: ['procurement', 'invoice', 'receipt', 'payment'],
+    summary: 'Captures contract, purchase order, receipt, acceptance, invoice, payment, accrual, and liquidation activity affecting GF or WCF balances.',
+    examples: ['Purchase order', 'Receipt', 'Invoice', 'Payment', 'Liquidation'],
+    auditQuestions: ['Do PO, receipt, invoice, and payment agree?', 'Are unmatched items reviewed?', 'Are accruals complete at cutoff?'],
+    keyFields: ['PIID', 'CLIN', 'PO', 'receipt', 'invoice', 'voucher', 'amount'],
+    risks: ['Improper payment', 'Unrecorded accrual', 'Obligation not liquidated']
+  },
+  {
+    id: 'famis-payroll-travel-source',
+    layer: 'source',
+    title: 'Payroll / Labor / Travel',
+    subtitle: 'Labor, benefits, DTS, entitlement activity',
+    icon: 'PAY',
+    tags: ['payroll', 'labor', 'travel', 'dts'],
+    summary: 'Represents payroll, labor distribution, benefits, travel authorization/voucher, entitlement, and accrual activity that posts to GF or WCF accounting.',
+    examples: ['Civilian payroll', 'Labor distribution', 'Travel voucher', 'Accrual'],
+    auditQuestions: ['Do costs trace to approved source populations?', 'Are labor costs assigned correctly?', 'Are stale travel obligations cleared?'],
+    keyFields: ['employee/traveler ID', 'pay period', 'authorization/voucher', 'LOA', 'cost object', 'amount'],
+    risks: ['Unsupported labor cost', 'Misallocated WCF labor', 'Travel obligation not cleared']
+  },
+  {
+    id: 'famis-treasury-igt-source',
+    layer: 'source',
+    title: 'Treasury / Disbursing / IGT',
+    subtitle: 'Payments, collections, IPAC, G-Invoicing, GTAS',
+    icon: 'TRS',
+    tags: ['treasury', 'disbursing', 'ipac', 'gtas'],
+    summary: 'Provides disbursement, collection, IPAC/G-Invoicing, trading partner, TAS/BETC, Treasury, and GTAS-related data that must reconcile to FAMIS accounting.',
+    examples: ['Disbursement', 'Collection', 'IPAC settlement', 'GTAS support'],
+    auditQuestions: ['Do payments and collections tie to accounting records?', 'Are trading partner attributes complete?', 'Does FBWT reconcile?'],
+    keyFields: ['TAS', 'BETC', 'voucher', 'trading partner', 'IPAC', 'collection', 'amount'],
+    risks: ['FBWT mismatch', 'Trading partner mismatch', 'Unmatched payment or collection']
+  },
+  {
+    id: 'famis-gf-core',
+    layer: 'base',
+    title: 'FAMIS-GF Core Accounting',
+    subtitle: 'General Fund budget execution and accounting',
+    icon: 'GF',
+    tags: ['famis-gf', 'general fund', 'budget execution', 'accounting'],
+    summary: 'Controls general fund commitments, obligations, expenditures, expenses, outlays, deobligations, status of funds, GL posting, and close activity.',
+    examples: ['Commitment', 'Obligation', 'Expenditure', 'Deobligation', 'Status of funds'],
+    auditQuestions: ['Are budgetary balances complete and valid?', 'Do open obligations remain supportable?', 'Do GF postings trace to source detail?'],
+    keyFields: ['fund cite', 'document number', 'USSGL/crosswalk', 'commitment', 'obligation', 'expenditure', 'period'],
+    risks: ['Unsupported ULO', 'Misclassified obligation', 'GF trial balance mismatch']
+  },
+  {
+    id: 'famis-wcf-core',
+    layer: 'base',
+    title: 'FAMIS-WCF Core Accounting',
+    subtitle: 'Working Capital Fund cost, billing, inventory, revenue',
+    icon: 'WCF',
+    tags: ['famis-wcf', 'working capital fund', 'cost recovery', 'billing'],
+    summary: 'Controls WCF customer orders, costs, rates, inventory/service delivery, billings, collections, AP, AR, revenue, expenses, operating results, and close activity.',
+    examples: ['Customer order', 'Billing', 'Collection', 'Cost allocation', 'Operating result'],
+    auditQuestions: ['Do costs and billings trace to valid customer activity?', 'Are AR and collections reconciled?', 'Is inventory or service delivery support retained?'],
+    keyFields: ['customer order', 'cost object', 'rate', 'billing document', 'collection', 'AR', 'period'],
+    risks: ['Unsupported revenue', 'Cost recovery error', 'AR aging weakness']
+  },
+  {
+    id: 'famis-ap-ar-gl',
+    layer: 'base',
+    title: 'AP / AR / GL Processing',
+    subtitle: 'Payables, receivables, expenses, revenue, close',
+    icon: 'GL',
+    tags: ['ap', 'ar', 'gl', 'close'],
+    summary: 'Records vendor liabilities, customer receivables, expenses, revenue, collections, disbursements, journals, accruals, reversals, and close activity.',
+    examples: ['AP invoice', 'AR billing', 'Expense posting', 'Revenue posting', 'GL journal'],
+    auditQuestions: ['Do AP/AR subledgers reconcile to GL?', 'Are journals supported and approved?', 'Are accruals and reversals complete?'],
+    keyFields: ['accounting document', 'vendor/customer', 'USSGL/crosswalk', 'amount', 'posting date', 'period'],
+    risks: ['Unreconciled AP/AR', 'Unsupported journal', 'Cutoff error']
+  },
+  {
+    id: 'famis-suspense-jv',
+    layer: 'base',
+    title: 'Suspense / Reject / JV Processing',
+    subtitle: 'Manual corrections, unmatched items, close adjustments',
+    icon: 'JV',
+    tags: ['suspense', 'reject', 'journal voucher', 'manual adjustment'],
+    summary: 'Tracks rejected records, unmatched payments or collections, suspense, manual adjustments, accruals, reclasses, reversals, approvals, and clearing status.',
+    examples: ['Reject correction', 'Suspense clearing', 'Accrual JV', 'Reversal', 'Reclass'],
+    auditQuestions: ['Are suspense items aged and owned?', 'Does every JV have source support?', 'Are reversals tracked?'],
+    keyFields: ['reject code', 'suspense account', 'JV number', 'source document', 'approver', 'amount', 'clearing date'],
+    risks: ['Aged suspense', 'Unsupported manual adjustment', 'Missing reversal']
+  },
+  {
+    id: 'famis-fund-cite-detail',
+    layer: 'detail',
+    title: 'Fund Cite / LOA Detail',
+    subtitle: 'TAS, fund, fiscal year, org, object class, program',
+    icon: 'LOA',
+    tags: ['fund cite', 'loa', 'tas', 'classification'],
+    summary: 'Preserves the budget and accounting classification attributes needed for GF execution, WCF operations, reporting crosswalks, and audit sampling.',
+    examples: ['LOA', 'TAS', 'Object class', 'Organization', 'Program/cost code'],
+    auditQuestions: ['Are classification elements complete and valid?', 'Are changes approved?', 'Does the LOA map to the right reporting attributes?'],
+    keyFields: ['TAS', 'fund', 'fiscal year', 'organization', 'object class', 'program', 'cost code'],
+    risks: ['Misclassification', 'Invalid LOA', 'Reporting crosswalk error']
+  },
+  {
+    id: 'famis-obligation-detail',
+    layer: 'detail',
+    title: 'Obligation / Expenditure Detail',
+    subtitle: 'Commitment, obligation, invoice, payment, liquidation',
+    icon: 'OBL',
+    tags: ['obligation', 'expenditure', 'ulo', 'payment'],
+    summary: 'Maintains GF or WCF obligation, expenditure, payment, liquidation, deobligation, and ULO history at document level.',
+    examples: ['Commitment', 'Obligation', 'Invoice', 'Payment', 'Deobligation'],
+    auditQuestions: ['Are open obligations valid?', 'Do payments liquidate the right obligation?', 'Are deobligations timely and approved?'],
+    keyFields: ['document number', 'PIID', 'fund cite', 'obligated amount', 'liquidated amount', 'open balance', 'age'],
+    risks: ['Unsupported ULO', 'Incorrect liquidation', 'Stale obligation']
+  },
+  {
+    id: 'famis-customer-order-detail',
+    layer: 'detail',
+    title: 'WCF Customer Order / Billing Detail',
+    subtitle: 'Order, performance, rate, billing, collection, AR',
+    icon: 'BIL',
+    tags: ['wcf', 'customer order', 'billing', 'ar'],
+    summary: 'Captures WCF customer order authority, performance or delivery, rates, billing, receivable, collection, and trading partner detail.',
+    examples: ['Customer order', 'Billing document', 'AR balance', 'Collection', 'Trading partner tie-out'],
+    auditQuestions: ['Can billings trace to performance?', 'Are collections applied to correct orders?', 'Are AR balances aged and supportable?'],
+    keyFields: ['customer order', 'customer', 'trading partner', 'rate', 'billing document', 'collection', 'AR balance'],
+    risks: ['Unsupported billing', 'Collection misapplied', 'AR aging not resolved']
+  },
+  {
+    id: 'famis-cost-inventory-detail',
+    layer: 'detail',
+    title: 'WCF Cost / Inventory Detail',
+    subtitle: 'Cost object, labor, material, inventory, operating result',
+    icon: 'CST',
+    tags: ['wcf', 'cost', 'inventory', 'operating result'],
+    summary: 'Preserves WCF labor, material, overhead, inventory, cost object, rate, and operating-result detail used for cost recovery and statement support.',
+    examples: ['Labor cost', 'Material cost', 'Inventory movement', 'Overhead', 'Rate support'],
+    auditQuestions: ['Are costs assigned to the right activity?', 'Can inventory value be recalculated?', 'Are rates and operating results supported?'],
+    keyFields: ['cost object', 'material', 'labor hours', 'inventory item', 'rate', 'cost element', 'amount'],
+    risks: ['Cost misallocation', 'Inventory valuation error', 'Unsupported rate']
+  },
+  {
+    id: 'famis-jv-suspense-detail',
+    layer: 'detail',
+    title: 'JV / Suspense Detail',
+    subtitle: 'Root cause, support, approval, clearing, reversal',
+    icon: 'JV',
+    tags: ['jv', 'suspense', 'reject', 'reversal'],
+    summary: 'Documents suspense, rejects, manual adjustments, root cause, evidence, approval trail, posting impact, clearing, and reversal status.',
+    examples: ['Suspense item', 'Correction JV', 'Accrual', 'Reversal', 'Clearing entry'],
+    auditQuestions: ['Does every manual entry have source support?', 'Are suspense clearings tied to root cause?', 'Are reversals completed?'],
+    keyFields: ['JV number', 'suspense account', 'reject code', 'source document', 'approver', 'amount', 'reversal flag'],
+    risks: ['Unsupported adjustment', 'Aged suspense', 'Manual entry masks feeder defect']
+  },
+  {
+    id: 'famis-budgetary-gl',
+    layer: 'accounting',
+    title: 'Budgetary Accounting',
+    subtitle: 'Authority, obligations, expenditures, outlays',
+    icon: 'SBR',
+    tags: ['budgetary', 'sbr', 'ussgl', 'outlay'],
+    summary: 'Classifies GF and applicable WCF budgetary activity for authority, commitments, obligations, delivered orders, expenditures, outlays, recoveries, and ULOs.',
+    examples: ['Budget authority', 'Commitment', 'Obligation', 'Delivered order', 'Outlay'],
+    auditQuestions: ['Do budgetary balances tie to supported detail?', 'Are ULOs valid?', 'Do outlays tie to disbursing/Treasury evidence?'],
+    keyFields: ['TAS', 'fund', 'USSGL/crosswalk', 'document', 'amount', 'period'],
+    risks: ['SBR misstatement', 'Unsupported ULO', 'Outlay cutoff error']
+  },
+  {
+    id: 'famis-wcf-costing',
+    layer: 'accounting',
+    title: 'WCF Costing / Revenue / Inventory',
+    subtitle: 'Rates, costs, inventory, AR, revenue, operating result',
+    icon: 'WCF',
+    tags: ['wcf', 'cost recovery', 'revenue', 'inventory'],
+    summary: 'Controls WCF cost accumulation, inventory valuation, rates, customer billing, AR, revenue recognition, collections, operating results, and cost recovery.',
+    examples: ['Rate support', 'Inventory value', 'Customer billing', 'Revenue', 'Operating result'],
+    auditQuestions: ['Can costs and revenue be traced to customer activity?', 'Are rates supported?', 'Do inventory and AR reconcile?'],
+    keyFields: ['cost object', 'rate', 'inventory value', 'billing document', 'AR', 'revenue', 'period'],
+    risks: ['Revenue unsupported', 'Inventory valuation error', 'Cost recovery misstated']
+  },
+  {
+    id: 'famis-proprietary-gl',
+    layer: 'accounting',
+    title: 'Proprietary Accounting',
+    subtitle: 'Expense, AP, AR, assets, inventory, FBWT',
+    icon: 'GL',
+    tags: ['proprietary', 'expense', 'ap', 'ar', 'fbwt'],
+    summary: 'Records proprietary impacts for expense, AP, AR, revenue, assets, inventory, FBWT, collections, and other balances needed for statement support.',
+    examples: ['Expense', 'AP accrual', 'AR billing', 'Inventory asset', 'FBWT tie-out'],
+    auditQuestions: ['Do proprietary balances reconcile to subledger/source detail?', 'Are AP/AR aged and supportable?', 'Does FBWT reconcile?'],
+    keyFields: ['USSGL/crosswalk', 'document', 'vendor/customer', 'TAS', 'amount', 'period'],
+    risks: ['Budgetary/proprietary mismatch', 'AP/AR weakness', 'FBWT reconciliation break']
+  },
+  {
+    id: 'famis-reconciliation',
+    layer: 'accounting',
+    title: 'Reconciliation and Treasury Control',
+    subtitle: 'Trial balance, reject, suspense, GTAS, IPAC, FBWT',
+    icon: 'REC',
+    tags: ['reconciliation', 'treasury', 'gtas', 'fbwt'],
+    summary: 'Controls trial-balance tie-outs, interface rejects, suspense, Treasury/IPAC, trading partner, GTAS, FBWT, and source-to-reporting reconciliation.',
+    examples: ['Trial balance tie-out', 'Reject report', 'FBWT reconciliation', 'GTAS tie-out', 'IPAC reconciliation'],
+    auditQuestions: ['Do control totals reconcile?', 'Are rejects and suspense cleared?', 'Are Treasury differences researched and resolved?'],
+    keyFields: ['reconciliation ID', 'batch', 'TAS', 'BETC', 'trading partner', 'amount', 'difference'],
+    risks: ['Unresolved difference', 'Trading partner mismatch', 'Reject not cleared']
+  },
+  {
+    id: 'famis-execution-reporting',
+    layer: 'reporting',
+    title: 'GF/WCF Execution Reporting',
+    subtitle: 'Status of funds, WCF operations, ULO, AP/AR aging',
+    icon: 'RPT',
+    tags: ['reporting', 'status of funds', 'wcf', 'ulo'],
+    summary: 'Provides status-of-funds, ULO, WCF operating, customer order, billing, AP/AR aging, suspense, and management reports.',
+    examples: ['Status of funds', 'ULO report', 'WCF operating report', 'AR aging', 'Suspense aging'],
+    auditQuestions: ['Do reports tie to controlled populations?', 'Are as-of dates documented?', 'Are exceptions assigned and resolved?'],
+    keyFields: ['report ID', 'as-of date', 'fund', 'customer/order', 'document', 'status', 'amount'],
+    risks: ['Report not reproducible', 'Unowned exception', 'Management report not tied to GL/detail']
+  },
+  {
+    id: 'famis-ddrs-gtas',
+    layer: 'reporting',
+    title: 'Trial Balance / DDRS / GTAS',
+    subtitle: 'External reporting, Treasury, USSGL/TAS support',
+    icon: 'GTAS',
+    tags: ['trial balance', 'ddrs', 'gtas', 'treasury'],
+    summary: 'Supports trial balance, DDRS, GTAS, TAS/USSGL crosswalks, Treasury reporting, statement-line mapping, and audit schedules.',
+    examples: ['Trial balance', 'DDRS feed', 'GTAS support', 'Treasury tie-out', 'Statement schedule'],
+    auditQuestions: ['Do trial balances reconcile to source detail?', 'Are TAS/USSGL attributes complete?', 'Are crosswalks approved and current?'],
+    keyFields: ['TAS', 'USSGL', 'fund', 'period', 'amount', 'statement line', 'trading partner'],
+    risks: ['Crosswalk error', 'Unsupported reporting amount', 'TAS/USSGL mismatch']
+  },
+  {
+    id: 'famis-audit-package',
+    layer: 'reporting',
+    title: 'Audit Package / UoT Extract',
+    subtitle: 'Samples, schedules, evidence, reconciliation',
+    icon: 'AUD',
+    tags: ['audit', 'uott', 'evidence', 'reconciliation'],
+    summary: 'Assembles source documents, transaction populations, approvals, JVs, suspense research, reconciliations, trial balances, and statement schedules for audit support.',
+    examples: ['UoT extract', 'Sample package', 'Reconciliation', 'Statement schedule', 'Approval evidence'],
+    auditQuestions: ['Can samples trace from statement to source?', 'Is the UoT complete?', 'Are schedules tied to controlled populations?'],
+    keyFields: ['sample ID', 'source document', 'accounting document', 'report line', 'evidence link', 'reconciliation ID'],
+    risks: ['Incomplete UoT', 'Evidence unavailable', 'Schedule not tied to source']
+  },
+  {
+    id: 'famis-sbr',
+    layer: 'statements',
+    title: 'General Fund SBR',
+    subtitle: 'Budgetary resources, obligations, expenditures, outlays',
+    icon: 'SBR',
+    tags: ['sbr', 'general fund', 'budgetary', 'ulo'],
+    summary: 'Supports GF Statement of Budgetary Resources assertions for authority, obligations, delivered orders, expenditures, outlays, recoveries, and ULOs.',
+    examples: ['Obligation support', 'ULO aging', 'Outlay support', 'Deobligation'],
+    auditQuestions: ['Are budgetary amounts complete and valid?', 'Are ULOs supported?', 'Do outlays tie to Treasury/disbursing evidence?'],
+    keyFields: ['TAS', 'fund', 'USSGL/crosswalk', 'document', 'obligation amount', 'outlay amount'],
+    risks: ['Unsupported ULO', 'Outlay mismatch', 'Budgetary classification error']
+  },
+  {
+    id: 'famis-wcf-statements',
+    layer: 'statements',
+    title: 'WCF Inventory / Revenue / Net Cost',
+    subtitle: 'Cost recovery, inventory, AR, revenue, operating results',
+    icon: 'WCF',
+    tags: ['wcf', 'inventory', 'revenue', 'net cost'],
+    summary: 'Supports WCF statement assertions for inventory, revenue, cost recovery, customer AR, expenses, operating results, and net cost.',
+    examples: ['Inventory value', 'Revenue support', 'Cost recovery schedule', 'AR aging', 'Net cost schedule'],
+    auditQuestions: ['Can revenue and costs trace to customer activity?', 'Are inventory and AR supportable?', 'Are operating results reconciled?'],
+    keyFields: ['customer order', 'inventory value', 'billing document', 'AR', 'revenue', 'cost', 'period'],
+    risks: ['Unsupported revenue', 'Inventory valuation weakness', 'AR not collectible/supportable']
+  },
+  {
+    id: 'famis-notes',
+    layer: 'statements',
+    title: 'Notes / FBWT / AP-AR / Suspense',
+    subtitle: 'Disclosure and audit-sensitive balances',
+    icon: 'NTE',
+    tags: ['notes', 'fbwt', 'ap', 'ar', 'suspense'],
+    summary: 'Supports note schedules and audit assertions for FBWT, AP, AR, inventory, WCF operating results, ULOs, suspense, and trading partner activity.',
+    examples: ['FBWT note', 'AP/AR aging', 'Suspense schedule', 'Trading partner schedule', 'Inventory note'],
+    auditQuestions: ['Are note schedules tied to controlled populations?', 'Are suspense and AP/AR aged and owned?', 'Do Treasury and trading partner balances reconcile?'],
+    keyFields: ['schedule ID', 'TAS', 'trading partner', 'suspense account', 'AP/AR', 'amount', 'owner'],
+    risks: ['Unsupported note schedule', 'Aged suspense', 'FBWT/trading partner mismatch']
+  }
+];
+
+const famisLineageScenarios = [
+  {
+    id: 'famis-gf-budget-to-sbr',
+    short: 'FAMIS-GF',
+    title: 'FAMIS-GF Funding to Obligation and SBR',
+    description: 'Traces general fund authority through budget execution, obligation detail, budgetary accounting, trial balance, and SBR support.',
+    path: ['famis-gf-funding-source', 'famis-gf-core', 'famis-fund-cite-detail', 'famis-obligation-detail', 'famis-budgetary-gl', 'famis-sbr'],
+    steps: [
+      'General fund authority, allotment, and LOA data establish available resources.',
+      'FAMIS-GF records commitments, obligations, expenditures, outlays, and status-of-funds updates.',
+      'Fund cite and obligation detail preserve the transaction population and open-balance history.',
+      'Budgetary accounting classifies authority, obligations, delivered orders, expenditures, and outlays.',
+      'SBR support traces reported budgetary resources and ULO balances back to source detail.'
+    ],
+    exceptionTests: ['invalid LOA', 'obligation exceeds authority', 'stale ULO', 'outlay not tied to disbursing', 'SBR amount lacks detail']
+  },
+  {
+    id: 'famis-wcf-cost-recovery',
+    short: 'FAMIS-WCF',
+    title: 'FAMIS-WCF Customer Order to Cost Recovery and Statements',
+    description: 'Shows WCF customer order, cost, inventory, billing, collection, AR/revenue, and net cost or WCF statement support.',
+    path: ['famis-wcf-operations-source', 'famis-wcf-core', 'famis-customer-order-detail', 'famis-cost-inventory-detail', 'famis-wcf-costing', 'famis-wcf-statements'],
+    steps: [
+      'A WCF customer order or operating requirement establishes reimbursable or buyer/seller authority.',
+      'FAMIS-WCF tracks costs, inventory or service delivery, billing, AR, collections, and operating results.',
+      'Customer order and cost detail preserve delivery, rate, billing, and collection support.',
+      'WCF costing/revenue controls reconcile rates, cost recovery, inventory, AR, and revenue.',
+      'Statement support ties WCF inventory, revenue, net cost, and operating results to source detail.'
+    ],
+    exceptionTests: ['customer order lacks authority', 'billing not tied to performance', 'unsupported rate', 'AR not collected or aged', 'inventory valuation mismatch']
+  },
+  {
+    id: 'famis-procure-to-pay',
+    short: 'procure to pay',
+    title: 'Procure-to-Pay to AP, GL, and Reporting',
+    description: 'Connects awards, receipts, invoices, payments, AP/accruals, liquidation, GL, and DDRS/GTAS support.',
+    path: ['famis-p2p-source', 'famis-ap-ar-gl', 'famis-obligation-detail', 'famis-proprietary-gl', 'famis-ddrs-gtas', 'famis-notes'],
+    steps: [
+      'A procurement need becomes an award, receipt, acceptance, invoice, and payment support trail.',
+      'FAMIS AP/AR/GL processing records invoice, accrual, liquidation, payment, expense, and GL effects.',
+      'Obligation/expenditure detail ties payment activity to source obligations and liquidation history.',
+      'Proprietary accounting supports AP, expense, FBWT, and related balances.',
+      'DDRS/GTAS and note schedules reconcile reported balances to source transactions.'
+    ],
+    exceptionTests: ['invoice without receipt', 'duplicate payment', 'unrecorded accrual', 'obligation not liquidated', 'AP schedule not tied to detail']
+  },
+  {
+    id: 'famis-suspense-close',
+    short: 'close',
+    title: 'Suspense, JV, and Treasury Close to Audit Package',
+    description: 'Traces rejected or unmatched activity through suspense/JV controls, Treasury reconciliation, reporting, and audit evidence.',
+    path: ['famis-treasury-igt-source', 'famis-suspense-jv', 'famis-jv-suspense-detail', 'famis-reconciliation', 'famis-audit-package', 'famis-notes'],
+    steps: [
+      'A Treasury, disbursing, IGT, interface, or close exception creates a reject, suspense item, or proposed JV.',
+      'FAMIS suspense/JV processing tracks root cause, owner, support, approval, posting, clearing, and reversal status.',
+      'JV/suspense detail preserves evidence for manual entries and exception clearing.',
+      'Reconciliations tie trial balance, FBWT, IPAC, GTAS, and source detail together.',
+      'Audit and note packages preserve the exception, correction, and reporting impact.'
+    ],
+    exceptionTests: ['aged suspense', 'JV lacks source support', 'FBWT difference unresolved', 'trading partner mismatch', 'manual entry masks feeder defect']
+  }
+];
+
+const famisSupportServices = [
+  { title: 'FAMIS-GF Controls', detail: 'Budget authority, LOA validation, availability, commitments, obligations, deobligations, ULO review, expenditures, outlays, and SBR support.' },
+  { title: 'FAMIS-WCF Controls', detail: 'Customer orders, rates, inventory/service delivery, cost allocation, billing, AR, revenue, collections, operating results, and WCF statement support.' },
+  { title: 'AP / AR / GL Close', detail: 'Invoice, receipt, acceptance, AP, AR, expense, revenue, accrual, reversal, GL journal, close package, and subledger reconciliation controls.' },
+  { title: 'Treasury and IGT Reconciliation', detail: 'FBWT, TAS/BETC, IPAC, G-Invoicing, trading partner, disbursing, collections, GTAS, and Treasury difference research.' },
+  { title: 'Suspense and JV Governance', detail: 'Reject queues, unmatched items, suspense aging, manual adjustment support, approvals, reversals, clearing evidence, and root-cause tracking.' },
+  { title: 'Audit Evidence', detail: 'Universe of Transactions extracts, source documents, customer orders, invoices, payments, billing, collections, reconciliations, trial balances, and statement schedules.' }
+];
+
+const famisCaveats = [
+  'Public FAMIS-GF and FAMIS-WCF technical documentation is limited. This blueprint models FAMIS as a legacy/core accounting and reporting family and does not claim SAP, Oracle, or a specific platform.',
+  'Exact FAMIS variants, owners, interfaces, file layouts, hosting, retirement or modernization status, and system-of-record boundaries require authoritative agency, DFAS, or DoD documentation.',
+  'The page intentionally separates FAMIS-GF and FAMIS-WCF because general fund budget execution and working capital fund cost recovery have different audit risks and statement assertions.',
+  'Feeder counts are modeled source/partner categories represented in this blueprint, not a certified production interface inventory.'
+];
+
+const famisSources = [
+  { name: 'DoD Financial Management Regulation', url: 'https://comptroller.defense.gov/FMR/' },
+  { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+  { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
+  { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' },
+  { name: 'Procurement Integrated Enterprise Environment', url: 'https://piee.eb.mil/' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -4983,6 +5394,39 @@ export const systems = [
     supportServices: sabrsSupportServices,
     caveats: sabrsCaveats,
     sources: sabrsSources
+  },
+  {
+    slug: 'famis',
+    shortName: 'FAMIS',
+    name: 'FAMIS Family',
+    longName: 'FAMIS / Financial Accounting Management Information System Blueprint',
+    agency: 'Legacy DoD',
+    eyebrow: 'FAMIS-GF and FAMIS-WCF blueprint for legacy accounting and reporting',
+    description: 'Explore FAMIS as a legacy/core accounting family with FAMIS-GF for general fund budget execution and FAMIS-WCF for working capital fund cost recovery, customer orders, AP/AR/GL, Treasury reconciliation, DDRS/GTAS reporting, and source-to-statement audit support.',
+    metric: '4',
+    metricLabel: 'Core FAMIS lineage scenarios',
+    metricDetail: 'GF / WCF -> GL -> GTAS -> Statement',
+    referenceImage: '/famis-blueprint-reference.svg',
+    referenceTitle: 'FAMIS-GF and FAMIS-WCF static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/famis-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'FAMIS is modeled as the Financial Accounting Management Information System family, with FAMIS-GF for general fund accounting and FAMIS-WCF for working capital fund accounting, cost recovery, billing, and reporting support.',
+      whoUsesIt: 'Legacy accounting users, budget execution users, WCF business offices, resource managers, AP/AR and close teams, DFAS or shared-service partners, Treasury/reporting teams, and auditors may rely on FAMIS data or outputs.',
+      howItIsUsed: 'It supports fund cite validation, commitments, obligations, expenditures, AP, AR, GL, WCF customer orders, billing, collections, cost recovery, inventory/cost support, suspense, JVs, trial balance, DDRS/GTAS, and statement schedules.',
+      currentStatus: 'Modeled as a legacy/core accounting family. Public FAMIS-GF/WCF technical documentation is thin, so exact platform, interface inventory, owners, and modernization or archival status require authoritative documentation.',
+      whyItIsUsed: 'It preserves budget-to-reporting lineage for general fund execution and working-capital operations, helping users reconcile source transactions, GL balances, Treasury reporting, and audit evidence.',
+      feederCount: 7,
+      feederSystems: ['GF Funding / LOA Inputs', 'WCF Customer Orders / Operations', 'Procure-to-Pay Sources', 'Payroll / Labor / Travel', 'Treasury / Disbursing / IPAC', 'Inventory / Cost Sources', 'Manual JV / Suspense Inputs'],
+      feederNote: 'The blueprint models 7 FAMIS source/partner categories; authoritative interface counts require agency/DFAS records.'
+    },
+    layers: famisLayers,
+    nodes: famisNodes,
+    lineageScenarios: famisLineageScenarios,
+    supportServices: famisSupportServices,
+    caveats: famisCaveats,
+    sources: famisSources
   },
   {
     slug: 'navy-erp',
