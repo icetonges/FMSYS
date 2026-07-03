@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { systems } from '../data/systems';
+import TopNav from './TopNav';
 
 const defaultSystem = systems[0];
 
@@ -208,22 +209,7 @@ export default function Blueprint({ system = defaultSystem }) {
 
   return (
     <main>
-      <nav className="system-tabs" aria-label="DoD financial management systems">
-        <Link href="/" className="suite-link">DoD FM Systems</Link>
-        <div className="system-tab-list">
-          {systems.map((item) => (
-            <Link
-              key={item.slug}
-              className={classNames('system-tab', item.slug === system.slug && 'active')}
-              href={`/systems/${item.slug}`}
-              aria-current={item.slug === system.slug ? 'page' : undefined}
-            >
-              <span>{item.shortName}</span>
-              <small>{item.agency}</small>
-            </Link>
-          ))}
-        </div>
-      </nav>
+      <TopNav activeSlug={system.slug} />
 
       <section className="hero" style={{ '--hero-image': `url(${system.referenceImage})` }}>
         <div className="hero-copy">

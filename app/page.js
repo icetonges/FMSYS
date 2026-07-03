@@ -1,20 +1,12 @@
 import Link from 'next/link';
 import { systems } from '../data/systems';
+import { paperSections, paperMeta } from '../data/paper';
+import TopNav from '../components/TopNav';
 
 export default function Page() {
   return (
     <main>
-      <nav className="system-tabs" aria-label="DoD financial management systems">
-        <Link href="/" className="suite-link">DoD FM Systems</Link>
-        <div className="system-tab-list">
-          {systems.map((system) => (
-            <Link key={system.slug} className="system-tab" href={`/systems/${system.slug}`}>
-              <span>{system.shortName}</span>
-              <small>{system.agency}</small>
-            </Link>
-          ))}
-        </div>
-      </nav>
+      <TopNav />
 
       <section className="hero suite-hero">
         <div className="hero-copy">
@@ -66,6 +58,29 @@ export default function Page() {
               <h3>{system.name}</h3>
               <p>{system.description}</p>
               <strong>Open blueprint</strong>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="system-directory" id="research-paper">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Research paper appendix</p>
+            <h2>{paperMeta.title}</h2>
+            <p>{paperMeta.subtitle}</p>
+          </div>
+        </div>
+        <div className="hero-actions" style={{ marginBottom: 16 }}>
+          <Link href="/appendix" className="primary-action">Open the full appendix</Link>
+        </div>
+        <div className="directory-grid">
+          {paperSections.map((section) => (
+            <Link className="directory-card" href={`/appendix/${section.slug}`} key={section.slug}>
+              <span>{section.eyebrow}</span>
+              <h3>{section.navTitle}</h3>
+              <p>{section.blurb}</p>
+              <strong>Read section</strong>
             </Link>
           ))}
         </div>
