@@ -6,10 +6,11 @@ export function generateStaticParams() {
   return getSystemSlugs().map((slug) => ({ slug }));
 }
 
-export function generateMetadata({ params }) {
-  const system = getSystem(params.slug);
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const system = getSystem(slug);
 
-  if (system.slug !== params.slug) {
+  if (system.slug !== slug) {
     return {};
   }
 
@@ -19,10 +20,11 @@ export function generateMetadata({ params }) {
   };
 }
 
-export default function SystemPage({ params }) {
-  const system = getSystem(params.slug);
+export default async function SystemPage({ params }) {
+  const { slug } = await params;
+  const system = getSystem(slug);
 
-  if (system.slug !== params.slug) {
+  if (system.slug !== slug) {
     notFound();
   }
 
