@@ -3525,6 +3525,431 @@ const gcssSources = [
   { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
 ];
 
+const lmpLayers = [
+  { id: 'source', label: 'Source / Sustainment / Partner Events', short: 'Source', description: 'AMC, depot, DLA, vendor, GCSS-Army, distribution, and finance partner events that feed national logistics and working-capital operations.' },
+  { id: 'core', label: 'LMP Core Logistics and ERP Capabilities', short: 'LMP', description: 'SAP-based national logistics capabilities for wholesale supply, depot maintenance, procurement, inventory, financials, and Army Working Capital Fund support.' },
+  { id: 'detail', label: 'Detailed Logistics and Financial Objects', short: 'Detail', description: 'Material, order, work-order, PO, invoice, inventory movement, and customer-billing detail that supports UoT reconstruction.' },
+  { id: 'accounting', label: 'Accounting, Costing, and Finance Interfaces', short: 'Finance', description: 'AWCF costing, AP, AR, GL, inventory valuation, GFEBS interface, reconciliation, and financial control activity.' },
+  { id: 'reporting', label: 'Operational and Financial Reporting', short: 'Reporting', description: 'Depot, supply, inventory, trial balance, DDRS, GTAS, customer billing, and audit-support reporting.' },
+  { id: 'statements', label: 'Army / DoD Financial Statements', short: 'Statements', description: 'SBR, inventory and OM&S, net cost, working-capital, and disclosure assertions supported by LMP lineage.' }
+];
+
+const lmpNodes = [
+  {
+    id: 'lmp-amc-depot-source',
+    layer: 'source',
+    title: 'AMC / Depot / Arsenal Events',
+    subtitle: 'National maintenance and sustainment demand',
+    icon: 'AMC',
+    tags: ['amc', 'depot', 'maintenance', 'sustainment'],
+    summary: 'Originates depot maintenance, overhaul, repair, recapitalization, production, and sustainment events that require work-order, parts, labor, cost, and billing traceability.',
+    examples: ['Depot repair induction', 'Overhaul order', 'Production support', 'Parts demand'],
+    auditQuestions: ['Does each depot order have mission/customer authority?', 'Are parts and labor tied to the repair event?', 'Are costs accumulated against the right program or customer?'],
+    keyFields: ['work order', 'customer order', 'UIC/DoDAAC', 'equipment/serial', 'NSN/material', 'fund cite', 'cost object'],
+    risks: ['Depot cost not tied to source order', 'Unsupported customer billing', 'Repair status not aligned with financial recognition']
+  },
+  {
+    id: 'lmp-dla-dlms-source',
+    layer: 'source',
+    title: 'DLA / DAAS / DLMS / Catalog Sources',
+    subtitle: 'Item, requisition, shipment, and supply-chain exchange',
+    icon: 'DLA',
+    tags: ['dla', 'dlms', 'catalog', 'shipment'],
+    summary: 'Provides national item, requisition, catalog, shipment, status, and distribution exchange data used by LMP wholesale supply and inventory processes.',
+    examples: ['DLMS requisition/status', 'FED LOG item data', 'Shipment status', 'Distribution event'],
+    auditQuestions: ['Do interface counts and amounts reconcile?', 'Are item-price and catalog changes controlled?', 'Are rejected logistics transactions resolved?'],
+    keyFields: ['document number', 'NSN/material', 'routing identifier', 'status code', 'quantity', 'unit price', 'shipment number'],
+    risks: ['Rejected DLMS transaction', 'Catalog/price mismatch', 'Shipment not reflected in inventory or billing']
+  },
+  {
+    id: 'lmp-vendor-contract-source',
+    layer: 'source',
+    title: 'Vendors / Contracting / PIEE-WAWF',
+    subtitle: 'Procurement, receipt, invoice, acceptance',
+    icon: 'P2P',
+    tags: ['procurement', 'vendor', 'invoice', 'receipt'],
+    summary: 'Feeds contract award, purchase order, receipt, acceptance, invoice, and payment-support evidence for LMP procurement and repair-material acquisition.',
+    examples: ['Purchase order', 'Vendor shipment', 'Receiving report', 'Invoice', 'Acceptance'],
+    auditQuestions: ['Does every invoice tie to PO, receipt, and acceptance?', 'Are price, quantity, and vendor identifiers consistent?', 'Are unmatched receipts and invoices aged?'],
+    keyFields: ['PIID', 'CLIN', 'PO number', 'invoice number', 'vendor UEI/CAGE', 'receipt number', 'amount'],
+    risks: ['Improper payment', 'Unmatched receipt/invoice', 'Procurement obligation not tied to source need']
+  },
+  {
+    id: 'lmp-gcss-army-demand',
+    layer: 'source',
+    title: 'GCSS-Army / Tactical Demand Signal',
+    subtitle: 'Field demand and sustainment pull',
+    icon: 'GCSS',
+    tags: ['gcss-army', 'demand', 'tactical', 'sustainment'],
+    summary: 'Represents tactical demand, unit readiness needs, supply requests, and sustainment signals that may drive national inventory, procurement, and depot activity in LMP.',
+    examples: ['Field requisition', 'Readiness-driven demand', 'Backorder signal', 'Repair-part demand'],
+    auditQuestions: ['Can wholesale demand trace to field or program need?', 'Are backorders and substitutions governed?', 'Are demand and fulfillment statuses reconciled?'],
+    keyFields: ['document number', 'DoDAAC', 'UIC', 'NSN/material', 'quantity', 'priority', 'status'],
+    risks: ['Demand not supported by mission need', 'Backorder aging not managed', 'Demand/fulfillment mismatch']
+  },
+  {
+    id: 'lmp-gfebs-finance-source',
+    layer: 'source',
+    title: 'GFEBS / DFAS / Treasury Partners',
+    subtitle: 'General fund, payment, and reporting linkage',
+    icon: 'FIN',
+    tags: ['gfebs', 'dfas', 'treasury', 'finance'],
+    summary: 'Represents financial partners that receive or reconcile LMP-supported obligation, billing, inventory, cost, GL, disbursing, and Treasury-reporting data.',
+    examples: ['GFEBS tie-out', 'DFAS payment support', 'Treasury reporting', 'IPAC settlement'],
+    auditQuestions: ['Do finance postings reconcile to LMP source detail?', 'Are rejects and suspense items cleared?', 'Can statement samples trace back to LMP transactions?'],
+    keyFields: ['TAS', 'USSGL', 'fund cite', 'document number', 'interface batch', 'posting period', 'amount'],
+    risks: ['Unreconciled finance interface', 'Manual journal without source support', 'Treasury/reporting mismatch']
+  },
+  {
+    id: 'lmp-wholesale-supply',
+    layer: 'core',
+    title: 'Wholesale Supply Management',
+    subtitle: 'Demand, sourcing, order fulfillment, backorder control',
+    icon: 'SUP',
+    tags: ['wholesale', 'supply', 'demand', 'fulfillment'],
+    summary: 'Controls national-level demand, sourcing, stock availability, issue, receipt, backorder, distribution, and customer fulfillment support.',
+    examples: ['Demand plan', 'Customer order', 'Supply issue', 'Backorder review'],
+    auditQuestions: ['Are open orders complete and aged?', 'Do fulfillment events tie to inventory movements?', 'Are substitutions and cancellations authorized?'],
+    keyFields: ['customer order', 'sales/order document', 'NSN/material', 'quantity', 'status', 'priority', 'date'],
+    risks: ['Incomplete customer order population', 'Fulfillment not reflected in inventory', 'Backorder not reviewed']
+  },
+  {
+    id: 'lmp-depot-maintenance',
+    layer: 'core',
+    title: 'Depot Maintenance / MRO',
+    subtitle: 'Repair program execution and cost collection',
+    icon: 'MRO',
+    tags: ['depot', 'maintenance', 'mro', 'cost'],
+    summary: 'Manages repair and overhaul work orders, parts, labor, routing, status, completion, and cost collection for depot-level maintenance.',
+    examples: ['Repair work order', 'Parts issue', 'Labor confirmation', 'Completion/closeout'],
+    auditQuestions: ['Are costs assigned to the right work order?', 'Do parts and labor support completion?', 'Are open work orders reviewed for WIP and cutoff?'],
+    keyFields: ['work order', 'routing/task', 'material', 'labor hours', 'cost object', 'completion date', 'status'],
+    risks: ['Incorrect WIP/cost recognition', 'Parts not tied to repair order', 'Closed order lacks support']
+  },
+  {
+    id: 'lmp-procurement',
+    layer: 'core',
+    title: 'Procurement and Vendor Support',
+    subtitle: 'Buy, receive, accept, invoice, pay evidence',
+    icon: 'BUY',
+    tags: ['procurement', 'vendor', 'purchase order', 'ap'],
+    summary: 'Supports purchase requisition/order, sourcing, receipt, acceptance, invoice matching, vendor master, and payment-support data for logistics procurement.',
+    examples: ['Purchase requisition', 'Purchase order', 'Goods receipt', 'Invoice match'],
+    auditQuestions: ['Is procurement tied to valid demand or stock objective?', 'Do PO, receipt, invoice, and payment agree?', 'Are vendor and banking changes controlled?'],
+    keyFields: ['PR/PO number', 'PIID', 'CLIN', 'vendor', 'receipt', 'invoice', 'amount'],
+    risks: ['Unmatched invoice', 'Invalid vendor/payment data', 'Procurement not tied to need']
+  },
+  {
+    id: 'lmp-inventory-management',
+    layer: 'core',
+    title: 'Inventory and Material Management',
+    subtitle: 'Stock, condition, location, price, valuation support',
+    icon: 'INV',
+    tags: ['inventory', 'material', 'valuation', 'stock'],
+    summary: 'Maintains stock balances, item master data, movement history, condition, location, unit price, valuation, and adjustment support.',
+    examples: ['Inventory balance', 'Goods movement', 'Condition change', 'Count adjustment'],
+    auditQuestions: ['Do balances reconcile to movement history and counts?', 'Are condition and price changes authorized?', 'Can inventory value be recalculated?'],
+    keyFields: ['NSN/material', 'plant/storage location', 'condition', 'quantity', 'unit price', 'movement type', 'posting date'],
+    risks: ['Inventory valuation error', 'Unsupported adjustment', 'Quantity/location mismatch']
+  },
+  {
+    id: 'lmp-awcf-financials',
+    layer: 'core',
+    title: 'AWCF Financials',
+    subtitle: 'Working-capital accounting and cost recovery',
+    icon: 'WCF',
+    tags: ['awcf', 'working capital', 'finance', 'billing'],
+    summary: 'Supports Army Working Capital Fund cost accumulation, inventory valuation, customer billing, reimbursable activity, AP, AR, GL, and financial close activity.',
+    examples: ['Customer billing', 'Cost recovery', 'AP posting', 'AR posting', 'GL close'],
+    auditQuestions: ['Are rates and billings supported?', 'Do AP/AR subsidiary balances reconcile to GL?', 'Are WCF costs assigned to the correct business area/customer?'],
+    keyFields: ['customer order', 'cost object', 'billing document', 'USSGL', 'TAS', 'amount', 'period'],
+    risks: ['Improper cost recovery', 'Unreconciled AP/AR', 'Misclassified WCF activity']
+  },
+  {
+    id: 'lmp-material-master',
+    layer: 'detail',
+    title: 'Material / NSN Master',
+    subtitle: 'Item identity, unit, price, source, planning attributes',
+    icon: 'NSN',
+    tags: ['material', 'nsn', 'master data', 'price'],
+    summary: 'Preserves item master data required for procurement, supply, inventory, valuation, planning, issue, repair, and reporting.',
+    examples: ['NSN record', 'Material record', 'Unit of issue', 'Standard price', 'Source of supply'],
+    auditQuestions: ['Are price and planning changes approved?', 'Do item attributes agree to authoritative catalog sources?', 'Are duplicate or obsolete materials controlled?'],
+    keyFields: ['NSN/material', 'description', 'unit of issue', 'standard price', 'source', 'planning code', 'effective date'],
+    risks: ['Incorrect price drives valuation error', 'Duplicate material identity', 'Unauthorized master-data change']
+  },
+  {
+    id: 'lmp-customer-order-detail',
+    layer: 'detail',
+    title: 'Customer Order / Demand Detail',
+    subtitle: 'Line-level demand, fulfillment, and billing basis',
+    icon: 'ORD',
+    tags: ['customer order', 'demand', 'billing', 'uott'],
+    summary: 'Maintains customer demand, order line, quantity, status, fulfillment, funding, and billing-support detail for national supply activity.',
+    examples: ['Customer order line', 'Backorder', 'Fulfillment status', 'Billing reference'],
+    auditQuestions: ['Is the order population complete?', 'Can billing trace to fulfilled demand?', 'Are open and cancelled lines explained?'],
+    keyFields: ['customer order', 'line item', 'customer DoDAAC', 'NSN/material', 'quantity', 'status', 'amount'],
+    risks: ['Unsupported billing', 'Open order not reviewed', 'Demand and fulfillment status mismatch']
+  },
+  {
+    id: 'lmp-work-order-detail',
+    layer: 'detail',
+    title: 'Depot Work Order Detail',
+    subtitle: 'Repair object, parts, labor, WIP, completion',
+    icon: 'WO',
+    tags: ['work order', 'depot', 'wip', 'repair'],
+    summary: 'Captures repair work order structure, operations, parts, labor, WIP, completion status, and closeout evidence.',
+    examples: ['Repair order', 'Operation/routing', 'Parts issue', 'Labor confirmation', 'Closeout'],
+    auditQuestions: ['Do labor and parts support the work performed?', 'Is WIP complete and valued?', 'Are closures and cancellations approved?'],
+    keyFields: ['work order', 'operation', 'equipment/serial', 'parts', 'labor hours', 'WIP value', 'status'],
+    risks: ['WIP misstatement', 'Cost not tied to repair', 'Unsupported work-order close']
+  },
+  {
+    id: 'lmp-po-invoice-detail',
+    layer: 'detail',
+    title: 'PO / Receipt / Invoice Detail',
+    subtitle: 'Procure-to-pay transaction trail',
+    icon: 'P2P',
+    tags: ['po', 'receipt', 'invoice', 'ap'],
+    summary: 'Preserves purchase order, receipt, acceptance, invoice, vendor, and payment-support data needed for three-way matching and AP auditability.',
+    examples: ['PO line', 'Goods receipt', 'Acceptance', 'Invoice', 'Payment reference'],
+    auditQuestions: ['Do PO, receipt, invoice, and payment agree?', 'Are unmatched transactions resolved?', 'Are obligations and accruals complete at cutoff?'],
+    keyFields: ['PO number', 'PIID', 'CLIN', 'receipt', 'invoice', 'vendor', 'amount', 'date'],
+    risks: ['Duplicate or improper payment', 'Unrecorded accrual', 'Receipt/invoice mismatch']
+  },
+  {
+    id: 'lmp-inventory-movement-detail',
+    layer: 'detail',
+    title: 'Inventory Movement Detail',
+    subtitle: 'Receipt, issue, adjustment, transfer, count',
+    icon: 'MOV',
+    tags: ['inventory', 'movement', 'valuation', 'count'],
+    summary: 'Retains detailed movement history that supports inventory balances, location, condition, unit price, issue, receipt, transfer, and adjustment values.',
+    examples: ['Goods receipt', 'Issue', 'Transfer', 'Adjustment', 'Physical count variance'],
+    auditQuestions: ['Can ending balance be reconstructed?', 'Are adjustments approved?', 'Do movements reconcile to GL inventory value?'],
+    keyFields: ['movement document', 'NSN/material', 'plant/location', 'condition', 'quantity', 'unit price', 'posting date'],
+    risks: ['Inventory balance not reconstructable', 'Unsupported adjustment', 'GL/subledger mismatch']
+  },
+  {
+    id: 'lmp-awcf-costing',
+    layer: 'accounting',
+    title: 'AWCF Costing and Rates',
+    subtitle: 'Cost accumulation, pricing, recovery, and billing logic',
+    icon: 'CST',
+    tags: ['awcf', 'costing', 'rates', 'billing'],
+    summary: 'Connects material, depot labor, overhead, procurement, and customer order activity to working-capital cost recovery and rate/billing support.',
+    examples: ['Depot cost accumulation', 'Sales price/rate', 'Customer billing', 'Cost recovery analysis'],
+    auditQuestions: ['Are rates supported and approved?', 'Are costs assigned to correct customers/programs?', 'Do billings reconcile to order and cost detail?'],
+    keyFields: ['cost object', 'rate', 'billing document', 'customer order', 'cost element', 'amount', 'period'],
+    risks: ['Rate support weakness', 'Improper customer billing', 'Cost misallocation']
+  },
+  {
+    id: 'lmp-inventory-valuation',
+    layer: 'accounting',
+    title: 'Inventory Valuation',
+    subtitle: 'Quantity, condition, price, and GL support',
+    icon: 'VAL',
+    tags: ['inventory', 'valuation', 'gl', 'oms'],
+    summary: 'Converts controlled inventory quantities, condition, and price into financial inventory or OM&S values for GL, reporting, and statement support.',
+    examples: ['Inventory value', 'Condition valuation', 'Standard price update', 'Adjustment value'],
+    auditQuestions: ['Can valuation be recalculated from detail?', 'Are condition and price changes governed?', 'Do inventory subledger and GL reconcile?'],
+    keyFields: ['NSN/material', 'quantity', 'unit price', 'condition', 'plant/location', 'USSGL', 'amount'],
+    risks: ['Over/understated inventory', 'Unapproved price change', 'Subledger-to-GL break']
+  },
+  {
+    id: 'lmp-ap-ar-gl',
+    layer: 'accounting',
+    title: 'AP / AR / GL Posting',
+    subtitle: 'Vendor pay, customer billing, journal, and close',
+    icon: 'GL',
+    tags: ['ap', 'ar', 'gl', 'close'],
+    summary: 'Records vendor liabilities, customer receivables, billing, collections, inventory/cost postings, adjustments, and period-end GL close activity.',
+    examples: ['AP invoice', 'Customer receivable', 'Billing posting', 'GL journal', 'Close adjustment'],
+    auditQuestions: ['Do AP and AR reconcile to subsidiary detail?', 'Are journals supported and approved?', 'Is period cutoff complete?'],
+    keyFields: ['accounting document', 'vendor/customer', 'USSGL', 'TAS', 'amount', 'posting date', 'period'],
+    risks: ['Unsupported journal', 'AP/AR reconciliation failure', 'Cutoff error']
+  },
+  {
+    id: 'lmp-gfebs-interface',
+    layer: 'accounting',
+    title: 'GFEBS / Reporting Interface Reconciliation',
+    subtitle: 'Army finance tie-out and exception control',
+    icon: 'REC',
+    tags: ['gfebs', 'interface', 'reconciliation', 'reporting'],
+    summary: 'Controls LMP-to-GFEBS/reporting handoffs, trial-balance support, interface batches, reject/suspense clearing, and statement-line traceability.',
+    examples: ['Interface batch', 'Reject report', 'Trial balance tie-out', 'Statement sample package'],
+    auditQuestions: ['Do batch counts and amounts reconcile?', 'Are rejected records cleared?', 'Can reporting amounts trace to LMP source detail?'],
+    keyFields: ['interface batch', 'source document', 'posted document', 'USSGL', 'TAS', 'amount', 'period'],
+    risks: ['Unreconciled interface', 'Manual correction breaks source lineage', 'Statement amount lacks LMP support']
+  },
+  {
+    id: 'lmp-operational-reporting',
+    layer: 'reporting',
+    title: 'Operational Logistics Reporting',
+    subtitle: 'Depot, wholesale supply, backlog, inventory, readiness support',
+    icon: 'RPT',
+    tags: ['reporting', 'depot', 'supply', 'inventory'],
+    summary: 'Provides national sustainment visibility into demand, backorders, depot workload, work-order status, inventory, procurement, and customer fulfillment.',
+    examples: ['Backorder report', 'Depot workload report', 'Inventory exception report', 'Customer order status'],
+    auditQuestions: ['Are reports generated from controlled populations?', 'Are filters/as-of dates documented?', 'Do exceptions have owners?'],
+    keyFields: ['report ID', 'as-of date', 'customer order', 'work order', 'NSN/material', 'status', 'quantity'],
+    risks: ['Report not reconcilable', 'Stale operational status', 'Unowned exception population']
+  },
+  {
+    id: 'lmp-financial-reporting',
+    layer: 'reporting',
+    title: 'Financial Reporting / DDRS / GTAS Support',
+    subtitle: 'Trial balance, Treasury, statements, and audit schedules',
+    icon: 'GTAS',
+    tags: ['ddrs', 'gtas', 'treasury', 'trial balance'],
+    summary: 'Supports trial balance, DDRS, GTAS, USSGL/TAS crosswalks, Treasury reporting, statement line items, and audit-sample packages.',
+    examples: ['Trial balance extract', 'DDRS tie-out', 'GTAS submission support', 'Audit schedule'],
+    auditQuestions: ['Do reporting amounts reconcile to GL and source detail?', 'Are USSGL/TAS attributes complete?', 'Are crosswalks governed?'],
+    keyFields: ['TAS', 'USSGL', 'period', 'amount', 'statement line', 'trading partner', 'source document'],
+    risks: ['Crosswalk error', 'Unsupported reporting amount', 'TAS/USSGL mismatch']
+  },
+  {
+    id: 'lmp-audit-evidence',
+    layer: 'reporting',
+    title: 'Audit Evidence and Reconciliation Package',
+    subtitle: 'UoT, sample support, interface logs, tie-outs',
+    icon: 'AUD',
+    tags: ['audit', 'evidence', 'uott', 'reconciliation'],
+    summary: 'Assembles transaction populations, approvals, source records, interface logs, reconciliations, and reporting tie-outs for audit and management review.',
+    examples: ['UoT extract', 'Sample package', 'Interface log', 'Reconciliation workbook'],
+    auditQuestions: ['Is the transaction population complete?', 'Can sampled amounts trace to source and report?', 'Are extracts reproducible and retained?'],
+    keyFields: ['sample ID', 'source document', 'accounting document', 'interface batch', 'report line', 'evidence link'],
+    risks: ['Incomplete UoT', 'Evidence not retained', 'Manual support cannot be reproduced']
+  },
+  {
+    id: 'lmp-sbr',
+    layer: 'statements',
+    title: 'Statement of Budgetary Resources',
+    subtitle: 'Budgetary resources, obligations, expenditures, outlays',
+    icon: 'SBR',
+    tags: ['sbr', 'budgetary', 'obligation', 'outlay'],
+    summary: 'Supports budgetary statement assertions for logistics procurement, customer orders, depot support, obligations, delivered orders, outlays, and ULO review.',
+    examples: ['Obligation support', 'Delivered order support', 'ULO review', 'Outlay tie-out'],
+    auditQuestions: ['Are obligations valid and supported?', 'Do delivered orders tie to receipt/performance?', 'Are aged ULOs reviewed?'],
+    keyFields: ['TAS', 'USSGL', 'fund cite', 'document number', 'obligation amount', 'outlay amount'],
+    risks: ['Unsupported ULO', 'Misstated obligation', 'Outlay not tied to source']
+  },
+  {
+    id: 'lmp-inventory-oms',
+    layer: 'statements',
+    title: 'Inventory / OM&S Assertions',
+    subtitle: 'Existence, completeness, valuation, rights, presentation',
+    icon: 'INV',
+    tags: ['inventory', 'oms', 'valuation', 'assertions'],
+    summary: 'Supports inventory and operating materials/supplies assertions using LMP material, quantity, condition, location, price, movement, and GL reconciliation evidence.',
+    examples: ['Inventory balance', 'OM&S value', 'Condition support', 'Count evidence'],
+    auditQuestions: ['Can inventory be physically verified?', 'Is valuation support complete?', 'Do subledger and GL agree?'],
+    keyFields: ['NSN/material', 'location', 'condition', 'quantity', 'unit price', 'value', 'USSGL'],
+    risks: ['Existence/completeness failure', 'Valuation unsupported', 'Presentation/classification error']
+  },
+  {
+    id: 'lmp-net-cost',
+    layer: 'statements',
+    title: 'Net Cost / Working Capital Disclosures',
+    subtitle: 'Depot cost, supply cost, billing, expense, notes',
+    icon: 'NCT',
+    tags: ['net cost', 'working capital', 'expense', 'notes'],
+    summary: 'Connects depot, procurement, inventory consumption, customer billing, cost recovery, and financial postings to net cost and disclosure schedules.',
+    examples: ['Depot cost schedule', 'Customer billing support', 'Expense support', 'Note schedule'],
+    auditQuestions: ['Can reported cost trace to work order, inventory, or procurement detail?', 'Are billing and revenue supported?', 'Are disclosures tied to controlled populations?'],
+    keyFields: ['cost object', 'customer order', 'billing document', 'USSGL', 'period', 'amount', 'statement line'],
+    risks: ['Cost misclassification', 'Revenue/billing support weakness', 'Unsupported note schedule']
+  }
+];
+
+const lmpLineageScenarios = [
+  {
+    id: 'lmp-depot-repair-cost',
+    short: 'depot repair',
+    title: 'Depot Repair Order to Cost and Net Cost Reporting',
+    description: 'Traces a depot repair event from AMC/customer demand through LMP work order, labor/parts cost, AWCF costing, GL, and net cost support.',
+    path: ['lmp-amc-depot-source', 'lmp-depot-maintenance', 'lmp-work-order-detail', 'lmp-awcf-costing', 'lmp-ap-ar-gl', 'lmp-net-cost'],
+    steps: [
+      'AMC, depot, arsenal, or customer demand initiates a repair or overhaul order with equipment, scope, funding, and customer identifiers.',
+      'LMP manages depot maintenance execution, parts, labor, status, WIP, completion, and closeout.',
+      'Work-order detail preserves the transaction evidence needed to support cost accumulation and cutoff.',
+      'AWCF costing assigns labor, material, overhead, and billing logic to the correct customer or program.',
+      'GL/net cost reporting ties the depot repair activity to financial statements and audit schedules.'
+    ],
+    exceptionTests: ['work order lacks customer authority', 'parts/labor not tied to repair', 'WIP not reviewed', 'billing not supported by completion', 'journal lacks work-order detail']
+  },
+  {
+    id: 'lmp-wholesale-demand',
+    short: 'wholesale',
+    title: 'Wholesale Supply Demand to Inventory and SBR',
+    description: 'Connects tactical or national demand to wholesale supply fulfillment, inventory movement, valuation, and budgetary reporting.',
+    path: ['lmp-gcss-army-demand', 'lmp-wholesale-supply', 'lmp-customer-order-detail', 'lmp-inventory-movement-detail', 'lmp-inventory-valuation', 'lmp-sbr'],
+    steps: [
+      'A field, customer, or program demand signal requests material with document, item, priority, customer, and funding attributes.',
+      'LMP controls sourcing, fulfillment, backorder, cancellation, issue, receipt, and order status.',
+      'Customer order and inventory movement detail preserve the Universe of Transactions.',
+      'Inventory valuation connects quantities, condition, and price to financial impact.',
+      'Budgetary reporting supports obligations, delivered orders, outlays, ULO review, and statement assertions where applicable.'
+    ],
+    exceptionTests: ['open demand aged past policy', 'backorder not reviewed', 'inventory movement not valued', 'subledger-to-GL break', 'SBR amount lacks source support']
+  },
+  {
+    id: 'lmp-procure-to-pay',
+    short: 'procure to pay',
+    title: 'Procurement Need to Receipt, Invoice, Payment, and GL',
+    description: 'Shows how repair-material or sustainment procurement moves through PO, receipt, acceptance, invoice, AP, GL, and reporting controls.',
+    path: ['lmp-vendor-contract-source', 'lmp-procurement', 'lmp-po-invoice-detail', 'lmp-ap-ar-gl', 'lmp-gfebs-interface', 'lmp-financial-reporting'],
+    steps: [
+      'A valid logistics or depot need drives procurement action with vendor, contract, item, quantity, price, and funding information.',
+      'LMP records or consumes purchase order, receipt, acceptance, invoice, and payment-support data.',
+      'PO/invoice detail supports three-way matching and AP/accrual completeness.',
+      'AP/GL postings are reconciled to procurement, receipt, and invoice evidence.',
+      'Financial reporting ties trial balance, DDRS/GTAS, and audit schedules back to source procurement records.'
+    ],
+    exceptionTests: ['invoice without receipt/acceptance', 'PO not tied to demand', 'duplicate payment', 'unrecorded accrual', 'interface reject not cleared']
+  },
+  {
+    id: 'lmp-inventory-audit',
+    short: 'inventory',
+    title: 'Inventory Balance to OM&S Assertion and Audit Evidence',
+    description: 'Traces LMP inventory balances from material master and movement detail through valuation, GL reconciliation, reporting, and OM&S assertion support.',
+    path: ['lmp-dla-dlms-source', 'lmp-inventory-management', 'lmp-material-master', 'lmp-inventory-movement-detail', 'lmp-inventory-valuation', 'lmp-inventory-oms'],
+    steps: [
+      'Catalog, receipt, issue, transfer, condition, and count events update controlled inventory records.',
+      'LMP maintains item master, location, condition, quantity, and movement history.',
+      'Material and movement details support population completeness and balance reconstruction.',
+      'Inventory valuation converts supported quantities and prices into GL/reporting values.',
+      'OM&S/inventory assertions are supported by physical count, valuation, movement, and reconciliation evidence.'
+    ],
+    exceptionTests: ['unapproved price change', 'count variance unresolved', 'condition not reflected in value', 'movement history incomplete', 'GL/subledger mismatch']
+  }
+];
+
+const lmpSupportServices = [
+  { title: 'Depot and MRO Governance', detail: 'Work-order authority, routing, parts, labor, WIP, completion, closeout, customer billing, and repair-program cost evidence.' },
+  { title: 'Wholesale Supply Controls', detail: 'Demand validation, order status, backorder aging, sourcing, fulfillment, cancellation, substitution, receipt, issue, and customer-order traceability.' },
+  { title: 'Procure-to-Pay Controls', detail: 'PR/PO, PIID, CLIN, vendor, receipt, acceptance, invoice, AP, accrual, payment, and unmatched-transaction review.' },
+  { title: 'Inventory and Master Data Governance', detail: 'Material/NSN, unit of issue, price, source of supply, location, condition, movement type, count, adjustment, and valuation control.' },
+  { title: 'AWCF and Financial Reporting', detail: 'Working-capital cost recovery, rates, AP/AR/GL, billing, inventory valuation, GFEBS/reporting tie-outs, DDRS/GTAS, and statement schedules.' },
+  { title: 'Audit and Reconciliation Evidence', detail: 'Universe of Transactions extracts, interface logs, batch controls, reject/suspense clearing, trial-balance tie-outs, and sample-support packages.' }
+];
+
+const lmpCaveats = [
+  'LMP is modeled as the Army SAP-based national logistics ERP and Army Working Capital Fund logistics backbone. Exact modules, tables, custom reports, interfaces, and deployment details require authoritative Army/LMP program documentation.',
+  'This blueprint distinguishes LMP from GCSS-Army: LMP is modeled around national/wholesale logistics, depot maintenance, procurement, AWCF, and inventory finance, while GCSS-Army is modeled around tactical/unit logistics.',
+  'Feeder counts are modeled source and partner categories represented in this page, not a certified count of production interfaces.'
+];
+
+const lmpSources = [
+  { name: 'U.S. Army PEO EIS LMP program page', url: 'https://www.eis.army.mil/programs/lmp' },
+  { name: 'Army Materiel Command', url: 'https://www.amc.army.mil/' },
+  { name: 'Procurement Integrated Enterprise Environment', url: 'https://piee.eb.mil/' },
+  { name: 'DoD Financial Management Regulation', url: 'https://comptroller.defense.gov/FMR/' },
+  { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+  { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
+  { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -3590,6 +4015,39 @@ export const systems = [
     supportServices: gcssSupportServices,
     caveats: gcssArmyCaveats,
     sources: gcssSources
+  },
+  {
+    slug: 'lmp',
+    shortName: 'LMP',
+    name: 'LMP',
+    longName: 'LMP / Logistics Modernization Program Blueprint',
+    agency: 'Army',
+    eyebrow: 'LMP blueprint for Army national logistics, depot maintenance, and AWCF finance',
+    description: 'Explore LMP as the Army SAP-based national logistics ERP and working-capital logistics backbone, connecting AMC/depot events, wholesale supply, procurement, inventory, depot maintenance, AWCF costing, GFEBS/reporting handoffs, and source-to-statement audit evidence.',
+    metric: '4',
+    metricLabel: 'Core LMP lineage scenarios',
+    metricDetail: 'Depot / Supply -> AWCF -> GL -> Statement',
+    referenceImage: '/lmp-blueprint-reference.svg',
+    referenceTitle: 'LMP static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/lmp-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'LMP is modeled as the Army Logistics Modernization Program, a SAP-based national logistics ERP supporting Army Materiel Command sustainment, wholesale supply, depot maintenance, inventory, procurement, and Army Working Capital Fund finance.',
+      whoUsesIt: 'AMC life-cycle management commands, depots, arsenals, wholesale supply organizations, sustainment planners, contracting/procurement users, finance/working-capital users, GFEBS/reporting partners, DFAS support teams, and auditors rely on LMP data or outputs.',
+      howItIsUsed: 'It records and controls national supply demand, customer orders, procurement, receipts, inventory movements, depot maintenance work orders, parts/labor cost, customer billing, AP/AR/GL, AWCF cost recovery, and reporting support.',
+      currentStatus: 'Operational Army national logistics and financial-management environment in this model; exact modules, interfaces, reports, and modernization state require authoritative Army/LMP program documentation.',
+      whyItIsUsed: 'It integrates Army sustainment logistics with working-capital finance so wholesale supply and depot maintenance can be planned, executed, costed, billed, reported, and audited from source transaction to statement.',
+      feederCount: 7,
+      feederSystems: ['AMC / Depot / Arsenal Events', 'DLA / DAAS / DLMS / FED LOG', 'Vendors / Contracting / PIEE-WAWF', 'GCSS-Army Tactical Demand', 'GFEBS / DFAS / Treasury Partners', 'Distribution / Shipment Partners', 'Customer / Program Demand Inputs'],
+      feederNote: 'The blueprint models 7 major LMP source/partner categories; this is not a certified production interface count.'
+    },
+    layers: lmpLayers,
+    nodes: lmpNodes,
+    lineageScenarios: lmpLineageScenarios,
+    supportServices: lmpSupportServices,
+    caveats: lmpCaveats,
+    sources: lmpSources
   },
   {
     slug: 'gcss-mc',
