@@ -19,16 +19,16 @@ export default function TopNav({ activeSlug, showTabs = true }) {
       <div className="top-header">
         <div className="brand-block">
           <Link href="/" className="suite-link">DoD FM Systems</Link>
-          <ThemeToggle />
+          <Link
+            className={classNames('paper-link', isAppendix && 'active')}
+            href="/appendix"
+            aria-current={isAppendix ? 'page' : undefined}
+          >
+            <span aria-hidden="true">📄</span>
+            Research Paper Appendix
+          </Link>
         </div>
-        <Link
-          className={classNames('paper-link', isAppendix && 'active')}
-          href="/appendix"
-          aria-current={isAppendix ? 'page' : undefined}
-        >
-          <span aria-hidden="true">📄</span>
-          Research Paper Appendix
-        </Link>
+        <ThemeToggle />
       </div>
 
       {showTabs && (
