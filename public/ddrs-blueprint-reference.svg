@@ -1,0 +1,191 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040" role="img" aria-labelledby="title desc">
+  <title id="title">DDRS Financial Reporting Blueprint</title>
+  <desc id="desc">Static source-to-statement blueprint for Defense Departmental Reporting System financial reporting lineage.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f5f8fc; }
+      .panel { fill: #ffffff; stroke: #d5e1f2; stroke-width: 2; }
+      .title { fill: #08234a; font: 800 44px Arial, sans-serif; }
+      .subtitle { fill: #415778; font: 22px Arial, sans-serif; }
+      .layer-title { fill: #0b2f66; font: 800 20px Arial, sans-serif; letter-spacing: .8px; }
+      .box-title { fill: #ffffff; font: 800 20px Arial, sans-serif; }
+      .box-text { fill: #e9f2ff; font: 15px Arial, sans-serif; }
+      .note { fill: #253b5b; font: 16px Arial, sans-serif; }
+      .arrow { stroke: #163e7a; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .source { fill: #174f9a; }
+      .core { fill: #194c8f; }
+      .detail { fill: #7152b8; }
+      .finance { fill: #b05a1f; }
+      .report { fill: #7a3d86; }
+      .statement { fill: #132f58; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#163e7a"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1600" height="1040"/>
+  <text class="title" x="70" y="88">DDRS / DoD Financial Reporting Blueprint</text>
+  <text class="subtitle" x="70" y="124">Defense Departmental Reporting System lineage for trial balance intake, edits, eliminations, statements, notes, and GTAS/Treasury support</text>
+
+  <rect class="panel" x="55" y="165" width="1490" height="710" rx="18"/>
+
+  <text class="layer-title" x="90" y="215">SOURCE SYSTEMS</text>
+  <text class="layer-title" x="340" y="215">DDRS PROCESSING</text>
+  <text class="layer-title" x="610" y="215">REPORTING DETAIL</text>
+  <text class="layer-title" x="880" y="215">VALIDATION CONTROL</text>
+  <text class="layer-title" x="1160" y="215">OUTPUTS</text>
+  <text class="layer-title" x="1360" y="215">STATEMENTS</text>
+
+  <g transform="translate(85 250)">
+    <rect class="source" width="190" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Component ERPs</text>
+    <text class="box-text" x="18" y="58">GFEBS, Navy ERP,</text>
+    <text class="box-text" x="18" y="76">DAI, DEAMS, EBS</text>
+  </g>
+  <g transform="translate(85 370)">
+    <rect class="source" width="190" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Legacy Systems</text>
+    <text class="box-text" x="18" y="58">GAFS, STARS, SABRS,</text>
+    <text class="box-text" x="18" y="76">FAMIS extracts</text>
+  </g>
+  <g transform="translate(85 490)">
+    <rect class="source" width="190" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Treasury / IGT</text>
+    <text class="box-text" x="18" y="58">GTAS, IPAC, TAS,</text>
+    <text class="box-text" x="18" y="76">trading partner</text>
+  </g>
+  <g transform="translate(85 610)">
+    <rect class="source" width="190" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Audit Evidence</text>
+    <text class="box-text" x="18" y="58">Tie-outs, schedules,</text>
+    <text class="box-text" x="18" y="76">sample support</text>
+  </g>
+
+  <g transform="translate(340 250)">
+    <rect class="core" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Trial Balance Intake</text>
+    <text class="box-text" x="18" y="58">Entity, fund, TAS,</text>
+    <text class="box-text" x="18" y="76">USSGL, period</text>
+  </g>
+  <g transform="translate(340 370)">
+    <rect class="core" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Edits / Crosswalks</text>
+    <text class="box-text" x="18" y="58">USSGL, statement,</text>
+    <text class="box-text" x="18" y="76">attribute checks</text>
+  </g>
+  <g transform="translate(340 490)">
+    <rect class="core" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Eliminations</text>
+    <text class="box-text" x="18" y="58">Trading partner, IGT,</text>
+    <text class="box-text" x="18" y="76">buyer/seller</text>
+  </g>
+  <g transform="translate(340 610)">
+    <rect class="core" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Adjustments</text>
+    <text class="box-text" x="18" y="58">Top-side, JV, reclass,</text>
+    <text class="box-text" x="18" y="76">disclosure support</text>
+  </g>
+
+  <g transform="translate(610 250)">
+    <rect class="detail" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">TB Line Detail</text>
+    <text class="box-text" x="18" y="58">Entity, TAS, USSGL,</text>
+    <text class="box-text" x="18" y="76">attribute, amount</text>
+  </g>
+  <g transform="translate(610 370)">
+    <rect class="detail" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Journal Detail</text>
+    <text class="box-text" x="18" y="58">Top-side support,</text>
+    <text class="box-text" x="18" y="76">approval, reversal</text>
+  </g>
+  <g transform="translate(610 490)">
+    <rect class="detail" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">IGT Detail</text>
+    <text class="box-text" x="18" y="58">Trading partner,</text>
+    <text class="box-text" x="18" y="76">elimination pair</text>
+  </g>
+  <g transform="translate(610 610)">
+    <rect class="detail" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Note Schedules</text>
+    <text class="box-text" x="18" y="58">Narrative, tables,</text>
+    <text class="box-text" x="18" y="76">variance support</text>
+  </g>
+
+  <g transform="translate(885 250)">
+    <rect class="finance" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">USSGL / TAS Edits</text>
+    <text class="box-text" x="18" y="58">Valid accounts,</text>
+    <text class="box-text" x="18" y="76">attributes, balances</text>
+  </g>
+  <g transform="translate(885 370)">
+    <rect class="finance" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">GTAS Tie-Out</text>
+    <text class="box-text" x="18" y="58">Treasury submission,</text>
+    <text class="box-text" x="18" y="76">fatal/edit checks</text>
+  </g>
+  <g transform="translate(885 490)">
+    <rect class="finance" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Elimination Control</text>
+    <text class="box-text" x="18" y="58">IGT differences,</text>
+    <text class="box-text" x="18" y="76">buyer/seller support</text>
+  </g>
+  <g transform="translate(885 610)">
+    <rect class="finance" width="200" height="88" rx="12"/>
+    <text class="box-title" x="18" y="32">Audit Tie-Out</text>
+    <text class="box-text" x="18" y="58">Statement to source,</text>
+    <text class="box-text" x="18" y="76">sample support</text>
+  </g>
+
+  <g transform="translate(1160 300)">
+    <rect class="report" width="160" height="100" rx="12"/>
+    <text class="box-title" x="18" y="34">DoD Reports</text>
+    <text class="box-text" x="18" y="61">Consolidated and</text>
+    <text class="box-text" x="18" y="80">component outputs</text>
+  </g>
+  <g transform="translate(1160 480)">
+    <rect class="report" width="160" height="100" rx="12"/>
+    <text class="box-title" x="18" y="34">AFR / PAR</text>
+    <text class="box-text" x="18" y="61">Statements, notes,</text>
+    <text class="box-text" x="18" y="80">variance analysis</text>
+  </g>
+
+  <g transform="translate(1370 280)">
+    <rect class="statement" width="135" height="88" rx="12"/>
+    <text class="box-title" x="18" y="34">SBR</text>
+    <text class="box-text" x="18" y="61">Budgetary</text>
+  </g>
+  <g transform="translate(1370 390)">
+    <rect class="statement" width="135" height="88" rx="12"/>
+    <text class="box-title" x="18" y="34">Net Cost</text>
+    <text class="box-text" x="18" y="61">Program cost</text>
+  </g>
+  <g transform="translate(1370 500)">
+    <rect class="statement" width="135" height="88" rx="12"/>
+    <text class="box-title" x="18" y="34">Balance Sheet</text>
+    <text class="box-text" x="18" y="61">Assets/liabilities</text>
+  </g>
+  <g transform="translate(1370 610)">
+    <rect class="statement" width="135" height="88" rx="12"/>
+    <text class="box-title" x="18" y="34">Notes</text>
+    <text class="box-text" x="18" y="61">Disclosures</text>
+  </g>
+
+  <path class="arrow" d="M 280 294 H 330"/>
+  <path class="arrow" d="M 545 294 H 600"/>
+  <path class="arrow" d="M 815 294 H 875"/>
+  <path class="arrow" d="M 1090 294 H 1150"/>
+  <path class="arrow" d="M 1325 350 H 1360"/>
+  <path class="arrow" d="M 280 414 H 330"/>
+  <path class="arrow" d="M 545 414 H 600"/>
+  <path class="arrow" d="M 815 414 H 875"/>
+  <path class="arrow" d="M 1090 414 C 1120 414 1130 500 1150 520"/>
+  <path class="arrow" d="M 1325 530 H 1360"/>
+  <path class="arrow" d="M 280 534 H 330"/>
+  <path class="arrow" d="M 545 534 H 600"/>
+  <path class="arrow" d="M 815 534 H 875"/>
+  <path class="arrow" d="M 1090 534 H 1150"/>
+
+  <rect class="panel" x="70" y="905" width="1460" height="90" rx="14"/>
+  <text class="note" x="95" y="940">Scope note: DDRS here means Defense Departmental Reporting System for financial reporting, not Defense Readiness Reporting System.</text>
+  <text class="note" x="95" y="970">Audit lens: reconcile component trial balances, USSGL/TAS edits, eliminations, GTAS, statements, notes, and source support.</text>
+</svg>

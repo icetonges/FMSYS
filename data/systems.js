@@ -5197,6 +5197,403 @@ const famisSources = [
   { name: 'Procurement Integrated Enterprise Environment', url: 'https://piee.eb.mil/' }
 ];
 
+const ddrsLayers = [
+  { id: 'source', label: 'Component Trial Balance Sources', short: 'Source', description: 'ERP, legacy accounting, WCF, general fund, Treasury, GTAS, and audit-support sources that feed DoD financial reporting.' },
+  { id: 'base', label: 'DDRS Processing', short: 'DDRS', description: 'Trial-balance intake, validation, crosswalk, consolidation, eliminations, adjustments, statement generation, and note support.' },
+  { id: 'detail', label: 'Reporting Detail', short: 'Detail', description: 'Entity, TAS, USSGL, trading partner, statement line, adjustment, elimination, schedule, and evidence detail.' },
+  { id: 'accounting', label: 'Validation and Reconciliation', short: 'Control', description: 'USSGL/TAS edits, GTAS tie-outs, IGT elimination controls, top-side adjustment controls, and audit reconciliations.' },
+  { id: 'reporting', label: 'Reporting Outputs', short: 'Outputs', description: 'Component and consolidated reports, AFR/PAR statements, notes, variance analysis, audit schedules, and submission packages.' },
+  { id: 'statements', label: 'Financial Statements and Notes', short: 'Statements', description: 'SBR, SNC, balance sheet, changes in net position, custodial/activity schedules, notes, and disclosure assertions.' }
+];
+
+const ddrsNodes = [
+  {
+    id: 'ddrs-component-erp-source',
+    layer: 'source',
+    title: 'Component ERP Trial Balances',
+    subtitle: 'GFEBS, Navy ERP, DAI, DEAMS, EBS, LMP',
+    icon: 'ERP',
+    tags: ['erp', 'trial balance', 'source', 'component'],
+    summary: 'Receives component trial balance and reporting extracts from major accounting systems for general fund, working capital, supply-chain, and agency reporting.',
+    examples: ['GFEBS trial balance', 'Navy ERP extract', 'DAI trial balance', 'DEAMS reporting extract'],
+    auditQuestions: ['Do DDRS totals reconcile to source-system trial balances?', 'Are source extracts complete by period and entity?', 'Are re-submissions controlled?'],
+    keyFields: ['entity', 'period', 'TAS', 'USSGL', 'fund', 'amount', 'source batch'],
+    risks: ['Source-to-DDRS mismatch', 'Incomplete extract', 'Uncontrolled re-submission']
+  },
+  {
+    id: 'ddrs-legacy-source',
+    layer: 'source',
+    title: 'Legacy Accounting Sources',
+    subtitle: 'GAFS, STARS, SABRS, FAMIS, other legacy feeds',
+    icon: 'LEG',
+    tags: ['legacy', 'trial balance', 'archive', 'migration'],
+    summary: 'Represents legacy or transition accounting sources whose balances, archive extracts, or reporting feeds still support component or consolidated reporting.',
+    examples: ['GAFS extract', 'STARS archive balance', 'SABRS feed', 'FAMIS-GF/WCF data'],
+    auditQuestions: ['Can legacy balances trace to archive detail?', 'Are conversion or bridge adjustments approved?', 'Are legacy feeds reconciled to current reporting?'],
+    keyFields: ['legacy system', 'entity', 'fund', 'USSGL/crosswalk', 'period', 'amount', 'bridge batch'],
+    risks: ['Legacy balance unsupported', 'Archive incomplete', 'Bridge adjustment not explained']
+  },
+  {
+    id: 'ddrs-treasury-source',
+    layer: 'source',
+    title: 'Treasury / GTAS / IGT Sources',
+    subtitle: 'GTAS, TAS, BETC, IPAC, trading partner data',
+    icon: 'TRS',
+    tags: ['treasury', 'gtas', 'ipac', 'trading partner'],
+    summary: 'Provides Treasury reporting, TAS/BETC, GTAS edits, IPAC/G-Invoicing, and trading-partner data used for tie-outs and eliminations.',
+    examples: ['GTAS submission', 'TAS/BETC attributes', 'IPAC settlement', 'Trading partner difference'],
+    auditQuestions: ['Do DDRS values agree with GTAS where required?', 'Are TAS and trading partner attributes complete?', 'Are IGT differences explained?'],
+    keyFields: ['TAS', 'BETC', 'USSGL', 'trading partner', 'GTAS amount', 'IPAC document', 'period'],
+    risks: ['GTAS mismatch', 'Trading partner mismatch', 'Invalid TAS/USSGL attribute']
+  },
+  {
+    id: 'ddrs-audit-evidence-source',
+    layer: 'source',
+    title: 'Audit and Component Support',
+    subtitle: 'Tie-outs, schedules, assertions, sample packages',
+    icon: 'AUD',
+    tags: ['audit', 'evidence', 'schedule', 'assertions'],
+    summary: 'Captures the supporting reconciliations, schedules, explanations, and sample packages used to support DDRS-reported balances and disclosures.',
+    examples: ['Tie-out workbook', 'Note support', 'Variance explanation', 'Sample package'],
+    auditQuestions: ['Can statement amounts trace to controlled support?', 'Are schedules tied to trial balance populations?', 'Are explanations approved and retained?'],
+    keyFields: ['schedule ID', 'statement line', 'entity', 'source document', 'evidence link', 'reviewer', 'amount'],
+    risks: ['Schedule not tied to TB', 'Evidence unavailable', 'Unapproved variance explanation']
+  },
+  {
+    id: 'ddrs-tb-intake',
+    layer: 'base',
+    title: 'Trial Balance Intake',
+    subtitle: 'Entity, TAS, USSGL, period, amount ingestion',
+    icon: 'TB',
+    tags: ['intake', 'trial balance', 'submission', 'batch'],
+    summary: 'Loads and tracks component trial balance submissions, source batches, versions, periods, entities, TAS, USSGL, attributes, and amounts.',
+    examples: ['Monthly TB load', 'Year-end submission', 'Re-submission', 'Batch validation'],
+    auditQuestions: ['Are all required entities and periods loaded?', 'Are versions controlled?', 'Do batch totals reconcile to source systems?'],
+    keyFields: ['load batch', 'entity', 'period', 'TAS', 'USSGL', 'amount', 'version'],
+    risks: ['Missing entity submission', 'Version confusion', 'Batch total mismatch']
+  },
+  {
+    id: 'ddrs-edits-crosswalk',
+    layer: 'base',
+    title: 'Edits and Crosswalks',
+    subtitle: 'USSGL, TAS, attributes, statement lines',
+    icon: 'EDT',
+    tags: ['edits', 'crosswalk', 'ussgl', 'tas'],
+    summary: 'Applies edit checks, USSGL/TAS validation, attribute checks, statement-line mapping, fund type logic, and reporting crosswalks.',
+    examples: ['USSGL edit', 'TAS validation', 'Statement crosswalk', 'Attribute check'],
+    auditQuestions: ['Are crosswalks current and approved?', 'Are failed edits resolved?', 'Do mappings align with USSGL and reporting requirements?'],
+    keyFields: ['USSGL', 'TAS', 'attribute', 'statement line', 'edit code', 'crosswalk version', 'amount'],
+    risks: ['Crosswalk error', 'Failed edit bypassed', 'Invalid attribute mapping']
+  },
+  {
+    id: 'ddrs-consolidation',
+    layer: 'base',
+    title: 'Consolidation and Rollup',
+    subtitle: 'Component, appropriation, fund type, DoD rollup',
+    icon: 'CON',
+    tags: ['consolidation', 'rollup', 'component', 'dod'],
+    summary: 'Aggregates component submissions by entity, fund, TAS, USSGL, statement line, component, and consolidated DoD reporting structure.',
+    examples: ['Component rollup', 'Fund-type rollup', 'DoD consolidated view', 'Statement-line total'],
+    auditQuestions: ['Do rollups reconcile to component inputs?', 'Are consolidation hierarchies approved?', 'Are reclassifications separately visible?'],
+    keyFields: ['entity', 'component', 'fund type', 'statement line', 'USSGL', 'period', 'amount'],
+    risks: ['Rollup hierarchy error', 'Component total not reconcilable', 'Reclass hidden in summary']
+  },
+  {
+    id: 'ddrs-eliminations',
+    layer: 'base',
+    title: 'Eliminations and IGT',
+    subtitle: 'Trading partner, buyer/seller, intragovernmental differences',
+    icon: 'ELM',
+    tags: ['elimination', 'igt', 'trading partner', 'buyer seller'],
+    summary: 'Identifies, pairs, eliminates, or explains intragovernmental and trading partner activity for consolidated reporting.',
+    examples: ['Buyer/seller pair', 'IGT elimination', 'Trading partner difference', 'IPAC tie-out'],
+    auditQuestions: ['Are trading partner attributes complete?', 'Do buyer and seller amounts agree?', 'Are unresolved differences explained and aged?'],
+    keyFields: ['trading partner', 'buyer TAS', 'seller TAS', 'USSGL', 'elimination amount', 'difference', 'period'],
+    risks: ['Elimination mismatch', 'Missing trading partner', 'Unexplained IGT difference']
+  },
+  {
+    id: 'ddrs-adjustments',
+    layer: 'base',
+    title: 'Top-side Adjustments',
+    subtitle: 'Manual reporting adjustments, reclasses, accruals',
+    icon: 'JV',
+    tags: ['adjustment', 'journal', 'top-side', 'reclass'],
+    summary: 'Controls top-side reporting adjustments, manual entries, reclasses, accruals, reversals, explanations, approvals, and statement impact.',
+    examples: ['Top-side JV', 'Reclass', 'Accrual adjustment', 'Elimination adjustment'],
+    auditQuestions: ['Does every adjustment have source support?', 'Are approvals complete before reporting?', 'Are reversals and recurring entries tracked?'],
+    keyFields: ['adjustment ID', 'entity', 'USSGL', 'statement line', 'debit/credit', 'approver', 'reversal flag'],
+    risks: ['Unsupported top-side entry', 'Manual entry masks source defect', 'Missing reversal']
+  },
+  {
+    id: 'ddrs-tb-line-detail',
+    layer: 'detail',
+    title: 'Trial Balance Line Detail',
+    subtitle: 'Entity, TAS, USSGL, attributes, amount',
+    icon: 'LIN',
+    tags: ['trial balance', 'detail', 'ussgl', 'tas'],
+    summary: 'Preserves line-level reporting detail used to trace statement amounts back to component submissions and source-system trial balances.',
+    examples: ['Entity/TAS/USSGL line', 'Attribute line', 'Period balance', 'Source-batch tie-out'],
+    auditQuestions: ['Can statement lines be reconstructed from TB detail?', 'Are debit/credit signs consistent?', 'Do attributes support GTAS/reporting requirements?'],
+    keyFields: ['entity', 'TAS', 'USSGL', 'attribute', 'beginning balance', 'activity', 'ending balance'],
+    risks: ['Statement amount not reconstructable', 'Sign error', 'Missing attribute']
+  },
+  {
+    id: 'ddrs-adjustment-detail',
+    layer: 'detail',
+    title: 'Adjustment Detail',
+    subtitle: 'Support, approval, impact, reversal',
+    icon: 'ADJ',
+    tags: ['adjustment', 'support', 'approval', 'reversal'],
+    summary: 'Documents top-side entries, source rationale, supporting calculations, preparer/reviewer/approver evidence, posting impact, and reversal status.',
+    examples: ['Adjustment support', 'Approval package', 'Recurring entry', 'Reversal tracking'],
+    auditQuestions: ['Is the adjustment supported by source detail?', 'Is segregation of duties clear?', 'Does the adjustment tie to statement impact?'],
+    keyFields: ['adjustment ID', 'support file', 'preparer', 'reviewer', 'approver', 'amount', 'statement line'],
+    risks: ['Unsupported adjustment', 'Approval weakness', 'Statement impact unclear']
+  },
+  {
+    id: 'ddrs-igt-detail',
+    layer: 'detail',
+    title: 'IGT / Elimination Detail',
+    subtitle: 'Trading partner pairs and differences',
+    icon: 'IGT',
+    tags: ['igt', 'elimination', 'trading partner', 'difference'],
+    summary: 'Captures buyer/seller, trading partner, TAS, USSGL, elimination, and unresolved difference detail for intragovernmental reporting.',
+    examples: ['Trading partner pair', 'Difference aging', 'IPAC reference', 'Elimination support'],
+    auditQuestions: ['Can elimination entries trace to both sides?', 'Are differences aged and assigned?', 'Are trading partner attributes valid?'],
+    keyFields: ['buyer entity', 'seller entity', 'trading partner', 'TAS', 'USSGL', 'difference', 'owner'],
+    risks: ['One-sided elimination', 'Aged IGT difference', 'Invalid trading partner']
+  },
+  {
+    id: 'ddrs-note-detail',
+    layer: 'detail',
+    title: 'Note and Schedule Detail',
+    subtitle: 'Disclosure tables, narratives, variance explanations',
+    icon: 'NTE',
+    tags: ['notes', 'schedule', 'disclosure', 'variance'],
+    summary: 'Maintains disclosure schedules, narrative explanations, variance analysis, note tables, and supporting reconciliations.',
+    examples: ['Note schedule', 'Variance explanation', 'Disclosure table', 'Supporting reconciliation'],
+    auditQuestions: ['Are note schedules tied to controlled TB populations?', 'Are variances explained and reviewed?', 'Do narratives align to reported values?'],
+    keyFields: ['note ID', 'schedule line', 'entity', 'statement line', 'amount', 'variance', 'reviewer'],
+    risks: ['Unsupported disclosure', 'Variance explanation not approved', 'Schedule not tied to TB']
+  },
+  {
+    id: 'ddrs-ussgl-tas-control',
+    layer: 'accounting',
+    title: 'USSGL / TAS Validation',
+    subtitle: 'Account, fund, attribute, balance edit controls',
+    icon: 'VAL',
+    tags: ['ussgl', 'tas', 'validation', 'edit'],
+    summary: 'Validates USSGL accounts, TAS attributes, normal balances, required attributes, budgetary/proprietary relationships, and reporting edit rules.',
+    examples: ['USSGL validity check', 'TAS edit', 'Attribute requirement', 'Budgetary/proprietary edit'],
+    auditQuestions: ['Are failed edits researched and cleared?', 'Are overrides approved?', 'Do validations align to current USSGL/Treasury rules?'],
+    keyFields: ['edit code', 'TAS', 'USSGL', 'attribute', 'error type', 'owner', 'resolution'],
+    risks: ['Invalid reporting combination', 'Unapproved override', 'Edit not resolved']
+  },
+  {
+    id: 'ddrs-gtas-control',
+    layer: 'accounting',
+    title: 'GTAS and Treasury Tie-Out',
+    subtitle: 'GTAS edit checks, TAS/USSGL, submission support',
+    icon: 'GTA',
+    tags: ['gtas', 'treasury', 'tas', 'ussgl'],
+    summary: 'Reconciles DDRS-reported values to GTAS/Treasury submission requirements, edit checks, TAS/USSGL attributes, and period reporting.',
+    examples: ['GTAS tie-out', 'Fatal edit resolution', 'TAS attribute check', 'Treasury confirmation'],
+    auditQuestions: ['Do DDRS and GTAS values agree where expected?', 'Are fatal edits cleared?', 'Are differences explained and retained?'],
+    keyFields: ['TAS', 'USSGL', 'GTAS line', 'DDRS amount', 'GTAS amount', 'difference', 'period'],
+    risks: ['DDRS/GTAS mismatch', 'Fatal edit unresolved', 'Treasury difference unsupported']
+  },
+  {
+    id: 'ddrs-elimination-control',
+    layer: 'accounting',
+    title: 'Elimination Control',
+    subtitle: 'IGT pairing, differences, approval, disclosure',
+    icon: 'REC',
+    tags: ['elimination', 'igt', 'reconciliation', 'control'],
+    summary: 'Controls intragovernmental elimination entries, buyer/seller matching, difference research, approval, aging, and disclosure support.',
+    examples: ['Elimination journal', 'IGT difference report', 'Buyer/seller reconciliation', 'Difference certification'],
+    auditQuestions: ['Are eliminations complete and accurate?', 'Are unresolved differences justified?', 'Do entries avoid eliminating non-IGT activity?'],
+    keyFields: ['elimination ID', 'trading partner', 'buyer amount', 'seller amount', 'difference', 'approver', 'period'],
+    risks: ['Over-elimination', 'Under-elimination', 'Unexplained IGT difference']
+  },
+  {
+    id: 'ddrs-audit-reconciliation',
+    layer: 'accounting',
+    title: 'Audit Reconciliation',
+    subtitle: 'Statement-to-source tie-out and sample support',
+    icon: 'AUD',
+    tags: ['audit', 'reconciliation', 'tie-out', 'sample'],
+    summary: 'Connects statement lines, note schedules, trial balance detail, adjustments, eliminations, component support, and source-system evidence.',
+    examples: ['Statement tie-out', 'Sample support', 'Component certification', 'Variance package'],
+    auditQuestions: ['Can reported amounts trace to source populations?', 'Are reconciling items owned and resolved?', 'Are support packages complete?'],
+    keyFields: ['statement line', 'TB line', 'adjustment ID', 'source system', 'evidence link', 'owner', 'amount'],
+    risks: ['Statement amount unsupported', 'Reconciling item unresolved', 'Evidence gap']
+  },
+  {
+    id: 'ddrs-component-reporting',
+    layer: 'reporting',
+    title: 'Component and DoD Reports',
+    subtitle: 'Component, fund, statement, consolidated outputs',
+    icon: 'RPT',
+    tags: ['reports', 'component', 'consolidated', 'dod'],
+    summary: 'Produces component and consolidated reporting outputs by entity, component, fund, statement line, period, and reporting package.',
+    examples: ['Component statement report', 'DoD consolidated report', 'Fund report', 'Roll-forward report'],
+    auditQuestions: ['Do reports tie to loaded TB and adjustments?', 'Are report parameters documented?', 'Can reports be reproduced?'],
+    keyFields: ['report ID', 'entity', 'period', 'statement line', 'fund', 'amount', 'run date'],
+    risks: ['Report not reproducible', 'Parameter ambiguity', 'Output not tied to TB']
+  },
+  {
+    id: 'ddrs-afr-par-output',
+    layer: 'reporting',
+    title: 'AFR / PAR Statements and Notes',
+    subtitle: 'Financial statements, note packages, variance analysis',
+    icon: 'AFR',
+    tags: ['afr', 'par', 'statements', 'notes'],
+    summary: 'Supports Agency Financial Report or Performance and Accountability Report statements, notes, schedules, variance analysis, and leadership review packages.',
+    examples: ['AFR statement', 'Note package', 'Variance analysis', 'Certification package'],
+    auditQuestions: ['Do published statements tie to DDRS outputs?', 'Are notes supported by controlled schedules?', 'Are changes after review tracked?'],
+    keyFields: ['AFR/PAR line', 'note ID', 'statement line', 'period', 'amount', 'review status', 'version'],
+    risks: ['Published amount not tied out', 'Note support weak', 'Late change not controlled']
+  },
+  {
+    id: 'ddrs-sbr',
+    layer: 'statements',
+    title: 'Statement of Budgetary Resources',
+    subtitle: 'Resources, obligations, expenditures, outlays',
+    icon: 'SBR',
+    tags: ['sbr', 'budgetary', 'obligation', 'outlay'],
+    summary: 'Supports budgetary reporting assertions for resources, obligations, delivered orders, expenditures, outlays, recoveries, and ULO disclosures.',
+    examples: ['Budgetary resources', 'Obligations', 'Outlays', 'ULO note'],
+    auditQuestions: ['Do SBR lines tie to budgetary USSGL detail?', 'Are ULOs supported by components?', 'Are outlays reconciled to Treasury?'],
+    keyFields: ['TAS', 'USSGL', 'statement line', 'budgetary amount', 'component', 'period'],
+    risks: ['SBR crosswalk error', 'Unsupported ULO', 'Outlay/Treasury mismatch']
+  },
+  {
+    id: 'ddrs-net-cost',
+    layer: 'statements',
+    title: 'Statement of Net Cost',
+    subtitle: 'Program cost, earned revenue, net cost',
+    icon: 'SNC',
+    tags: ['net cost', 'program cost', 'revenue', 'expense'],
+    summary: 'Supports net cost reporting for gross cost, earned revenue, program costs, working-capital activity, and related disclosures.',
+    examples: ['Gross cost', 'Earned revenue', 'Program cost', 'Net cost note'],
+    auditQuestions: ['Do cost and revenue lines trace to proprietary GL detail?', 'Are eliminations applied correctly?', 'Are program mappings governed?'],
+    keyFields: ['USSGL', 'program', 'statement line', 'cost amount', 'revenue amount', 'period'],
+    risks: ['Program mapping error', 'Revenue/cost elimination issue', 'Unsupported expense']
+  },
+  {
+    id: 'ddrs-balance-sheet',
+    layer: 'statements',
+    title: 'Balance Sheet and CNP',
+    subtitle: 'Assets, liabilities, net position, changes',
+    icon: 'BS',
+    tags: ['balance sheet', 'net position', 'assets', 'liabilities'],
+    summary: 'Supports balance sheet and changes in net position reporting for assets, liabilities, net position, financing sources, and related note disclosures.',
+    examples: ['FBWT', 'Inventory', 'AP/AR', 'Net position', 'CNP line'],
+    auditQuestions: ['Do balances tie to proprietary USSGL detail?', 'Are FBWT and Treasury tie-outs complete?', 'Are AP/AR/inventory support schedules controlled?'],
+    keyFields: ['USSGL', 'statement line', 'asset/liability type', 'component', 'amount', 'period'],
+    risks: ['FBWT mismatch', 'AP/AR support weakness', 'Balance-sheet classification error']
+  },
+  {
+    id: 'ddrs-notes',
+    layer: 'statements',
+    title: 'Notes and Disclosures',
+    subtitle: 'Schedules, narratives, variance and audit support',
+    icon: 'NTE',
+    tags: ['notes', 'disclosures', 'variance', 'schedules'],
+    summary: 'Supports note disclosures, schedule tables, narrative explanations, variance analysis, reconciliations, and audit-support references.',
+    examples: ['FBWT note', 'Inventory note', 'IGT note', 'Variance schedule', 'Disclosure narrative'],
+    auditQuestions: ['Are notes tied to statement lines and TB detail?', 'Are variances explained and approved?', 'Are disclosure schedules complete?'],
+    keyFields: ['note ID', 'schedule line', 'statement line', 'amount', 'variance', 'support link', 'review status'],
+    risks: ['Disclosure unsupported', 'Variance explanation weak', 'Schedule not tied to TB']
+  }
+];
+
+const ddrsLineageScenarios = [
+  {
+    id: 'ddrs-component-tb-to-statement',
+    short: 'TB to statement',
+    title: 'Component Trial Balance to Statement Line',
+    description: 'Traces component trial balance data through DDRS intake, edits, rollup, statement-line mapping, and AFR/PAR output.',
+    path: ['ddrs-component-erp-source', 'ddrs-tb-intake', 'ddrs-tb-line-detail', 'ddrs-edits-crosswalk', 'ddrs-component-reporting', 'ddrs-balance-sheet'],
+    steps: [
+      'A component submits trial balance detail from ERP or accounting-system source extracts.',
+      'DDRS loads the trial balance by entity, period, TAS, USSGL, attribute, and amount.',
+      'Line detail preserves the reporting population used to reconstruct statement lines.',
+      'Edits and crosswalks validate TAS/USSGL attributes and map balances to statement lines.',
+      'Component or consolidated reports support AFR/PAR statement amounts and audit tie-outs.'
+    ],
+    exceptionTests: ['source total mismatch', 'missing TAS/USSGL attribute', 'crosswalk error', 'report output not reproducible', 'statement line lacks TB support']
+  },
+  {
+    id: 'ddrs-gtas-tieout',
+    short: 'GTAS',
+    title: 'DDRS Trial Balance to GTAS/Treasury Tie-Out',
+    description: 'Shows how DDRS values are reconciled to GTAS/Treasury reporting requirements and edit checks.',
+    path: ['ddrs-treasury-source', 'ddrs-edits-crosswalk', 'ddrs-ussgl-tas-control', 'ddrs-gtas-control', 'ddrs-afr-par-output', 'ddrs-sbr'],
+    steps: [
+      'Treasury/GTAS attributes and component trial-balance values establish the reporting comparison point.',
+      'DDRS edit and crosswalk logic validates USSGL, TAS, and attribute completeness.',
+      'USSGL/TAS controls identify invalid combinations, required attributes, and normal-balance issues.',
+      'GTAS tie-outs compare DDRS and Treasury-reporting values and document differences.',
+      'SBR and other statements retain the GTAS/Treasury reconciliation support.'
+    ],
+    exceptionTests: ['GTAS fatal edit', 'TAS/USSGL mismatch', 'DDRS/GTAS difference unexplained', 'attribute missing', 'outlay/Treasury mismatch']
+  },
+  {
+    id: 'ddrs-igt-elimination',
+    short: 'IGT',
+    title: 'Intragovernmental Elimination to Consolidated Statements',
+    description: 'Traces IGT/trading partner data through elimination pairing, difference research, controls, and statement-note disclosure.',
+    path: ['ddrs-treasury-source', 'ddrs-eliminations', 'ddrs-igt-detail', 'ddrs-elimination-control', 'ddrs-afr-par-output', 'ddrs-notes'],
+    steps: [
+      'Trading partner, IPAC, G-Invoicing, and TAS/USSGL attributes identify intragovernmental activity.',
+      'DDRS elimination processing pairs buyer and seller activity and identifies differences.',
+      'IGT detail preserves trading partner, amount, difference, owner, and period support.',
+      'Elimination controls approve entries and retain explanations for unresolved differences.',
+      'Notes and consolidated statements disclose or support remaining IGT balances.'
+    ],
+    exceptionTests: ['missing trading partner', 'buyer/seller mismatch', 'one-sided elimination', 'difference not aged', 'disclosure not tied to elimination detail']
+  },
+  {
+    id: 'ddrs-adjustment-audit',
+    short: 'adjustment',
+    title: 'Top-side Adjustment to Audit Support',
+    description: 'Shows how DDRS reporting adjustments should preserve source cause, approval, statement impact, and audit evidence.',
+    path: ['ddrs-audit-evidence-source', 'ddrs-adjustments', 'ddrs-adjustment-detail', 'ddrs-audit-reconciliation', 'ddrs-afr-par-output', 'ddrs-notes'],
+    steps: [
+      'A component or consolidated reporting difference creates a proposed top-side adjustment.',
+      'DDRS adjustment processing records statement line, USSGL, debit/credit, rationale, and reversal needs.',
+      'Adjustment detail preserves support, approval, impact, and version control.',
+      'Audit reconciliation ties the adjustment to source evidence, trial balance impact, and statement output.',
+      'AFR/PAR notes retain the narrative, schedule, and support for the adjustment impact.'
+    ],
+    exceptionTests: ['adjustment lacks source support', 'approval after reporting', 'reversal missing', 'statement impact unclear', 'manual entry masks source-system defect']
+  }
+];
+
+const ddrsSupportServices = [
+  { title: 'Trial Balance Governance', detail: 'Component submission calendars, load batches, version control, entity coverage, source-system tie-outs, and period-end re-submission control.' },
+  { title: 'Edit and Crosswalk Controls', detail: 'USSGL, TAS, reporting attributes, normal balances, statement-line mapping, GTAS edits, crosswalk versioning, and override approvals.' },
+  { title: 'Eliminations and IGT', detail: 'Trading partner validation, buyer/seller pairing, IPAC/G-Invoicing tie-outs, elimination entries, difference aging, and disclosure support.' },
+  { title: 'Adjustment Governance', detail: 'Top-side adjustment rationale, support files, preparer/reviewer/approver trail, debit/credit validation, versioning, reversal, and close impact.' },
+  { title: 'Statement and Note Production', detail: 'AFR/PAR statements, note schedules, variance explanations, report reproducibility, leadership review, and publication tie-outs.' },
+  { title: 'Audit Evidence', detail: 'Statement-to-source reconciliations, trial balance populations, adjustment packages, component certifications, sample support, and evidence retention.' }
+];
+
+const ddrsCaveats = [
+  'DDRS is modeled here as the Defense Departmental Reporting System for financial reporting, not the similarly named Defense Readiness Reporting System.',
+  'Public DDRS module and interface details are limited. Exact DDRS variants, file layouts, workflow names, owners, and current modernization state require authoritative DoD reporting documentation.',
+  'This blueprint focuses on the auditable reporting process: trial balance intake, USSGL/TAS validation, GTAS tie-out, eliminations, top-side adjustments, statements, notes, and audit support.',
+  'Feeder counts are modeled source/partner categories represented in this blueprint, not a certified production interface inventory.'
+];
+
+const ddrsSources = [
+  { name: 'DoD Financial Management Regulation', url: 'https://comptroller.defense.gov/FMR/' },
+  { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+  { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
+  { name: 'Treasury G-Invoicing / IPAC', url: 'https://fiscal.treasury.gov/accounting/intragov' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -5427,6 +5824,39 @@ export const systems = [
     supportServices: famisSupportServices,
     caveats: famisCaveats,
     sources: famisSources
+  },
+  {
+    slug: 'ddrs',
+    shortName: 'DDRS',
+    name: 'DDRS',
+    longName: 'DDRS / Defense Departmental Reporting System Blueprint',
+    agency: 'DoD Reporting',
+    eyebrow: 'DDRS blueprint for DoD financial statement reporting',
+    description: 'Explore DDRS as the DoD financial reporting layer for component trial balance intake, USSGL/TAS validation, GTAS tie-outs, consolidation, intragovernmental eliminations, top-side adjustments, statements, notes, and audit support.',
+    metric: '4',
+    metricLabel: 'Core DDRS lineage scenarios',
+    metricDetail: 'TB -> Edits -> GTAS -> AFR/PAR',
+    referenceImage: '/ddrs-blueprint-reference.svg',
+    referenceTitle: 'DDRS static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/ddrs-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'DDRS is modeled as the Defense Departmental Reporting System for DoD financial reporting, consolidating component trial balances into statement, note, Treasury, and audit-support outputs.',
+      whoUsesIt: 'DoD reporting teams, component financial managers, DFAS/shared-service support, trial-balance owners, Treasury/GTAS reporting users, eliminations teams, statement preparers, and auditors rely on DDRS data or outputs.',
+      howItIsUsed: 'It ingests trial balances, applies USSGL/TAS edits and crosswalks, supports consolidation, GTAS tie-outs, eliminations, top-side adjustments, AFR/PAR statement production, note schedules, and audit reconciliations.',
+      currentStatus: 'Modeled as an active DoD financial reporting layer. Public module and interface detail is limited, so exact variants, workflow names, and modernization state require authoritative DoD reporting documentation.',
+      whyItIsUsed: 'It gives DoD a controlled statement-production path from component accounting systems to consolidated financial reports, Treasury reporting, disclosure schedules, and audit evidence.',
+      feederCount: 6,
+      feederSystems: ['Component ERP Trial Balances', 'Legacy Accounting Sources', 'Working Capital Fund Sources', 'Treasury / GTAS / IPAC', 'IGT / Trading Partner Data', 'Audit / Component Support Packages'],
+      feederNote: 'The blueprint models 6 DDRS source/partner categories; authoritative interface counts require DoD reporting records.'
+    },
+    layers: ddrsLayers,
+    nodes: ddrsNodes,
+    lineageScenarios: ddrsLineageScenarios,
+    supportServices: ddrsSupportServices,
+    caveats: ddrsCaveats,
+    sources: ddrsSources
   },
   {
     slug: 'navy-erp',

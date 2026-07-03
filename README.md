@@ -13,6 +13,7 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/systems/stars` STARS Navy legacy accounting blueprint
   - `/systems/sabrs` Marine Corps SABRS accounting, budgeting, and reporting blueprint
   - `/systems/famis` FAMIS-GF / FAMIS-WCF accounting blueprint
+  - `/systems/ddrs` Defense Departmental Reporting System financial reporting blueprint
   - `/systems/navy-erp` Navy ERP architecture blueprint
   - `/systems/dai` Defense Agencies Initiative blueprint
   - `/systems/deams` Defense Enterprise Accounting and Management System blueprint
@@ -55,6 +56,8 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/public/sabrs-blueprint-reference.svg`
 - FAMIS static reference asset:
   - `/public/famis-blueprint-reference.svg`
+- DDRS static reference asset:
+  - `/public/ddrs-blueprint-reference.svg`
 - DAI verification notes:
   - `/docs/DAI_BLUEPRINT_VERIFICATION.md`
 - Existing GFEBS static reference:
