@@ -6855,6 +6855,552 @@ const mocasSources = [
   { name: 'Treasury CARS', url: 'https://fiscal.treasury.gov/accounting/central-accounting-reporting-system-cars' }
 ];
 
+const pieeLayers = [
+  { id: 'source', label: 'Requirements, Award, and Contract Sources', short: 'Source', description: 'PIEE pre-award, award, contract repository, modification, delivery order, vendor, CAGE, DoDAAC, and procurement-data sources.' },
+  { id: 'capabilities', label: 'PIEE Suite Applications and Workflow', short: 'Core', description: 'WAWF, EDA, MDO, GFP, IUID, JAM, SPM, closeout, solicitation, purchase-card, and operational support capabilities.' },
+  { id: 'transactions', label: 'Procurement and Payment Documents', short: 'Detail', description: 'Invoice, receiving report, combo, cost voucher, progress payment, performance-based payment, property transfer, acceptance, COR, and closeout detail.' },
+  { id: 'accounting', label: 'ERP GL, Entitlement, and Disbursing Handoff', short: 'Accounting', description: 'Interfaces and control points that connect PIEE evidence to accounting systems, pay entitlement, DFAS/disbursing systems, and Treasury classification.' },
+  { id: 'reporting', label: 'Data Warehouse, Risk, and Reporting', short: 'Reporting', description: 'PIEE data warehouse, SPRS, Advana-facing data, EDA extracts, payment status, audit sampling, and enterprise reporting.' },
+  { id: 'statements', label: 'Financial Statement and Audit Outputs', short: 'Statements', description: 'Obligation, ULO, AP, expense, asset, outlay, FBWT, SBR, SNC, GTAS/DDRS, and contract-file audit outputs.' }
+];
+
+const pieeNodes = [
+  {
+    id: 'piee-vendor-sam-source',
+    layer: 'source',
+    title: 'Vendor / CAGE / SAM Source',
+    subtitle: 'Vendor identity, CAGE, UEI, registration, banking/tax context',
+    icon: 'VEN',
+    tags: ['vendor', 'CAGE', 'SAM', 'payee', 'registration'],
+    summary: 'Vendor and entity information controls who can submit documents, which CAGE/UEI is associated with the transaction, and how payee evidence ties to contract and payment records.',
+    examples: ['vendor registration', 'CAGE-controlled role', 'UEI reference', 'payee identity support'],
+    auditQuestions: ['Does the payee match the award and invoice?', 'Is the vendor role properly scoped to CAGE or contractor DoDAAC?', 'Are payee changes controlled before payment?'],
+    keyFields: ['CAGE', 'UEI', 'vendor name', 'TIN indicator', 'role', 'contractor DoDAAC', 'payee account reference'],
+    risks: ['payee mismatch', 'unauthorized submitter', 'stale vendor data', 'duplicate vendor identity']
+  },
+  {
+    id: 'piee-dodaac-admin-source',
+    layer: 'source',
+    title: 'DoDAAC / Role Administration',
+    subtitle: 'GAM, CAM, location codes, roles, access control',
+    icon: 'ROLE',
+    tags: ['DoDAAC', 'roles', 'GAM', 'access', 'workflow'],
+    summary: 'PIEE routes work by role, DoDAAC, CAGE, location code, and workflow responsibility, which makes access control part of the financial evidence chain.',
+    examples: ['GAM role assignment', 'acceptor role', 'pay official role', 'auditor view-only', 'DoDAAC routing'],
+    auditQuestions: ['Were users authorized for the contract/location?', 'Did segregation of duties hold across acceptance and payment?', 'Can role history support the transaction workflow?'],
+    keyFields: ['DoDAAC', 'CAGE', 'role', 'group', 'location code', 'user ID', 'effective date'],
+    risks: ['excessive role access', 'invalid routing', 'segregation-of-duties conflict']
+  },
+  {
+    id: 'piee-solicitation-source',
+    layer: 'source',
+    title: 'PIEE Solicitation Module',
+    subtitle: 'Solicitations, notices, responses, multiple-award contract support',
+    icon: 'SOL',
+    tags: ['solicitation', 'pre-award', 'MAC', 'requirements'],
+    summary: 'The solicitation capability supports pre-award procurement activity, including public-facing solicitation search and multiple-award contract administration support represented in PIEE training material.',
+    examples: ['solicitation', 'amendment', 'MAC record', 'vendor response support'],
+    auditQuestions: ['Can award evidence trace back to solicitation and requirements?', 'Were amendments controlled?', 'Does the solicitation record support competition/award history?'],
+    keyFields: ['solicitation number', 'amendment', 'MAC ID', 'offeror', 'response date', 'requirement reference'],
+    risks: ['award lacks pre-award support', 'amendment not reflected', 'solicitation/award mismatch']
+  },
+  {
+    id: 'piee-award-writing-source',
+    layer: 'source',
+    title: 'Contract Writing / Award Source',
+    subtitle: 'ACWS, ECWM, CON-IT, external contract writing systems',
+    icon: 'AWD',
+    tags: ['award', 'contract writing', 'PDS', 'obligation', 'PIID'],
+    summary: 'Award-writing systems create contract, CLIN, SLIN, ACRN, funding, delivery, and payment terms that flow into EDA/PIEE evidence and ERP obligation records.',
+    examples: ['contract award', 'delivery order', 'task order', 'PDS award file', 'funding line'],
+    auditQuestions: ['Does the ERP obligation agree to the award?', 'Do CLIN/ACRN lines support later WAWF invoices and receipts?', 'Were award changes distributed to downstream systems?'],
+    keyFields: ['PIID', 'mod number', 'CLIN', 'SLIN', 'ACRN', 'fund cite', 'payment office DoDAAC', 'admin office DoDAAC'],
+    risks: ['award not posted to ERP', 'missing funding line', 'invalid payment office', 'PDS interface error']
+  },
+  {
+    id: 'piee-eda-core',
+    layer: 'capabilities',
+    title: 'EDA',
+    subtitle: 'Electronic Data Access contract repository',
+    icon: 'EDA',
+    tags: ['EDA', 'contract repository', 'PIID', 'contract', 'PDS'],
+    summary: 'EDA provides contract and award-document access used by WAWF, auditors, procurement users, and financial systems to confirm contract terms and line-level support.',
+    examples: ['contract document', 'modification', 'delivery order', 'award attachment', 'PDS extract'],
+    auditQuestions: ['Does WAWF pre-populated contract data agree to EDA?', 'Can an invoice sample trace to the authoritative award document?', 'Are modifications visible and current?'],
+    keyFields: ['PIID', 'mod number', 'CLIN', 'contract file', 'vendor', 'admin office', 'payment office'],
+    risks: ['contract document missing', 'EDA/WAWF mismatch', 'stale mod', 'line detail unavailable']
+  },
+  {
+    id: 'piee-mdo-core',
+    layer: 'capabilities',
+    title: 'MDO',
+    subtitle: 'Modifications and Delivery Orders',
+    icon: 'MDO',
+    tags: ['MDO', 'modification', 'delivery order', 'order'],
+    summary: 'MDO supports creation and routing of modification and order documents, preserving award-change detail that must be reflected in EDA, WAWF, ERP obligations, and payment support.',
+    examples: ['modification document', 'ARZ modification', 'delivery order', 'task order'],
+    auditQuestions: ['Did the modification update funding, delivery, or payment terms?', 'Did ERP and WAWF use the same revised terms?', 'Are contractor reviews and approvals retained?'],
+    keyFields: ['PIID', 'mod number', 'order number', 'CLIN', 'effective date', 'review status'],
+    risks: ['modification not propagated', 'order paid under old terms', 'approval evidence missing']
+  },
+  {
+    id: 'piee-wawf-core',
+    layer: 'capabilities',
+    title: 'WAWF',
+    subtitle: 'Wide Area Workflow invoice, receipt, and acceptance',
+    icon: 'WAWF',
+    tags: ['WAWF', 'invoice', 'receiving', 'acceptance', 'payment'],
+    summary: 'WAWF is the central PIEE payment-evidence workflow for invoices, receiving reports, acceptance, combo documents, cost vouchers, financing requests, and payment-office handoff.',
+    examples: ['invoice', 'receiving report', 'invoice and receiving report combo', 'cost voucher', 'progress payment request'],
+    auditQuestions: ['Does payment have invoice, receipt, and acceptance evidence?', 'Were rejects corrected before payment?', 'Do WAWF amounts match contract and ERP/AP records?'],
+    keyFields: ['WAWF document number', 'invoice', 'receiving report', 'PIID', 'CLIN', 'CAGE', 'pay DoDAAC', 'amount'],
+    risks: ['payment without acceptance', 'duplicate invoice', 'WAWF/AP mismatch', 'workflow reject unresolved']
+  },
+  {
+    id: 'piee-myinvoice-core',
+    layer: 'capabilities',
+    title: 'myInvoice',
+    subtitle: 'Invoice/payment status visibility',
+    icon: 'INV',
+    tags: ['myInvoice', 'payment status', 'vendor', 'invoice'],
+    summary: 'myInvoice provides invoice and payment visibility for vendors and support users, helping reconcile WAWF submission, payment-office processing, and disbursement status.',
+    examples: ['invoice status query', 'payment status', 'voucher lookup', 'rejection status'],
+    auditQuestions: ['Does status agree with WAWF and entitlement systems?', 'Are rejected or suspended invoices resolved?', 'Can vendors and support teams trace invoice lifecycle status?'],
+    keyFields: ['invoice number', 'voucher', 'PIID', 'pay office', 'status', 'payment date', 'amount'],
+    risks: ['status mismatch', 'stale rejected invoice', 'payment inquiry unsupported']
+  },
+  {
+    id: 'piee-gfp-core',
+    layer: 'capabilities',
+    title: 'GFP Module',
+    subtitle: 'Government Furnished Property accountability',
+    icon: 'GFP',
+    tags: ['GFP', 'property', 'contract property', 'asset'],
+    summary: 'GFP functionality supports contract-property visibility and movement for government-furnished property that may affect accountability, asset records, and audit evidence.',
+    examples: ['GFP attachment', 'property shipment', 'property receipt', 'property transfer'],
+    auditQuestions: ['Does GFP on the contract agree to property records?', 'Are transfers and receipts documented?', 'Does property evidence tie to asset/accountability systems?'],
+    keyFields: ['PIID', 'GFP attachment', 'property ID', 'NSN', 'UID', 'quantity', 'custodian'],
+    risks: ['GFP not recorded', 'asset accountability gap', 'property transfer unsupported']
+  },
+  {
+    id: 'piee-iuid-core',
+    layer: 'capabilities',
+    title: 'IUID Registry',
+    subtitle: 'Item unique identification and UID registry support',
+    icon: 'IUID',
+    tags: ['IUID', 'UID', 'property', 'asset'],
+    summary: 'IUID registry support preserves item-unique identifiers used to track accountable property, delivered assets, GFP, and serially managed items.',
+    examples: ['UID registration', 'item mark', 'serial record', 'asset identifier'],
+    auditQuestions: ['Do delivered or GFP assets have required UID evidence?', 'Do UID records agree with property and acceptance data?', 'Can asset samples trace to contract and receipt?'],
+    keyFields: ['UID', 'serial number', 'NSN', 'CAGE', 'PIID', 'acceptance date', 'asset record'],
+    risks: ['missing UID', 'serial mismatch', 'asset not capitalized or tracked']
+  },
+  {
+    id: 'piee-jam-core',
+    layer: 'capabilities',
+    title: 'JAM',
+    subtitle: 'Joint Appointment Module for COR appointments',
+    icon: 'JAM',
+    tags: ['JAM', 'COR', 'appointment', 'oversight'],
+    summary: 'JAM supports appointment workflow for Contracting Officer Representatives and related oversight roles, tying contract surveillance authority to the contract record.',
+    examples: ['COR nomination', 'COR appointment', 'appointment letter', 'training record'],
+    auditQuestions: ['Was the COR appointed before performing surveillance?', 'Does the appointment cover the contract and period?', 'Is training/qualification evidence retained?'],
+    keyFields: ['appointment ID', 'COR', 'PIID', 'appointing official', 'effective date', 'termination date'],
+    risks: ['unappointed COR activity', 'expired appointment', 'missing training evidence']
+  },
+  {
+    id: 'piee-spm-core',
+    layer: 'capabilities',
+    title: 'SPM',
+    subtitle: 'Surveillance and Performance Monitoring',
+    icon: 'SPM',
+    tags: ['SPM', 'COR', 'surveillance', 'performance'],
+    summary: 'SPM supports COR surveillance and performance monitoring evidence, connecting contract performance to receipt/acceptance and payment support.',
+    examples: ['surveillance plan', 'monthly COR report', 'performance note', 'contractor performance evidence'],
+    auditQuestions: ['Does performance evidence support acceptance and payment?', 'Were deficiencies documented and resolved?', 'Does SPM align to COR appointments in JAM?'],
+    keyFields: ['PIID', 'COR', 'surveillance period', 'performance status', 'report ID', 'finding'],
+    risks: ['acceptance without performance evidence', 'surveillance gap', 'unresolved deficiency']
+  },
+  {
+    id: 'piee-closeout-core',
+    layer: 'capabilities',
+    title: 'Contract Closeout',
+    subtitle: 'Closeout checklist, final invoice, release, deobligation support',
+    icon: 'CLOSE',
+    tags: ['closeout', 'contract', 'ULO', 'deobligation'],
+    summary: 'Contract closeout supports final administrative actions, final payment confirmation, property and patent/royalty clearances, deobligation support, and file completion.',
+    examples: ['closeout checklist', 'final invoice', 'release of claims', 'deobligation request'],
+    auditQuestions: ['Were all invoices paid or voided?', 'Were excess funds deobligated?', 'Is final acceptance and closeout evidence complete?'],
+    keyFields: ['PIID', 'closeout status', 'final invoice', 'ULO balance', 'deobligation amount', 'close date'],
+    risks: ['stale ULO', 'incomplete closeout', 'final payment not reconciled']
+  },
+  {
+    id: 'piee-purchase-card-core',
+    layer: 'capabilities',
+    title: 'Purchase Card / GPC Interfaces',
+    subtitle: 'Purchase-card group, Access Online, Oversight/IOD links',
+    icon: 'GPC',
+    tags: ['GPC', 'purchase card', 'micro-purchase', 'bank'],
+    summary: 'PIEE training and system messages show purchase-card related capabilities and external platform links; financially, these provide micro-purchase, receiving, review, and bank/statement reconciliation context.',
+    examples: ['purchase card receiving report', 'micro-purchase receiving report', 'GPC review', 'bank statement support'],
+    auditQuestions: ['Does card activity have purchase, receipt, approval, and bank support?', 'Are split purchases or high-risk merchant codes reviewed?', 'Did accounting post to the right LOA?'],
+    keyFields: ['cardholder', 'merchant', 'transaction ID', 'LOA', 'receiving report', 'statement date', 'amount'],
+    risks: ['unsupported micro-purchase', 'split purchase', 'bank/accounting mismatch']
+  },
+  {
+    id: 'piee-wawf-document-detail',
+    layer: 'transactions',
+    title: 'WAWF Document Types',
+    subtitle: 'RR, invoice, combo, 2-in-1, cost voucher, grant, misc pay',
+    icon: 'DOC',
+    tags: ['document type', 'invoice', 'receiving report', 'combo', 'cost voucher'],
+    summary: 'WAWF document types include receiving reports, invoices, invoice/receiving-report combos, 2-in-1 services invoices, cost vouchers, miscellaneous pay, grant vouchers, and specialty invoice types.',
+    examples: ['Receiving Report', 'Invoice', 'Invoice and Receiving Report Combo', '2-in-1', 'Cost Voucher', 'Miscellaneous Pay Document'],
+    auditQuestions: ['Is the right document type used for the contract/payment scenario?', 'Are required fields complete?', 'Did document type drive correct entitlement/accounting treatment?'],
+    keyFields: ['document type', 'document number', 'invoice number', 'receiving report number', 'PIID', 'CLIN', 'amount'],
+    risks: ['wrong document type', 'missing required field', 'incorrect entitlement route']
+  },
+  {
+    id: 'piee-receipt-acceptance-detail',
+    layer: 'transactions',
+    title: 'Inspection, Receipt, and Acceptance',
+    subtitle: 'Inspector, acceptor, LPO, pay official, digital workflow',
+    icon: 'ACPT',
+    tags: ['acceptance', 'inspection', 'receipt', 'LPO', 'pay official'],
+    summary: 'Government users inspect, accept, reject, approve, review, certify, process, hold, recall, void, or resubmit WAWF documents depending on role and workflow.',
+    examples: ['inspection', 'acceptance', 'rejection', 'LPO review', 'pay official review'],
+    auditQuestions: ['Was acceptance performed by an authorized official?', 'Did acceptance occur before payment?', 'Were rejected documents corrected and resubmitted?'],
+    keyFields: ['acceptor', 'inspector', 'LPO', 'acceptance date', 'rejection reason', 'workflow status'],
+    risks: ['acceptance after payment', 'unauthorized acceptance', 'reject not resolved']
+  },
+  {
+    id: 'piee-cost-financing-detail',
+    layer: 'transactions',
+    title: 'Cost Voucher and Contract Financing',
+    subtitle: 'Cost voucher, CIF, PBP, progress payment, advance-like activity',
+    icon: 'FIN',
+    tags: ['cost voucher', 'CIF', 'PBP', 'progress payment', 'financing'],
+    summary: 'PIEE/WAWF supports cost vouchers and contract-financing request types that feed entitlement and accounting differently from standard firm-fixed-price invoices.',
+    examples: ['Cost Voucher', 'Commercial Item Financing', 'Performance Based Payment', 'Progress Payment'],
+    auditQuestions: ['Is financing authorized by contract terms?', 'Are rates and liquidation logic correct?', 'Does ERP accounting track financing balances and liquidation?'],
+    keyFields: ['payment request type', 'financing rate', 'liquidation amount', 'voucher', 'PIID', 'CLIN', 'amount'],
+    risks: ['unauthorized financing', 'liquidation error', 'unsupported cost voucher']
+  },
+  {
+    id: 'piee-property-detail',
+    layer: 'transactions',
+    title: 'Property and IUID Detail',
+    subtitle: 'Property transfer, GFP, UID, serial, NSN, custody',
+    icon: 'PROP',
+    tags: ['property', 'GFP', 'IUID', 'asset', 'transfer'],
+    summary: 'Property and IUID detail documents item movement, receipt, custody, unique identifiers, and contract-property evidence that can affect asset accountability and audit samples.',
+    examples: ['Property Transfer Document', 'GFP receipt', 'UID registration', 'property shipment'],
+    auditQuestions: ['Does property detail tie to contract and acceptance?', 'Are UID and asset records consistent?', 'Are custody transfers documented?'],
+    keyFields: ['UID', 'NSN', 'serial', 'PIID', 'quantity', 'ship from', 'ship to', 'custodian'],
+    risks: ['property not capitalized', 'custody mismatch', 'UID missing']
+  },
+  {
+    id: 'piee-cor-surveillance-detail',
+    layer: 'transactions',
+    title: 'COR Surveillance Detail',
+    subtitle: 'JAM appointment, SPM reports, performance evidence',
+    icon: 'COR',
+    tags: ['COR', 'JAM', 'SPM', 'surveillance', 'performance'],
+    summary: 'COR surveillance detail connects appointment authority to performance monitoring, monthly reports, deficiencies, and acceptance/payment support for service contracts.',
+    examples: ['COR appointment', 'surveillance report', 'performance note', 'deficiency record'],
+    auditQuestions: ['Does performance support acceptance?', 'Was the COR appointed for the contract and period?', 'Are service-delivery issues reflected before payment?'],
+    keyFields: ['COR', 'appointment ID', 'PIID', 'report period', 'performance status', 'finding'],
+    risks: ['unsupported service acceptance', 'appointment gap', 'surveillance not retained']
+  },
+  {
+    id: 'piee-edi-sftp-detail',
+    layer: 'transactions',
+    title: 'EDI / SFTP / Web Submission Detail',
+    subtitle: 'Web, EDI, SFTP, GEX, accepted/rejected transaction notices',
+    icon: 'EDI',
+    tags: ['EDI', 'SFTP', 'GEX', 'submission', 'interface'],
+    summary: 'Vendors can submit WAWF documents through web, EDI, or SFTP; EDI transactions flow through GEX and generate accepted, modified, or rejected transaction notices.',
+    examples: ['web document', 'EDI file', 'SFTP file', 'GEX transaction', 'reject notice'],
+    auditQuestions: ['Were interface rejects resolved?', 'Do batch counts reconcile to accepted WAWF documents?', 'Are modified data elements explained?'],
+    keyFields: ['batch ID', 'transaction ID', 'submission method', 'accept/reject status', 'error code', 'document number'],
+    risks: ['lost interface file', 'unresolved reject', 'batch/detail mismatch']
+  },
+  {
+    id: 'piee-erp-gl-interface',
+    layer: 'accounting',
+    title: 'ERP / GL Systems',
+    subtitle: 'GFEBS, Navy ERP, DAI, DEAMS, LMP, DLA EBS, CEFMS',
+    icon: 'GL',
+    tags: ['ERP', 'GL', 'GFEBS', 'Navy ERP', 'DAI', 'DEAMS'],
+    summary: 'PIEE is not the GL; ERP/accounting systems record obligations, AP, accruals, expenses, assets, inventory, ULOs, and USSGL postings using PIEE evidence as support.',
+    examples: ['ERP obligation', 'AP invoice posting', 'goods receipt', 'expense accrual', 'asset record'],
+    auditQuestions: ['Does ERP accounting tie to PIEE award/invoice/acceptance?', 'Are interface rejects resolved?', 'Do GL balances reconcile to source detail?'],
+    keyFields: ['ERP document', 'PIID', 'CLIN', 'invoice', 'receipt', 'USSGL', 'TAS', 'amount'],
+    risks: ['PIEE/GL mismatch', 'invoice not posted', 'receipt not accrued', 'unsupported GL balance']
+  },
+  {
+    id: 'piee-entitlement-handoff',
+    layer: 'accounting',
+    title: 'Entitlement / Pay Office Handoff',
+    subtitle: 'DFAS entitlement, AP validation, voucher certification',
+    icon: 'PAY',
+    tags: ['entitlement', 'DFAS', 'pay office', 'voucher', 'certification'],
+    summary: 'Accepted invoice and receiving evidence moves to entitlement/pay-office processing where the voucher is validated, matched, certified, and prepared for disbursement.',
+    examples: ['entitlement record', 'voucher certification', 'pay office validation', 'suspended payment'],
+    auditQuestions: ['Did entitlement use the same invoice and acceptance evidence?', 'Were suspensions/rejections resolved?', 'Was payment certified before disbursement?'],
+    keyFields: ['pay office DoDAAC', 'voucher', 'invoice', 'WAWF document', 'entitlement status', 'certifier', 'amount'],
+    risks: ['entitlement mismatch', 'suspended invoice aged', 'uncertified payment']
+  },
+  {
+    id: 'piee-disbursing-handoff',
+    layer: 'accounting',
+    title: 'Disbursing Systems Handoff',
+    subtitle: 'ADS, DCAS, DDS, payment status, cash accountability',
+    icon: 'DISB',
+    tags: ['disbursing', 'ADS', 'DCAS', 'DDS', 'outlay'],
+    summary: 'Certified entitlement becomes a disbursement through DFAS/payment systems, with payment status, cash accountability, Treasury classification, and outlay records tied back to PIEE evidence.',
+    examples: ['ADS payment', 'DCAS accountability', 'payment file', 'EFT status', 'disbursing voucher'],
+    auditQuestions: ['Does the paid amount match certified PIEE/entitlement support?', 'Did payment status return to the invoice lifecycle?', 'Does disbursement reconcile to Treasury and FBWT?'],
+    keyFields: ['voucher', 'payment ID', 'DSSN', 'ALC', 'payment date', 'method', 'amount', 'status'],
+    risks: ['payment not tied to WAWF', 'duplicate disbursement', 'cash accountability mismatch']
+  },
+  {
+    id: 'piee-cars-ipac-treasury',
+    layer: 'accounting',
+    title: 'Treasury / CARS / IPAC Classification',
+    subtitle: 'TAS, BETC, ALC, FBWT, IGT settlement where applicable',
+    icon: 'CARS',
+    tags: ['CARS', 'Treasury', 'IPAC', 'FBWT', 'TAS-BETC'],
+    summary: 'Payment and collection activity is classified in Treasury/CARS; IPAC may apply for intragovernmental settlements, and FBWT ties the agency accounting side to Treasury records.',
+    examples: ['CARS transaction', 'TAS-BETC classification', 'IPAC settlement', 'FBWT tie-out'],
+    auditQuestions: ['Does Treasury classification agree to ERP and disbursing records?', 'Are IPAC settlements tied to buyer/seller accounting?', 'Are FBWT differences explained?'],
+    keyFields: ['ALC', 'TAS', 'BETC', 'IPAC document', 'CARS reference', 'FBWT difference', 'amount'],
+    risks: ['invalid TAS-BETC', 'FBWT mismatch', 'IPAC not reconciled']
+  },
+  {
+    id: 'piee-sdw-reporting',
+    layer: 'reporting',
+    title: 'PIEE / WAWF Data Warehouse',
+    subtitle: 'SDW, extracts, status reporting, analytics',
+    icon: 'SDW',
+    tags: ['SDW', 'data warehouse', 'reporting', 'extract'],
+    summary: 'PIEE/WAWF reporting and data warehouse capabilities support enterprise status, aging, audit selection, interface monitoring, and cross-system reconciliation.',
+    examples: ['document status extract', 'invoice aging', 'acceptance report', 'interface report'],
+    auditQuestions: ['Do report extracts tie to transactional records?', 'Are report periods and filters controlled?', 'Can extracts support audit sampling?'],
+    keyFields: ['extract ID', 'report date', 'document number', 'status', 'PIID', 'amount', 'aging'],
+    risks: ['extract not reproducible', 'report/detail mismatch', 'cutoff error']
+  },
+  {
+    id: 'piee-sprs-reporting',
+    layer: 'reporting',
+    title: 'SPRS',
+    subtitle: 'Supplier Performance Risk System',
+    icon: 'SPRS',
+    tags: ['SPRS', 'supplier risk', 'performance', 'reporting'],
+    summary: 'SPRS is represented in PIEE glossary/training material as Supplier Performance Risk System; it informs procurement risk rather than directly posting GL or disbursement transactions.',
+    examples: ['supplier risk indicator', 'performance risk', 'supplier information support'],
+    auditQuestions: ['Was supplier risk considered where required?', 'Does risk data support procurement decisions?', 'Is SPRS treated as decision support rather than accounting source?'],
+    keyFields: ['supplier', 'CAGE', 'risk indicator', 'assessment date', 'source reference'],
+    risks: ['risk data ignored', 'risk source misused as accounting support', 'stale supplier assessment']
+  },
+  {
+    id: 'piee-advana-reporting',
+    layer: 'reporting',
+    title: 'Advana / Enterprise Data Sharing',
+    subtitle: 'OUSD data, analytics, oversight, cross-system matching',
+    icon: 'DATA',
+    tags: ['Advana', 'data', 'analytics', 'oversight'],
+    summary: 'PIEE enhancement material references OUSD/Advana data; analytically, PIEE feeds can support enterprise matching of award, invoice, acceptance, payment, and accounting populations.',
+    examples: ['enterprise data feed', 'cross-system match', 'exception analytics', 'audit population'],
+    auditQuestions: ['Are data feeds reconciled to PIEE source records?', 'Are cross-system keys complete?', 'Can analytics tie back to authoritative transaction detail?'],
+    keyFields: ['PIID', 'document number', 'invoice', 'pay office', 'ERP document', 'payment ID', 'amount'],
+    risks: ['analytics not traceable', 'key mismatch', 'incomplete source population']
+  },
+  {
+    id: 'piee-audit-file-reporting',
+    layer: 'reporting',
+    title: 'EDA / PIEE Audit File',
+    subtitle: 'contract, invoice, receipt, acceptance, role history, status',
+    icon: 'AUD',
+    tags: ['audit', 'evidence', 'contract file', 'PIEE'],
+    summary: 'The audit file combines EDA contract terms, MDO changes, WAWF invoice/receipt/acceptance, JAM/SPM oversight, GFP/IUID support, ERP accounting, and payment/disbursement evidence.',
+    examples: ['contract file', 'invoice support', 'acceptance record', 'payment status', 'role history'],
+    auditQuestions: ['Can a sample trace end to end?', 'Are all required source documents retained?', 'Are role and workflow actions defensible?'],
+    keyFields: ['sample ID', 'PIID', 'invoice', 'receiving report', 'ERP document', 'payment ID', 'support package'],
+    risks: ['incomplete support package', 'workflow gap', 'sample cannot trace']
+  },
+  {
+    id: 'piee-ap-accrual-output',
+    layer: 'statements',
+    title: 'AP, Accrual, and Expense Support',
+    subtitle: 'invoice receipt, acceptance, AP, expense, cutoff',
+    icon: 'AP',
+    tags: ['AP', 'accrual', 'expense', 'cutoff', 'statement'],
+    summary: 'PIEE evidence supports AP, expense, receipt/accrual, and cutoff assertions by showing what was invoiced, received, accepted, rejected, or pending at period end.',
+    examples: ['AP support', 'receipt accrual', 'expense support', 'period-end cutoff sample'],
+    auditQuestions: ['Do AP and accrual balances tie to WAWF status?', 'Were accepted but unpaid invoices accrued?', 'Are rejected invoices excluded or disclosed properly?'],
+    keyFields: ['invoice', 'acceptance date', 'ERP AP document', 'accrual amount', 'period', 'status'],
+    risks: ['unrecorded liability', 'cutoff error', 'AP not supported by acceptance']
+  },
+  {
+    id: 'piee-obligation-ulo-output',
+    layer: 'statements',
+    title: 'Obligation and ULO Support',
+    subtitle: 'award, mod, delivery order, invoice, payment, closeout',
+    icon: 'ULO',
+    tags: ['obligation', 'ULO', 'SBR', 'closeout'],
+    summary: 'Contract, modification, invoice, payment, and closeout records support obligation validity, ULO aging, deobligation decisions, and SBR assertions.',
+    examples: ['ULO aging support', 'obligation rollforward', 'deobligation package', 'closeout support'],
+    auditQuestions: ['Is the ULO still valid?', 'Do payments and closeout actions support remaining balances?', 'Were excess funds deobligated timely?'],
+    keyFields: ['PIID', 'CLIN', 'obligation amount', 'payment amount', 'ULO balance', 'closeout status'],
+    risks: ['stale ULO', 'obligation overstatement', 'deobligation not processed']
+  },
+  {
+    id: 'piee-outlay-fbwt-output',
+    layer: 'statements',
+    title: 'Outlay and FBWT Support',
+    subtitle: 'disbursement, CARS, Treasury, SBR, FBWT',
+    icon: 'FBWT',
+    tags: ['outlay', 'FBWT', 'Treasury', 'SBR'],
+    summary: 'Disbursing and Treasury records tied to PIEE/ERP payment support provide evidence for outlays, FBWT, and Statement of Budgetary Resources reporting.',
+    examples: ['outlay support', 'FBWT reconciliation', 'Treasury tie-out', 'CARS support'],
+    auditQuestions: ['Can outlays trace to accepted invoices and disbursements?', 'Does FBWT reconcile to Treasury?', 'Are timing differences explained?'],
+    keyFields: ['payment ID', 'voucher', 'ALC', 'TAS', 'BETC', 'FBWT amount', 'difference'],
+    risks: ['outlay unsupported', 'FBWT difference unresolved', 'Treasury classification error']
+  },
+  {
+    id: 'piee-asset-property-output',
+    layer: 'statements',
+    title: 'Asset and Property Support',
+    subtitle: 'GFP, IUID, receiving, acceptance, capitalization',
+    icon: 'ASSET',
+    tags: ['asset', 'property', 'GFP', 'IUID', 'capitalization'],
+    summary: 'GFP/IUID, receipt, and acceptance evidence supports property accountability and asset capitalization where procurement activity creates accountable or capital assets.',
+    examples: ['capital asset support', 'GFP support', 'UID evidence', 'property receipt'],
+    auditQuestions: ['Does asset capitalization tie to contract and acceptance?', 'Are GFP and UID records complete?', 'Is custody/accountability support retained?'],
+    keyFields: ['UID', 'asset ID', 'PIID', 'acceptance date', 'capitalization amount', 'custodian'],
+    risks: ['asset not recorded', 'property existence gap', 'capitalization misstatement']
+  },
+  {
+    id: 'piee-ddrs-gtas-output',
+    layer: 'statements',
+    title: 'DDRS / GTAS Statement Support',
+    subtitle: 'trial balance, USSGL, TAS, procurement-to-pay assertions',
+    icon: 'GTAS',
+    tags: ['DDRS', 'GTAS', 'trial balance', 'statement'],
+    summary: 'ERP GL results supported by PIEE evidence roll through DDRS/GTAS reporting for AP, expense, assets, obligations, outlays, FBWT, and statement line support.',
+    examples: ['trial balance support', 'GTAS attribute support', 'statement sample', 'DDRS tie-out'],
+    auditQuestions: ['Do reported amounts trace to ERP and PIEE source evidence?', 'Are USSGL/TAS attributes complete?', 'Can sample selections bridge from statement to transaction?'],
+    keyFields: ['TAS', 'USSGL', 'trial balance line', 'PIID', 'invoice', 'payment ID', 'support package'],
+    risks: ['statement amount not traceable', 'attribute mismatch', 'support package incomplete']
+  }
+];
+
+const pieeLineageScenarios = [
+  {
+    id: 'piee-p2p-to-gl-payment',
+    short: 'P2P',
+    title: 'Award to WAWF Acceptance, ERP GL, Entitlement, and Disbursement',
+    description: 'Traces standard procure-to-pay from award source and EDA through WAWF invoice/receipt/acceptance, ERP GL posting, entitlement, DFAS disbursing, Treasury/CARS, and statement support.',
+    path: ['piee-award-writing-source', 'piee-eda-core', 'piee-wawf-core', 'piee-wawf-document-detail', 'piee-receipt-acceptance-detail', 'piee-erp-gl-interface', 'piee-entitlement-handoff', 'piee-disbursing-handoff', 'piee-outlay-fbwt-output'],
+    steps: [
+      'Award-writing and EDA establish contract, CLIN, funding, vendor, payment-office, and delivery terms.',
+      'The vendor or government submits WAWF invoice, receiving, combo, or related payment-support documents.',
+      'Authorized government users inspect, accept, reject, review, certify, process, hold, recall, or void documents based on role and workflow.',
+      'ERP/accounting systems post obligation liquidation, AP, accrual, expense, asset, inventory, or GL effects using PIEE evidence.',
+      'Entitlement and DFAS/disbursing systems certify and pay the voucher, while CARS/Treasury and FBWT records support outlay reporting.'
+    ],
+    exceptionTests: ['award not in EDA', 'WAWF reject unresolved', 'acceptance missing', 'ERP AP mismatch', 'payment not tied to WAWF', 'FBWT difference unresolved']
+  },
+  {
+    id: 'piee-financing-to-liquidation',
+    short: 'Financing',
+    title: 'Contract Financing and Cost Voucher to Liquidation and Statement Support',
+    description: 'Shows how cost vouchers, progress payments, performance-based payments, and commercial-item financing connect to entitlement, GL, liquidation, and audit evidence.',
+    path: ['piee-award-writing-source', 'piee-eda-core', 'piee-cost-financing-detail', 'piee-wawf-core', 'piee-entitlement-handoff', 'piee-erp-gl-interface', 'piee-disbursing-handoff', 'piee-obligation-ulo-output', 'piee-audit-file-reporting'],
+    steps: [
+      'Contract terms authorize cost voucher or financing payment types and define rates, ceilings, and liquidation rules.',
+      'WAWF captures the cost voucher, progress payment, performance-based payment, or commercial-item financing request.',
+      'Entitlement validates the request against contract terms, approvals, and available funding.',
+      'ERP accounting records financing, liquidation, expense, AP, and outlay impacts as applicable.',
+      'Audit evidence ties the financing request to contract authority, payment, liquidation, ULO, and statement support.'
+    ],
+    exceptionTests: ['financing not authorized', 'liquidation rate error', 'cost voucher unsupported', 'ERP balance mismatch', 'ULO stale']
+  },
+  {
+    id: 'piee-property-asset',
+    short: 'Property',
+    title: 'GFP/IUID and Receipt Evidence to Asset or Property Accountability',
+    description: 'Connects GFP, IUID, property transfer, receiving, and acceptance evidence to asset/property accounting and audit support.',
+    path: ['piee-award-writing-source', 'piee-gfp-core', 'piee-iuid-core', 'piee-property-detail', 'piee-receipt-acceptance-detail', 'piee-erp-gl-interface', 'piee-asset-property-output'],
+    steps: [
+      'Award and GFP terms identify government-furnished or deliverable property requirements.',
+      'GFP and IUID records preserve property identity, serial/UID, custody, and movement evidence.',
+      'WAWF receipt and acceptance supports delivery or transfer confirmation.',
+      'ERP/accountability systems update asset, property, inventory, or custody records.',
+      'Asset/property statement support ties existence, completeness, rights, and valuation assertions to source evidence.'
+    ],
+    exceptionTests: ['GFP not recorded', 'UID missing', 'property transfer unsupported', 'asset not capitalized', 'custody mismatch']
+  },
+  {
+    id: 'piee-cor-service-acceptance',
+    short: 'COR',
+    title: 'JAM/SPM COR Surveillance to Service Acceptance and Payment',
+    description: 'Traces service-contract oversight from COR appointment and surveillance records to WAWF acceptance, ERP/AP, entitlement, payment, and audit package.',
+    path: ['piee-jam-core', 'piee-spm-core', 'piee-cor-surveillance-detail', 'piee-wawf-core', 'piee-receipt-acceptance-detail', 'piee-erp-gl-interface', 'piee-entitlement-handoff', 'piee-audit-file-reporting'],
+    steps: [
+      'JAM establishes COR appointment authority for a contract, period, and role.',
+      'SPM and COR records document surveillance and service performance evidence.',
+      'WAWF acceptance reflects authorized confirmation of services or deliverables.',
+      'ERP and entitlement processes use acceptance evidence to support AP, expense, and payment.',
+      'Audit packages retain appointment, surveillance, acceptance, invoice, accounting, and payment evidence.'
+    ],
+    exceptionTests: ['COR not appointed', 'surveillance gap', 'acceptance not supported by performance', 'service invoice mismatch', 'audit package incomplete']
+  },
+  {
+    id: 'piee-closeout-ulo',
+    short: 'Closeout',
+    title: 'Contract Closeout to ULO Validation and Deobligation',
+    description: 'Shows how closeout, final invoice/payment, EDA/MDO, WAWF status, ERP balances, and ULO support connect.',
+    path: ['piee-eda-core', 'piee-mdo-core', 'piee-closeout-core', 'piee-sdw-reporting', 'piee-erp-gl-interface', 'piee-obligation-ulo-output', 'piee-ddrs-gtas-output'],
+    steps: [
+      'EDA/MDO preserve the current contract and modification terms.',
+      'Closeout confirms final delivery, final invoice/payment, property disposition, and administrative clearances.',
+      'PIEE/WAWF reporting identifies open, rejected, final, or unpaid documents.',
+      'ERP balances are reviewed for remaining ULOs, accruals, AP, or deobligation needs.',
+      'DDRS/GTAS and statement support use the validated balance and closeout evidence.'
+    ],
+    exceptionTests: ['final invoice unpaid', 'stale ULO', 'deobligation not posted', 'closeout evidence incomplete', 'contract/mod mismatch']
+  }
+];
+
+const pieeSupportServices = [
+  { title: 'Award and Contract Repository', detail: 'Solicitation, award-writing, EDA contract access, MDO modifications/delivery orders, PDS data, attachments, CLIN/ACRN, vendor, and payment-office context.' },
+  { title: 'WAWF Payment Evidence', detail: 'Invoice, receiving report, combo, cost voucher, financing request, inspection, acceptance, rejection, recall, void, pay official, and LPO workflow evidence.' },
+  { title: 'Property and COR Oversight', detail: 'GFP, IUID, property transfers, JAM appointments, SPM surveillance, service performance evidence, acceptance support, and asset/property traceability.' },
+  { title: 'ERP and GL Integration', detail: 'Obligation, AP, accrual, expense, asset, inventory, ULO, GL, USSGL, TAS, and interface reject reconciliation across GFEBS, Navy ERP, DAI, DEAMS, LMP, DLA EBS, CEFMS, and other accounting systems.' },
+  { title: 'Entitlement and Disbursing', detail: 'Pay office, entitlement validation, voucher certification, DFAS payment, ADS/DCAS/DDS disbursing records, payment status, CARS/Treasury classification, and FBWT reconciliation.' },
+  { title: 'Reporting and Audit', detail: 'PIEE/WAWF data warehouse, EDA extracts, SPRS risk support, Advana-facing analytics, document aging, audit sample packages, DDRS/GTAS support, and statement tie-outs.' }
+];
+
+const pieeCaveats = [
+  'PIEE is a procurement and payment-evidence environment, not the general ledger. It supplies contract, invoice, receipt, acceptance, property, COR, and workflow evidence used by ERP/accounting, entitlement, and disbursing systems.',
+  'The public PIEE pages and training material expose many suite applications and document types, but exact production interfaces, agency-specific configurations, and pay-office routing require authorized DoD/PIEE documentation.',
+  'Some modules are internal, evolving, or interface-driven. This blueprint is a business-process architecture view intended to explain GL and disbursement relationships, not a system security architecture.',
+  'Feeder counts are modeled source/partner categories represented in this blueprint, not a certified production interface inventory.'
+];
+
+const pieeSources = [
+  { name: 'PIEE login and public system messages', url: 'https://piee.eb.mil/' },
+  { name: 'PIEE Web Based Training', url: 'https://pieetraining.eb.mil/wbt/' },
+  { name: 'PIEE Document List', url: 'https://pieetraining.eb.mil/wbt/xhtml/wbt/portal/overview/PIEEDocumentList.xhtml' },
+  { name: 'WAWF Functional Information', url: 'https://piee.eb.mil/xhtml/unauth/web/homepage/functionalInfo.xhtml' },
+  { name: 'PIEE Role List', url: 'https://pieetraining.eb.mil/wbt/xhtml/wbt/portal/overview/PIEERoleList.xhtml' },
+  { name: 'PIEE Glossary', url: 'https://pieetraining.eb.mil/wbt/xhtml/wbt/portal/overview/Glossary.xhtml' },
+  { name: 'DFAS official site', url: 'https://www.dfas.mil/' },
+  { name: 'Treasury CARS', url: 'https://fiscal.treasury.gov/accounting/central-accounting-reporting-system-cars' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -7250,6 +7796,39 @@ export const systems = [
     supportServices: mocasSupportServices,
     caveats: mocasCaveats,
     sources: mocasSources
+  },
+  {
+    slug: 'piee',
+    shortName: 'PIEE',
+    name: 'PIEE Suite',
+    longName: 'Procurement Integrated Enterprise Environment / PIEE Suite Blueprint',
+    agency: 'DoD Procurement',
+    eyebrow: 'PIEE blueprint for procurement, payment evidence, GL, and disbursement lineage',
+    description: 'Explore PIEE as the DoD procurement and payment-evidence suite connecting solicitation, award, EDA, MDO, WAWF, myInvoice, GFP, IUID, JAM, SPM, closeout, purchase-card support, ERP GL systems, entitlement, DFAS disbursing, Treasury/CARS/IPAC, DDRS/GTAS, and audit evidence.',
+    metric: '5',
+    metricLabel: 'Core PIEE lineage scenarios',
+    metricDetail: 'Award -> WAWF -> GL -> Pay -> Treasury',
+    referenceImage: '/piee-blueprint-reference.svg',
+    referenceTitle: 'PIEE suite static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/piee-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'PIEE is the Procurement Integrated Enterprise Environment, a DoD procurement and payment-evidence suite that includes WAWF, EDA, MDO, GFP, IUID, JAM, SPM, closeout, solicitation, reporting, and related support capabilities.',
+      whoUsesIt: 'Vendors, contracting officers, contract specialists, CORs, inspectors, acceptors, pay officials, LPOs, property users, auditors, DFAS/pay offices, ERP/accounting teams, and DoD procurement oversight users rely on PIEE data.',
+      howItIsUsed: 'It supports solicitation/award evidence, contract repository access, modifications and orders, invoice submission, receiving, inspection, acceptance, cost vouchers, contract financing, property records, COR appointments/surveillance, payment status, closeout, and audit support.',
+      currentStatus: 'Operational DoD enterprise environment; public PIEE pages show version 7.7.x-era training and public access points, while exact production integrations require authorized DoD/PIEE documentation.',
+      whyItIsUsed: 'PIEE standardizes procurement-to-payment evidence so GL systems can post supported obligations, AP, accruals, expenses, assets, ULOs, and outlays, and so disbursing/Treasury/audit teams can trace payment from contract to statement.',
+      feederCount: 12,
+      feederSystems: ['Vendor / CAGE / SAM Sources', 'DoDAAC / Role Administration', 'Solicitation / Contract Writing', 'EDA / MDO', 'WAWF / myInvoice', 'GFP / IUID', 'JAM / SPM', 'Purchase Card / Bank Sources', 'ERP GL Systems', 'Entitlement / Pay Office Systems', 'DFAS Disbursing / ADS / DCAS / DDS', 'Treasury / CARS / IPAC / DDRS / GTAS'],
+      feederNote: 'The blueprint models 12 major PIEE feeder/partner categories across procurement, accounting, payment, Treasury, reporting, and audit.'
+    },
+    layers: pieeLayers,
+    nodes: pieeNodes,
+    lineageScenarios: pieeLineageScenarios,
+    supportServices: pieeSupportServices,
+    caveats: pieeCaveats,
+    sources: pieeSources
   },
   {
     slug: 'navy-erp',

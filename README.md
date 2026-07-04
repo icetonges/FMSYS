@@ -18,6 +18,7 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/systems/disbursing-cash` ADS / DDS / DCAS disbursing and cash accountability blueprint
   - `/systems/ipac` IPAC intragovernmental payment and collection blueprint
   - `/systems/mocas` MOCAS contract administration and payment-support blueprint
+  - `/systems/piee` Procurement Integrated Enterprise Environment suite blueprint
   - `/systems/navy-erp` Navy ERP architecture blueprint
   - `/systems/dai` Defense Agencies Initiative blueprint
   - `/systems/deams` Defense Enterprise Accounting and Management System blueprint
@@ -70,6 +71,8 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/public/ipac-blueprint-reference.svg`
 - MOCAS static reference asset:
   - `/public/mocas-blueprint-reference.svg`
+- PIEE static reference asset:
+  - `/public/piee-blueprint-reference.svg`
 - DAI verification notes:
   - `/docs/DAI_BLUEPRINT_VERIFICATION.md`
 - Existing GFEBS static reference:

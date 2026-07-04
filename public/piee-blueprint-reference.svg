@@ -1,0 +1,62 @@
+<svg width="1700" height="960" viewBox="0 0 1700 960" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">PIEE procurement to payment and GL blueprint reference</title>
+  <desc id="desc">Static blueprint showing PIEE applications and how procurement, award, receipt, invoice, acceptance, property, COR surveillance, GL, entitlement, disbursing, Treasury, and audit outputs connect.</desc>
+  <rect width="1700" height="960" fill="#081421"/>
+  <g stroke="#1d4ed8" stroke-width="1" opacity=".24">
+    <path d="M80 0v960M330 0v960M580 0v960M830 0v960M1080 0v960M1330 0v960M1580 0v960"/>
+    <path d="M0 120h1700M0 250h1700M0 380h1700M0 510h1700M0 640h1700M0 770h1700M0 900h1700"/>
+  </g>
+  <text x="60" y="72" fill="#f8fafc" font-family="Arial, sans-serif" font-size="36" font-weight="700">PIEE Suite: Procurement to GL, Entitlement, and Disbursement</text>
+  <text x="60" y="112" fill="#bfdbfe" font-family="Arial, sans-serif" font-size="18">Solicitation - Award - EDA - MDO - WAWF - GFP/IUID - JAM/SPM - ERP GL - Entitlement - DFAS/Disbursing - Treasury - Audit</text>
+  <g font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#dbeafe">
+    <text x="85" y="172">Pre-award / award</text>
+    <text x="360" y="172">Post-award admin</text>
+    <text x="635" y="172">Receipt / invoice / acceptance</text>
+    <text x="960" y="172">GL / entitlement / payment</text>
+    <text x="1285" y="172">Treasury / reporting / audit</text>
+  </g>
+  <g fill="#102a4c" stroke="#60a5fa" stroke-width="2" font-family="Arial, sans-serif">
+    <rect x="60" y="215" width="230" height="95" rx="16"/>
+    <rect x="60" y="345" width="230" height="95" rx="16"/>
+    <rect x="60" y="475" width="230" height="95" rx="16"/>
+    <rect x="340" y="215" width="230" height="95" rx="16"/>
+    <rect x="340" y="345" width="230" height="95" rx="16"/>
+    <rect x="340" y="475" width="230" height="95" rx="16"/>
+    <rect x="620" y="215" width="260" height="95" rx="16"/>
+    <rect x="620" y="345" width="260" height="95" rx="16"/>
+    <rect x="620" y="475" width="260" height="95" rx="16"/>
+    <rect x="930" y="215" width="260" height="95" rx="16"/>
+    <rect x="930" y="345" width="260" height="95" rx="16"/>
+    <rect x="930" y="475" width="260" height="95" rx="16"/>
+    <rect x="1240" y="215" width="330" height="95" rx="16"/>
+    <rect x="1240" y="345" width="330" height="95" rx="16"/>
+    <rect x="1240" y="475" width="330" height="95" rx="16"/>
+  </g>
+  <g font-family="Arial, sans-serif" fill="#f8fafc">
+    <text x="86" y="255" font-size="23" font-weight="700">Solicitation / CON-IT</text><text x="86" y="282" font-size="14" fill="#cbd5e1">requirements, offers, awards</text>
+    <text x="86" y="385" font-size="23" font-weight="700">EDA</text><text x="86" y="412" font-size="14" fill="#cbd5e1">contract and CLIN source</text>
+    <text x="86" y="515" font-size="23" font-weight="700">MDO</text><text x="86" y="542" font-size="14" fill="#cbd5e1">mods and delivery orders</text>
+    <text x="366" y="255" font-size="23" font-weight="700">JAM / SPM</text><text x="366" y="282" font-size="14" fill="#cbd5e1">appointments, COR surveillance</text>
+    <text x="366" y="385" font-size="23" font-weight="700">GFP / IUID</text><text x="366" y="412" font-size="14" fill="#cbd5e1">property accountability</text>
+    <text x="366" y="515" font-size="23" font-weight="700">Closeout / SDW</text><text x="366" y="542" font-size="14" fill="#cbd5e1">contract close and data warehouse</text>
+    <text x="646" y="255" font-size="23" font-weight="700">WAWF</text><text x="646" y="282" font-size="14" fill="#cbd5e1">invoice, receipt, acceptance</text>
+    <text x="646" y="385" font-size="23" font-weight="700">myInvoice</text><text x="646" y="412" font-size="14" fill="#cbd5e1">vendor invoice visibility</text>
+    <text x="646" y="515" font-size="23" font-weight="700">CIF / PBP / PPR</text><text x="646" y="542" font-size="14" fill="#cbd5e1">contract financing requests</text>
+    <text x="956" y="255" font-size="23" font-weight="700">ERP GL systems</text><text x="956" y="282" font-size="14" fill="#cbd5e1">GFEBS, Navy ERP, DAI, DEAMS</text>
+    <text x="956" y="385" font-size="23" font-weight="700">Entitlement systems</text><text x="956" y="412" font-size="14" fill="#cbd5e1">invoice validation and pay file</text>
+    <text x="956" y="515" font-size="23" font-weight="700">DFAS / disbursing</text><text x="956" y="542" font-size="14" fill="#cbd5e1">ADS/DCAS/DDS and payment status</text>
+    <text x="1266" y="255" font-size="23" font-weight="700">CARS / Treasury / IPAC</text><text x="1266" y="282" font-size="14" fill="#cbd5e1">outlays, FBWT, IGT settlement</text>
+    <text x="1266" y="385" font-size="23" font-weight="700">DDRS / GTAS / statements</text><text x="1266" y="412" font-size="14" fill="#cbd5e1">trial balance and reporting support</text>
+    <text x="1266" y="515" font-size="23" font-weight="700">Audit evidence package</text><text x="1266" y="542" font-size="14" fill="#cbd5e1">award-to-payment traceability</text>
+  </g>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#fbbf24"/></marker></defs>
+  <g stroke="#fbbf24" stroke-width="4" fill="none" marker-end="url(#arrow)">
+    <path d="M290 262h50"/><path d="M570 262h50"/><path d="M880 262h50"/><path d="M1190 262h50"/>
+    <path d="M290 392h50"/><path d="M570 392h50"/><path d="M880 392h50"/><path d="M1190 392h50"/>
+    <path d="M290 522h50"/><path d="M570 522h50"/><path d="M880 522h50"/><path d="M1190 522h50"/>
+    <path d="M175 310v35"/><path d="M455 310v35"/><path d="M750 310v35"/><path d="M1060 310v35"/><path d="M1405 310v35"/>
+  </g>
+  <rect x="70" y="690" width="1500" height="135" rx="22" fill="#0f2747" stroke="#3b82f6" stroke-width="2"/>
+  <text x="100" y="740" fill="#f8fafc" font-family="Arial, sans-serif" font-size="24" font-weight="700">Financial lineage rule</text>
+  <text x="100" y="776" fill="#dbeafe" font-family="Arial, sans-serif" font-size="17">PIEE is not the GL. PIEE supplies contract, invoice, receipt, acceptance, property, COR, and status evidence. ERP/accounting systems post obligations, payables, expenses, assets, and GL; entitlement and disbursing systems execute payment; Treasury/CARS/IPAC records the cash side.</text>
+</svg>
