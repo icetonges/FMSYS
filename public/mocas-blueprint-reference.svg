@@ -1,0 +1,44 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">MOCAS contract administration and payment blueprint reference</title>
+  <desc id="desc">Static blueprint showing contract award, DCMA administration, MOCAS contract payment support, DFAS payment, accounting, Treasury, and audit outputs.</desc>
+  <rect width="1600" height="900" fill="#111827"/>
+  <g stroke="#475569" stroke-width="1" opacity=".35">
+    <path d="M90 0v900M330 0v900M570 0v900M810 0v900M1050 0v900M1290 0v900M1530 0v900"/>
+    <path d="M0 130h1600M0 270h1600M0 410h1600M0 550h1600M0 690h1600M0 830h1600"/>
+  </g>
+  <text x="60" y="72" fill="#f8fafc" font-family="Arial, sans-serif" font-size="34" font-weight="700">MOCAS Contract Administration to Payment Blueprint</text>
+  <text x="60" y="110" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="18">Award and modifications - administration - invoice and receiving evidence - payment execution - accounting - Treasury and audit</text>
+  <g fill="#1e293b" stroke="#93c5fd" stroke-width="2" font-family="Arial, sans-serif">
+    <rect x="60" y="220" width="230" height="105" rx="18"/>
+    <rect x="60" y="405" width="230" height="105" rx="18"/>
+    <rect x="350" y="220" width="230" height="105" rx="18"/>
+    <rect x="350" y="405" width="230" height="105" rx="18"/>
+    <rect x="640" y="220" width="230" height="105" rx="18"/>
+    <rect x="640" y="405" width="230" height="105" rx="18"/>
+    <rect x="930" y="220" width="230" height="105" rx="18"/>
+    <rect x="930" y="405" width="230" height="105" rx="18"/>
+    <rect x="1220" y="220" width="300" height="105" rx="18"/>
+    <rect x="1220" y="405" width="300" height="105" rx="18"/>
+  </g>
+  <g font-family="Arial, sans-serif" fill="#f8fafc">
+    <text x="88" y="265" font-size="24" font-weight="700">Award source</text><text x="88" y="294" font-size="15" fill="#cbd5e1">PIID, CLIN, funding, mod</text>
+    <text x="88" y="450" font-size="24" font-weight="700">ERP obligation</text><text x="88" y="479" font-size="15" fill="#cbd5e1">funds control and accounting</text>
+    <text x="378" y="265" font-size="24" font-weight="700">DCMA administration</text><text x="378" y="294" font-size="15" fill="#cbd5e1">quality, delivery, acceptance, insight</text>
+    <text x="378" y="450" font-size="24" font-weight="700">PIEE / WAWF</text><text x="378" y="479" font-size="15" fill="#cbd5e1">invoice, receiving, acceptance</text>
+    <text x="668" y="265" font-size="24" font-weight="700">MOCAS</text><text x="668" y="294" font-size="15" fill="#cbd5e1">legacy contract admin/payment support</text>
+    <text x="668" y="450" font-size="24" font-weight="700">Payment computation</text><text x="668" y="479" font-size="15" fill="#cbd5e1">progress, financing, liquidation</text>
+    <text x="958" y="265" font-size="24" font-weight="700">DFAS payment</text><text x="958" y="294" font-size="15" fill="#cbd5e1">certified voucher to disbursement</text>
+    <text x="958" y="450" font-size="24" font-weight="700">Accounting feed</text><text x="958" y="479" font-size="15" fill="#cbd5e1">liquidation, expense, outlay</text>
+    <text x="1248" y="265" font-size="24" font-weight="700">Treasury / CARS</text><text x="1248" y="294" font-size="15" fill="#cbd5e1">payment classification and FBWT</text>
+    <text x="1248" y="450" font-size="24" font-weight="700">Contract audit support</text><text x="1248" y="479" font-size="15" fill="#cbd5e1">award to invoice to payment evidence</text>
+  </g>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#f59e0b"/></marker></defs>
+  <g stroke="#f59e0b" stroke-width="4" fill="none" marker-end="url(#arrow)">
+    <path d="M290 272h60"/><path d="M580 272h60"/><path d="M870 272h60"/><path d="M1160 272h60"/>
+    <path d="M290 457h60"/><path d="M580 457h60"/><path d="M870 457h60"/><path d="M1160 457h60"/>
+    <path d="M175 325v80"/><path d="M755 325v80"/>
+  </g>
+  <rect x="80" y="650" width="1440" height="130" rx="22" fill="#1f2937" stroke="#93c5fd" stroke-width="2"/>
+  <text x="110" y="700" fill="#f8fafc" font-family="Arial, sans-serif" font-size="24" font-weight="700">Audit emphasis</text>
+  <text x="110" y="737" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="17">For administered contracts, payment support must trace from award and funding to DCMA administration evidence, WAWF/receiving data, MOCAS/DFAS payment records, accounting liquidation, Treasury outlay, and retained contract file support.</text>
+</svg>

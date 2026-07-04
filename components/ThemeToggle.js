@@ -5,16 +5,17 @@ import { useEffect, useState } from 'react';
 const STORAGE_KEY = 'fmsys-theme';
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState('dark');
-  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    if (typeof window === 'undefined') {
+      return 'dark';
+    }
+
+    return window.localStorage.getItem(STORAGE_KEY) === 'light' ? 'light' : 'dark';
+  });
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    const initial = stored === 'light' ? 'light' : 'dark';
-    setTheme(initial);
-    setMounted(true);
-    document.documentElement.setAttribute('data-theme', initial);
-  }, []);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   function toggle() {
     const next = theme === 'dark' ? 'light' : 'dark';
@@ -23,7 +24,8 @@ export default function ThemeToggle() {
     window.localStorage.setItem(STORAGE_KEY, next);
   }
 
-  const isLight = mounted && theme === 'light';
+  const isLight = theme === 'light';
+  const label = isLight ? 'Light' : 'Dark';
 
   return (
     <button
@@ -33,8 +35,8 @@ export default function ThemeToggle() {
       aria-label="Toggle dark and light mode"
       aria-pressed={isLight}
     >
-      <span aria-hidden="true">{isLight ? '☀️' : '🌙'}</span>
-      <span className="theme-toggle-label">{isLight ? 'Light' : 'Dark'}</span>
+      <span aria-hidden="true">{label}</span>
+      <span className="theme-toggle-label">{label}</span>
     </button>
   );
 }

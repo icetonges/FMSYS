@@ -6006,6 +6006,855 @@ const gtasCarsSources = [
   { name: 'Financial Report of the U.S. Government', url: 'https://fiscal.treasury.gov/reports-statements/financial-report' }
 ];
 
+const disbursingCashLayers = [
+  { id: 'source', label: 'Entitlement and Source Systems', short: 'Source', description: 'Payment entitlement, collection, debt, payroll, travel, invoice, and field activity sources that initiate disbursing actions.' },
+  { id: 'capabilities', label: 'Disbursing and Cash Systems', short: 'Core', description: 'ADS, DDS, DCAS, and related disbursing capabilities that execute payments, preserve voucher support, and control accountable-cash activity.' },
+  { id: 'transactions', label: 'Voucher and Cash Detail', short: 'Detail', description: 'Voucher schedules, certified payment lines, collections, deposits, cancellations, returns, accountability records, and reconciliation detail.' },
+  { id: 'accounting', label: 'Accounting and Control Layer', short: 'Accounting', description: 'Certification, disbursing officer accountability, cash reconciliation, GL interfaces, FBWT tie-outs, and exception controls.' },
+  { id: 'reporting', label: 'Treasury and Component Reporting', short: 'Reporting', description: 'CARS, Treasury payment reporting, component accounting feeds, DDRS/GTAS support, and disbursing reports.' },
+  { id: 'statements', label: 'Outlay, FBWT, and Audit Outputs', short: 'Statements', description: 'Outlay support, Fund Balance with Treasury, SBR/SNC support, cash accountability assertions, and audit evidence packages.' }
+];
+
+const disbursingCashNodes = [
+  {
+    id: 'ads-erp-entitlement',
+    layer: 'source',
+    title: 'ERP / Entitlement Sources',
+    subtitle: 'AP, payroll, travel, debt, vendor, entitlement records',
+    icon: 'SRC',
+    tags: ['entitlement', 'voucher', 'source', 'payment'],
+    summary: 'Payment entitlement begins in accounting, payroll, travel, contract, debt, or other feeder systems before it becomes a certified disbursing action.',
+    examples: ['vendor invoice', 'travel voucher', 'payroll entitlement', 'debt refund', 'contract financing request'],
+    auditQuestions: ['Does the payment trace to a valid entitlement?', 'Is the source population complete?', 'Are amounts and payees supported before certification?'],
+    keyFields: ['source system', 'voucher number', 'invoice or entitlement ID', 'payee', 'TAS', 'LOA', 'amount', 'certifying officer'],
+    risks: ['unsupported entitlement', 'duplicate payment', 'invalid payee', 'missing accounting classification']
+  },
+  {
+    id: 'ads-certification-source',
+    layer: 'source',
+    title: 'Certified Voucher Package',
+    subtitle: 'CO, DAO, appointment, pre-payment review, supporting evidence',
+    icon: 'CERT',
+    tags: ['certification', 'voucher', 'accountable official', 'control'],
+    summary: 'The certified voucher package records the accountable certification and support used by the disbursing office to make payment.',
+    examples: ['certified voucher', 'DD 577 appointment support', 'pre-payment review', 'supporting invoice'],
+    auditQuestions: ['Was the certifying official properly appointed?', 'Was the voucher certified before payment?', 'Is relied-upon support retained?'],
+    keyFields: ['certifier', 'certification date', 'voucher schedule', 'support package', 'review status', 'amount'],
+    risks: ['uncertified payment', 'missing appointment support', 'weak pre-payment review']
+  },
+  {
+    id: 'ads-collections-source',
+    layer: 'source',
+    title: 'Collections / Returns / Cancellations',
+    subtitle: 'refund, deposit, cancellation, debit voucher, correction',
+    icon: 'COLL',
+    tags: ['collection', 'return', 'cancellation', 'cash'],
+    summary: 'Collections, returned payments, cancellations, deposits, and adjustments create cash-accountability and accounting events that must be reconciled.',
+    examples: ['returned EFT', 'check cancellation', 'cash collection', 'deposit ticket', 'refund collection'],
+    auditQuestions: ['Are returns and collections recorded timely?', 'Do cash and deposit records reconcile?', 'Were corrections posted to accounting?'],
+    keyFields: ['collection ID', 'deposit number', 'payment reference', 'ALC', 'TAS', 'BETC', 'amount'],
+    risks: ['unrecorded collection', 'misclassified return', 'cash accountability difference']
+  },
+  {
+    id: 'ads-core',
+    layer: 'capabilities',
+    title: 'ADS',
+    subtitle: 'Automated Disbursing System',
+    icon: 'ADS',
+    tags: ['ads', 'disbursing', 'payment', 'dfas'],
+    summary: 'ADS is modeled as a DoD/DFAS disbursing execution environment for certified voucher payment, voucher scheduling, payment file generation, and disbursing evidence.',
+    examples: ['voucher schedule', 'EFT payment batch', 'check payment support', 'payment status'],
+    auditQuestions: ['Does ADS output match certified vouchers?', 'Are payment files controlled?', 'Can payment status trace to Treasury/agency accounting?'],
+    keyFields: ['voucher schedule', 'disbursing station symbol', 'ALC', 'payee', 'payment date', 'payment method', 'amount'],
+    risks: ['payment file mismatch', 'unmatched voucher', 'payment status not reconciled']
+  },
+  {
+    id: 'dds-core',
+    layer: 'capabilities',
+    title: 'DDS',
+    subtitle: 'Deployable Disbursing System',
+    icon: 'DDS',
+    tags: ['dds', 'deployable', 'field disbursing', 'cash'],
+    summary: 'DDS is modeled as deployable disbursing support for contingency or field environments where cash-like activity and local accountability require strong controls.',
+    examples: ['field payment', 'cash-like disbursement', 'deployed voucher', 'local collection'],
+    auditQuestions: ['Is deployed activity reported back to enterprise accounting?', 'Are cash holdings and vouchers controlled?', 'Are local records reconciled to central records?'],
+    keyFields: ['deployment location', 'disbursing officer', 'voucher', 'cash account', 'currency', 'amount', 'report date'],
+    risks: ['field cash loss', 'late reporting', 'manual record not reconciled']
+  },
+  {
+    id: 'dcas-core',
+    layer: 'capabilities',
+    title: 'DCAS',
+    subtitle: 'Defense Cash Accountability System',
+    icon: 'DCAS',
+    tags: ['dcas', 'cash accountability', 'disbursing officer', 'reconciliation'],
+    summary: 'DCAS is modeled as the cash-accountability control environment for disbursing officer accountability, cash records, vouchers, collections, and disbursing reports.',
+    examples: ['DO accountability record', 'cash accountability report', 'voucher control', 'collection accountability'],
+    auditQuestions: ['Do accountability records tie to payments and collections?', 'Are losses or differences investigated?', 'Do reports reconcile to Treasury and accounting?'],
+    keyFields: ['DO', 'DSSN', 'ALC', 'voucher', 'collection', 'cash balance', 'difference', 'period'],
+    risks: ['unexplained cash difference', 'incomplete accountability record', 'Treasury mismatch']
+  },
+  {
+    id: 'ads-payment-detail',
+    layer: 'transactions',
+    title: 'Payment and Voucher Detail',
+    subtitle: 'payee, method, voucher, date, amount, status',
+    icon: 'PAY',
+    tags: ['payment', 'voucher', 'detail', 'uot'],
+    summary: 'Payment detail preserves the Universe of Transactions for certified disbursements, including payee, method, amount, status, schedule, and source reference.',
+    examples: ['EFT line', 'check line', 'split disbursement', 'payment status'],
+    auditQuestions: ['Can every paid line trace to source and certification?', 'Do status changes have support?', 'Are cancelled or returned payments resolved?'],
+    keyFields: ['payment ID', 'voucher number', 'payee', 'method', 'amount', 'date', 'status', 'source reference'],
+    risks: ['missing source reference', 'unresolved return', 'duplicate line']
+  },
+  {
+    id: 'dds-field-detail',
+    layer: 'transactions',
+    title: 'Deployable Cash Detail',
+    subtitle: 'field voucher, local currency, cash balance, receipt, report',
+    icon: 'FLD',
+    tags: ['deployable', 'cash', 'field', 'detail'],
+    summary: 'Deployable detail captures local payment, cash, currency, voucher, collection, and reporting evidence needed to bring field activity into enterprise accountability.',
+    examples: ['field voucher', 'currency exchange support', 'cash count', 'collection receipt'],
+    auditQuestions: ['Are field payments reported timely?', 'Do cash counts reconcile to local records?', 'Are manual records complete?'],
+    keyFields: ['field voucher', 'location', 'currency', 'cash count', 'receipt', 'report date', 'amount'],
+    risks: ['cash count variance', 'late field report', 'missing manual support']
+  },
+  {
+    id: 'dcas-accountability-detail',
+    layer: 'transactions',
+    title: 'Cash Accountability Detail',
+    subtitle: 'DSSN, ALC, voucher, collection, deposit, difference',
+    icon: 'CASH',
+    tags: ['cash', 'accountability', 'detail', 'reconciliation'],
+    summary: 'Cash-accountability detail ties voucher activity, collections, deposits, cancellations, and corrections to the accountable disbursing officer record.',
+    examples: ['DSSN activity', 'ALC balance', 'deposit record', 'voucher control', 'difference aging'],
+    auditQuestions: ['Do cash-accountability details reconcile to reports?', 'Are differences aged and assigned?', 'Are collections and deposits complete?'],
+    keyFields: ['DSSN', 'ALC', 'voucher', 'collection', 'deposit', 'difference', 'owner', 'period'],
+    risks: ['unaged difference', 'deposit mismatch', 'unreconciled voucher']
+  },
+  {
+    id: 'ads-certification-control',
+    layer: 'accounting',
+    title: 'Certification and Accountable-Official Control',
+    subtitle: 'CO, DAO, DO, appointment, liability, payment review',
+    icon: 'CTRL',
+    tags: ['certification', 'control', 'liability', 'FMR'],
+    summary: 'Controls enforce certified payment, accountable-official roles, disbursing officer responsibilities, and relied-upon data before public funds are disbursed.',
+    examples: ['CO review', 'DAO support', 'DD 577 appointment', 'payment review checklist'],
+    auditQuestions: ['Were accountable roles properly assigned?', 'Did the DO rely on a certified voucher?', 'Are exceptions reviewed and resolved?'],
+    keyFields: ['CO', 'DAO', 'DO', 'appointment', 'certification date', 'review status', 'exception'],
+    risks: ['improper role', 'unsupported certification', 'unresolved exception']
+  },
+  {
+    id: 'ads-accounting-interface',
+    layer: 'accounting',
+    title: 'Accounting Interface and Liquidation',
+    subtitle: 'GL, budgetary/proprietary posting, obligation liquidation, outlay',
+    icon: 'GL',
+    tags: ['accounting', 'interface', 'outlay', 'liquidation'],
+    summary: 'Disbursing activity feeds accounting so obligations, expenses, payables, disbursements, and outlays are posted and reconciled.',
+    examples: ['obligation liquidation', 'expense/outlay posting', 'AP clearing', 'GL interface batch'],
+    auditQuestions: ['Did each payment post to accounting?', 'Does the accounting feed match disbursing records?', 'Are rejects resolved?'],
+    keyFields: ['interface batch', 'GL document', 'USSGL', 'TAS', 'LOA', 'voucher', 'amount'],
+    risks: ['interface reject', 'unliquidated obligation mismatch', 'GL/disbursing imbalance']
+  },
+  {
+    id: 'dcas-reconciliation-control',
+    layer: 'accounting',
+    title: 'Cash and FBWT Reconciliation',
+    subtitle: 'DCAS, accounting, CARS, Treasury, FBWT',
+    icon: 'RECON',
+    tags: ['reconciliation', 'fbwt', 'treasury', 'cash'],
+    summary: 'Reconciliation controls compare disbursing records, DCAS accountability, component accounting, CARS/Treasury records, and FBWT support.',
+    examples: ['FBWT tie-out', 'CARS transaction tie-out', 'DSSN reconciliation', 'difference aging'],
+    auditQuestions: ['Do disbursing totals reconcile to accounting and Treasury?', 'Are differences explained?', 'Are corrections posted on all sides?'],
+    keyFields: ['DSSN', 'ALC', 'TAS', 'CARS transaction', 'agency amount', 'Treasury amount', 'difference'],
+    risks: ['unresolved FBWT difference', 'CARS classification mismatch', 'correction not posted']
+  },
+  {
+    id: 'ads-treasury-reporting',
+    layer: 'reporting',
+    title: 'Treasury / CARS Reporting',
+    subtitle: 'payment classification, ALC, TAS-BETC, central accounting',
+    icon: 'CARS',
+    tags: ['treasury', 'cars', 'tas-betc', 'reporting'],
+    summary: 'Payment, collection, and disbursing activity is classified for Treasury central accounting and downstream CARS/FBWT reporting.',
+    examples: ['TAS-BETC classified transaction', 'payment report', 'collection report', 'central accounting extract'],
+    auditQuestions: ['Is TAS-BETC classification valid?', 'Do Treasury records agree to agency records?', 'Are payment and collection reports complete?'],
+    keyFields: ['ALC', 'TAS', 'BETC', 'DSSN', 'transaction date', 'amount', 'CARS reference'],
+    risks: ['invalid TAS-BETC', 'late Treasury reporting', 'agency/Treasury mismatch']
+  },
+  {
+    id: 'ads-component-reporting',
+    layer: 'reporting',
+    title: 'Component / DDRS / GTAS Support',
+    subtitle: 'trial balance, SBR, outlays, cash activity',
+    icon: 'RPT',
+    tags: ['ddrs', 'gtas', 'component', 'reporting'],
+    summary: 'Component reporting uses disbursing and accounting data for trial balance, SBR outlays, cash activity, FBWT, and GTAS reporting support.',
+    examples: ['trial balance support', 'SBR outlay support', 'DDRS tie-out', 'GTAS attribute support'],
+    auditQuestions: ['Do outlays tie to disbursing records?', 'Are GTAS attributes complete?', 'Are DDRS and source systems reconciled?'],
+    keyFields: ['TAS', 'USSGL', 'period', 'outlay', 'trial balance line', 'support package'],
+    risks: ['outlay unsupported', 'trial balance mismatch', 'reporting attribute missing']
+  },
+  {
+    id: 'ads-disbursing-report',
+    layer: 'statements',
+    title: 'Disbursing Accountability Reports',
+    subtitle: 'cash, vouchers, collections, differences, DO accountability',
+    icon: 'DO',
+    tags: ['disbursing', 'accountability', 'report', 'audit'],
+    summary: 'Disbursing reports provide accountability for cash, vouchers, collections, deposits, returns, corrections, and disbursing-officer responsibilities.',
+    examples: ['cash accountability report', 'voucher summary', 'collection summary', 'difference aging'],
+    auditQuestions: ['Do reports tie to detailed records?', 'Are differences assigned and resolved?', 'Is accountability complete for the period?'],
+    keyFields: ['DSSN', 'DO', 'period', 'voucher total', 'collection total', 'cash balance', 'difference'],
+    risks: ['report/detail mismatch', 'unresolved accountability difference', 'missing report support']
+  },
+  {
+    id: 'ads-fbwt-statement',
+    layer: 'statements',
+    title: 'FBWT / SBR Outlay Support',
+    subtitle: 'Fund Balance with Treasury, outlays, agency financial statements',
+    icon: 'FBWT',
+    tags: ['fbwt', 'sbr', 'outlay', 'statement'],
+    summary: 'Disbursing and Treasury records support FBWT, Statement of Budgetary Resources outlays, and agency financial-statement assertions.',
+    examples: ['FBWT reconciliation package', 'SBR outlay support', 'Treasury tie-out', 'statement support'],
+    auditQuestions: ['Can outlays be traced to payment detail?', 'Does FBWT reconcile?', 'Are timing differences documented?'],
+    keyFields: ['TAS', 'USSGL', 'outlay amount', 'FBWT balance', 'difference', 'support package'],
+    risks: ['FBWT unreconciled', 'outlay not traceable', 'timing difference unsupported']
+  }
+];
+
+const disbursingCashLineageScenarios = [
+  {
+    id: 'ads-certified-payment',
+    short: 'ADS Pay',
+    title: 'Certified Voucher to ADS Payment, Accounting, and Outlay',
+    description: 'Traces a certified entitlement through ADS payment execution, accounting interface, Treasury reporting, and SBR/FBWT support.',
+    path: ['ads-erp-entitlement', 'ads-certification-source', 'ads-core', 'ads-payment-detail', 'ads-accounting-interface', 'ads-treasury-reporting', 'ads-fbwt-statement'],
+    steps: [
+      'A source system establishes an entitlement and a certifying officer certifies the payment voucher.',
+      'ADS executes or supports the payment and preserves payment file, voucher schedule, payee, amount, date, and status detail.',
+      'The accounting interface posts liquidation, expense, payable clearing, disbursement, and outlay activity.',
+      'Treasury/CARS reporting classifies the transaction by ALC, TAS, BETC, and related attributes.',
+      'FBWT and SBR outlay support tie payment detail to accounting and Treasury records.'
+    ],
+    exceptionTests: ['uncertified voucher', 'payment not posted to accounting', 'invalid TAS-BETC', 'duplicate payment', 'FBWT difference unresolved']
+  },
+  {
+    id: 'dds-deployed-cash',
+    short: 'DDS Field',
+    title: 'Deployable Disbursing Field Activity to Enterprise Accountability',
+    description: 'Shows how deployable cash-like activity should be reported, reconciled, and tied to DCAS, accounting, and Treasury records.',
+    path: ['ads-erp-entitlement', 'dds-core', 'dds-field-detail', 'dcas-core', 'dcas-accountability-detail', 'dcas-reconciliation-control', 'ads-disbursing-report'],
+    steps: [
+      'A deployed office records local payment, collection, currency, or cash-like activity.',
+      'DDS captures field voucher and cash details for deployable disbursing operations.',
+      'DCAS/accountability records bring local activity under disbursing officer accountability.',
+      'Reconciliation compares field records, cash counts, reports, accounting, and Treasury-side activity.',
+      'Disbursing reports preserve the accountability trail for period close and audit.'
+    ],
+    exceptionTests: ['late field report', 'cash count variance', 'manual support missing', 'enterprise record not updated', 'unresolved DO difference']
+  },
+  {
+    id: 'dcas-collection-return',
+    short: 'DCAS Cash',
+    title: 'Collection, Return, or Cancellation to Cash Accountability and FBWT',
+    description: 'Traces collections, returned payments, cancellations, and corrections through DCAS accountability, Treasury reporting, and FBWT tie-out.',
+    path: ['ads-collections-source', 'dcas-core', 'dcas-accountability-detail', 'dcas-reconciliation-control', 'ads-treasury-reporting', 'ads-fbwt-statement'],
+    steps: [
+      'A collection, returned payment, cancellation, or correction creates a cash-accountability event.',
+      'DCAS records the event against disbursing officer, DSSN/ALC, voucher, deposit, or collection references.',
+      'Reconciliation compares DCAS, component accounting, CARS/Treasury, and FBWT records.',
+      'Treasury reporting classifies the correction or collection with valid central-accounting attributes.',
+      'FBWT support documents resolved and unresolved differences.'
+    ],
+    exceptionTests: ['collection not deposited', 'return not corrected', 'CARS mismatch', 'unaged difference', 'missing cancellation support']
+  }
+];
+
+const disbursingCashSupportServices = [
+  { title: 'Disbursing Execution', detail: 'Certified voucher payment, payment-file control, payment status, disbursement method, and voucher schedule traceability.' },
+  { title: 'Deployable Disbursing', detail: 'Field payment, collection, cash count, local-currency support, manual support retention, and enterprise reporting for deployed environments.' },
+  { title: 'Cash Accountability', detail: 'Disbursing officer accountability, DSSN/ALC records, collections, deposits, returns, cancellations, losses, and difference resolution.' },
+  { title: 'Accounting Interface', detail: 'Obligation liquidation, payable clearing, expense/outlay posting, interface rejects, USSGL/TAS classification, and trial-balance support.' },
+  { title: 'Treasury Reconciliation', detail: 'CARS/Treasury reporting, TAS-BETC, FBWT tie-out, agency-to-Treasury differences, corrections, and period close controls.' },
+  { title: 'Audit Evidence', detail: 'Source entitlement, certification, voucher detail, payment status, cash accountability, Treasury classification, accounting posting, and retained support package.' }
+];
+
+const disbursingCashCaveats = [
+  'ADS, DDS, and DCAS details are modeled from public disbursing and cash-management process knowledge; exact current interface inventories, screen names, file formats, and operational status require DFAS/DoD authoritative system documentation.',
+  'This page treats ADS as central disbursing execution support, DDS as deployable disbursing support, and DCAS as cash-accountability support. It is a process blueprint, not a certified system security architecture.',
+  'DoD FMR Volume 5 is used as the controlling public policy anchor for disbursing responsibilities, accountable officials, certification, disbursing officer accountability, cash management, and Treasury-aligned reporting.',
+  'Feeder counts are modeled source/partner categories represented in this blueprint, not a certified production interface inventory.'
+];
+
+const disbursingCashSources = [
+  { name: 'DoD FMR Volume 5, Chapter 1 - Purpose, Organization, and Duties', url: 'https://comptroller.defense.gov/Portals/45/documents/fmr/current/05/05_01.pdf' },
+  { name: 'DoD FMR', url: 'https://comptroller.defense.gov/FMR/' },
+  { name: 'DFAS official site', url: 'https://www.dfas.mil/' },
+  { name: 'Treasury CARS', url: 'https://fiscal.treasury.gov/accounting/central-accounting-reporting-system-cars' },
+  { name: 'Treasury Intragovernmental Transactions / IPAC', url: 'https://fiscal.treasury.gov/intragov/' }
+];
+
+const ipacLayers = [
+  { id: 'source', label: 'Agency and Trading Partner Sources', short: 'Source', description: 'Buyer and seller agency ERPs, G-Invoicing order/performance context, reimbursable records, and settlement requests.' },
+  { id: 'capabilities', label: 'IPAC Settlement Capabilities', short: 'Core', description: 'IPAC funds transfer, standardized descriptive data, TAS/BETC/ALC attributes, and RITS relationship where applicable.' },
+  { id: 'transactions', label: 'Settlement Detail', short: 'Detail', description: 'Buyer/seller, ALC, TAS, BETC, trading partner, order, performance, amount, and settlement-status detail.' },
+  { id: 'accounting', label: 'Buyer/Seller Accounting Controls', short: 'Accounting', description: 'Buyer payable/expense and seller receivable/revenue posting, CARS classification, FBWT, and trading-partner reconciliation.' },
+  { id: 'reporting', label: 'Treasury and Component Reporting', short: 'Reporting', description: 'CARS, GTAS, DDRS, G-Invoicing status, IPAC reports, and intragovernmental reporting support.' },
+  { id: 'statements', label: 'IGT, FBWT, and Elimination Outputs', short: 'Statements', description: 'FBWT support, SBR/SNC impact, intragovernmental elimination support, and audit evidence.' }
+];
+
+const ipacNodes = [
+  {
+    id: 'ipac-buyer-erp',
+    layer: 'source',
+    title: 'Buyer Agency ERP',
+    subtitle: 'obligation, expense, payable, LOA',
+    icon: 'BUY',
+    tags: ['buyer', 'erp', 'obligation', 'payable'],
+    summary: 'The buyer agency records obligation, order, receipt or performance, expense, and payable activity that supports an IPAC settlement.',
+    examples: ['buyer obligation', 'expense accrual', 'payable', 'order reference'],
+    auditQuestions: ['Does the buyer settlement trace to an obligation and support?', 'Are buyer TAS/BETC and trading partner attributes valid?'],
+    keyFields: ['buyer ALC', 'buyer TAS', 'order number', 'trading partner', 'amount', 'LOA'],
+    risks: ['buyer does not recognize settlement', 'invalid LOA', 'missing order support']
+  },
+  {
+    id: 'ipac-seller-erp',
+    layer: 'source',
+    title: 'Seller Agency ERP',
+    subtitle: 'reimbursable order, performance, receivable, revenue',
+    icon: 'SELL',
+    tags: ['seller', 'reimbursable', 'receivable', 'revenue'],
+    summary: 'The seller agency records reimbursable order, performance, billing, receivable, revenue, and collection activity related to the IPAC settlement.',
+    examples: ['seller reimbursable order', 'performance record', 'billing event', 'receivable'],
+    auditQuestions: ['Does seller revenue/collection tie to buyer settlement?', 'Are seller trading partner attributes complete?'],
+    keyFields: ['seller ALC', 'seller TAS', 'order number', 'performance date', 'trading partner', 'amount'],
+    risks: ['seller/buyer mismatch', 'unbilled performance', 'revenue not tied to settlement']
+  },
+  {
+    id: 'ipac-ginvoicing-context',
+    layer: 'source',
+    title: 'G-Invoicing Context',
+    subtitle: 'GT&C, order, performance, settlement validation',
+    icon: 'GINV',
+    tags: ['g-invoicing', 'igt', 'order', 'performance'],
+    summary: 'G-Invoicing provides the long-term IGT buy/sell context for agreements, orders, performance, and validation of settlement requests through IPAC.',
+    examples: ['GT&C', 'order', 'performance', 'settlement validation'],
+    auditQuestions: ['Does the IPAC settlement have the required G-Invoicing context?', 'Do order/performance records agree between partners?'],
+    keyFields: ['GT&C number', 'order number', 'performance ID', 'buyer', 'seller', 'amount'],
+    risks: ['settlement lacks order context', 'performance mismatch', 'legacy unsupported agreement']
+  },
+  {
+    id: 'ipac-core',
+    layer: 'capabilities',
+    title: 'IPAC',
+    subtitle: 'Intragovernmental Payment and Collection',
+    icon: 'IPAC',
+    tags: ['ipac', 'igt', 'settlement', 'treasury'],
+    summary: 'IPAC is Treasury Fiscal Service capability for federal entities to transfer funds between trading partners using standardized descriptive data.',
+    examples: ['IPAC charge', 'IPAC collection', 'adjustment', 'settlement status'],
+    auditQuestions: ['Did the IPAC settlement use valid buyer/seller and accounting attributes?', 'Does it reconcile to both agencies?'],
+    keyFields: ['IPAC document', 'buyer ALC', 'seller ALC', 'TAS', 'BETC', 'amount', 'settlement date'],
+    risks: ['wrong trading partner', 'invalid TAS/BETC', 'settlement not accepted by partner']
+  },
+  {
+    id: 'ipac-rits-core',
+    layer: 'capabilities',
+    title: 'RITS Component',
+    subtitle: 'Retirement and Insurance Transfer System relationship',
+    icon: 'RITS',
+    tags: ['rits', 'ipac', 'transfer', 'treasury'],
+    summary: 'Treasury identifies IPAC and RITS as components of the intragovernmental payment and collection capability; RITS is modeled as adjacent transfer functionality where applicable.',
+    examples: ['retirement transfer', 'insurance transfer', 'component report'],
+    auditQuestions: ['Is the activity in the correct IPAC or RITS channel?', 'Does the transfer classify properly for the agency?'],
+    keyFields: ['component', 'transfer ID', 'ALC', 'TAS', 'amount', 'period'],
+    risks: ['wrong channel', 'classification error', 'reconciliation gap']
+  },
+  {
+    id: 'ipac-settlement-detail',
+    layer: 'transactions',
+    title: 'Settlement Detail',
+    subtitle: 'buyer, seller, ALC, TAS, BETC, amount, status',
+    icon: 'SETL',
+    tags: ['settlement', 'detail', 'tas-betc', 'trading partner'],
+    summary: 'Settlement detail preserves buyer, seller, ALC, TAS, BETC, amount, date, order/performance references, and settlement status for audit and reconciliation.',
+    examples: ['IPAC document line', 'adjustment line', 'seller collection line', 'buyer charge line'],
+    auditQuestions: ['Do buyer and seller details agree?', 'Are required attributes complete?', 'Can the amount trace to order/performance support?'],
+    keyFields: ['IPAC document', 'buyer ALC', 'seller ALC', 'TAS', 'BETC', 'trading partner', 'amount', 'status'],
+    risks: ['missing attribute', 'partner mismatch', 'unmatched settlement']
+  },
+  {
+    id: 'ipac-adjustment-detail',
+    layer: 'transactions',
+    title: 'Adjustment and Reversal Detail',
+    subtitle: 'correction, reversal, dispute, reclassification',
+    icon: 'ADJ',
+    tags: ['adjustment', 'reversal', 'dispute', 'correction'],
+    summary: 'Adjustments, reversals, disputes, and reclassifications provide the correction trail when IPAC settlements require changes after initial posting.',
+    examples: ['IPAC reversal', 'dispute correction', 'TAS correction', 'amount adjustment'],
+    auditQuestions: ['Is the correction tied to the original settlement?', 'Did both agencies post the adjustment?', 'Is the dispute resolved?'],
+    keyFields: ['original IPAC document', 'adjustment ID', 'reason', 'amount', 'status', 'owner'],
+    risks: ['one-sided correction', 'unsupported reversal', 'aged dispute']
+  },
+  {
+    id: 'ipac-cars-classification',
+    layer: 'accounting',
+    title: 'CARS / TAS-BETC Classification',
+    subtitle: 'central accounting classification and effective-date control',
+    icon: 'CARS',
+    tags: ['cars', 'tas-betc', 'classification', 'treasury'],
+    summary: 'CARS and TAS-BETC classification connect IPAC settlement activity to Treasury central accounting and agency FBWT support.',
+    examples: ['TAS-BETC validation', 'CARS transaction', 'ALC tie-out', 'central accounting support'],
+    auditQuestions: ['Does CARS classification agree with agency records?', 'Is TAS-BETC valid for the transaction?', 'Are timing differences explained?'],
+    keyFields: ['CARS reference', 'ALC', 'TAS', 'BETC', 'effective date', 'amount'],
+    risks: ['CARS mismatch', 'invalid TAS-BETC', 'timing difference unresolved']
+  },
+  {
+    id: 'ipac-buyer-seller-gl',
+    layer: 'accounting',
+    title: 'Buyer / Seller GL Posting',
+    subtitle: 'AP, AR, expense, revenue, collections, eliminations',
+    icon: 'GL',
+    tags: ['gl', 'buyer', 'seller', 'elimination'],
+    summary: 'Buyer and seller agencies post mirrored accounting effects so expense/payable and revenue/receivable/collection activity can reconcile across trading partners.',
+    examples: ['buyer expense', 'seller revenue', 'receivable liquidation', 'payable clearing'],
+    auditQuestions: ['Do buyer and seller amounts match?', 'Are reciprocal USSGL/trading partner attributes complete?', 'Are eliminations supportable?'],
+    keyFields: ['GL document', 'USSGL', 'trading partner', 'buyer amount', 'seller amount', 'period'],
+    risks: ['reciprocal mismatch', 'missing trading partner', 'elimination difference']
+  },
+  {
+    id: 'ipac-reconciliation-control',
+    layer: 'accounting',
+    title: 'Trading Partner Reconciliation',
+    subtitle: 'buyer/seller, CARS, FBWT, GTAS, dispute resolution',
+    icon: 'RECON',
+    tags: ['reconciliation', 'trading partner', 'fbwt', 'igt'],
+    summary: 'Reconciliation compares buyer, seller, IPAC, CARS, FBWT, and reporting records to resolve trading partner differences.',
+    examples: ['buyer/seller tie-out', 'FBWT tie-out', 'dispute aging', 'elimination support'],
+    auditQuestions: ['Are buyer/seller differences aged and assigned?', 'Do IPAC and CARS records agree?', 'Are GTAS attributes consistent?'],
+    keyFields: ['trading partner', 'difference', 'aging', 'owner', 'resolution status', 'support package'],
+    risks: ['aged trading partner difference', 'unresolved FBWT difference', 'unsupported elimination']
+  },
+  {
+    id: 'ipac-reporting-output',
+    layer: 'reporting',
+    title: 'IPAC / IGT Reporting',
+    subtitle: 'settlement reports, status, query, data extracts',
+    icon: 'RPT',
+    tags: ['reporting', 'ipac', 'igt', 'status'],
+    summary: 'IPAC/IGT reporting provides settlement status, query, extract, and partner data used in close, reconciliation, and audit.',
+    examples: ['settlement report', 'query extract', 'partner report', 'status report'],
+    auditQuestions: ['Do report outputs tie to settlement detail?', 'Are report filters and periods controlled?', 'Are extracts retained?'],
+    keyFields: ['report ID', 'period', 'IPAC document', 'partner', 'amount', 'status'],
+    risks: ['report/detail mismatch', 'extract not retained', 'period cutoff error']
+  },
+  {
+    id: 'ipac-gtas-ddrs-output',
+    layer: 'reporting',
+    title: 'GTAS / DDRS IGT Support',
+    subtitle: 'trial balance attributes, reciprocal categories, eliminations',
+    icon: 'GTAS',
+    tags: ['gtas', 'ddrs', 'igt', 'elimination'],
+    summary: 'GTAS and DDRS support uses IPAC, buyer/seller GL, and reciprocal trading partner data for intragovernmental reporting and elimination support.',
+    examples: ['GTAS attribute support', 'DDRS trading partner support', 'reciprocal category tie-out'],
+    auditQuestions: ['Are reciprocal attributes complete?', 'Do GTAS balances agree with IPAC/GL support?', 'Are eliminations traceable?'],
+    keyFields: ['TAS', 'USSGL', 'trading partner', 'reciprocal category', 'amount', 'period'],
+    risks: ['attribute missing', 'GTAS/GL mismatch', 'unsupported reciprocal difference']
+  },
+  {
+    id: 'ipac-fbwt-output',
+    layer: 'statements',
+    title: 'FBWT and Outlay/Collection Support',
+    subtitle: 'agency-to-Treasury tie-out',
+    icon: 'FBWT',
+    tags: ['fbwt', 'outlay', 'collection', 'statement'],
+    summary: 'IPAC settlement affects agency FBWT, collections, outlays, reimbursable activity, and statement support depending on buyer/seller role.',
+    examples: ['FBWT reconciliation', 'collection support', 'outlay support', 'reimbursable support'],
+    auditQuestions: ['Does FBWT tie to IPAC and CARS?', 'Are settlement timing differences explained?', 'Are buyer/seller impacts posted correctly?'],
+    keyFields: ['ALC', 'TAS', 'IPAC document', 'FBWT amount', 'difference', 'period'],
+    risks: ['FBWT mismatch', 'timing difference unsupported', 'wrong buyer/seller treatment']
+  },
+  {
+    id: 'ipac-elimination-output',
+    layer: 'statements',
+    title: 'IGT Elimination Support',
+    subtitle: 'reciprocal balances, buyer/seller tie-out, audit package',
+    icon: 'ELIM',
+    tags: ['elimination', 'igt', 'trading partner', 'audit'],
+    summary: 'IGT elimination support uses buyer/seller reciprocal data, settlement evidence, and reconciliation packages to support governmentwide and DoD reporting.',
+    examples: ['reciprocal tie-out', 'elimination package', 'trading partner confirmation', 'difference explanation'],
+    auditQuestions: ['Are reciprocal balances supportable?', 'Can elimination amounts trace to settlement and GL?', 'Are differences explained?'],
+    keyFields: ['trading partner', 'reciprocal USSGL', 'amount', 'difference', 'support package'],
+    risks: ['unsupported elimination', 'unconfirmed trading partner', 'reciprocal mismatch']
+  }
+];
+
+const ipacLineageScenarios = [
+  {
+    id: 'ipac-buyer-seller-settlement',
+    short: 'Settlement',
+    title: 'Buyer/Seller IPAC Settlement to Accounting and CARS',
+    description: 'Traces a standard intragovernmental settlement from buyer/seller source records through IPAC, CARS classification, GL posting, and reporting.',
+    path: ['ipac-buyer-erp', 'ipac-seller-erp', 'ipac-ginvoicing-context', 'ipac-core', 'ipac-settlement-detail', 'ipac-cars-classification', 'ipac-buyer-seller-gl', 'ipac-fbwt-output'],
+    steps: [
+      'Buyer and seller agencies establish agreement, order, performance, obligation, receivable, payable, or reimbursable context.',
+      'IPAC transfers funds between federal trading partners with standardized descriptive data.',
+      'Settlement detail preserves ALC, TAS, BETC, buyer, seller, order, performance, amount, and status.',
+      'CARS classification and buyer/seller GL postings record central accounting and reciprocal accounting impacts.',
+      'FBWT, outlay, collection, and statement support tie the settlement to Treasury and agency records.'
+    ],
+    exceptionTests: ['buyer/seller mismatch', 'missing order/performance support', 'invalid TAS-BETC', 'IPAC not posted to GL', 'FBWT mismatch']
+  },
+  {
+    id: 'ipac-adjustment-reversal',
+    short: 'Adjust',
+    title: 'IPAC Adjustment, Reversal, or Dispute Resolution',
+    description: 'Shows how corrections preserve the original settlement link and update both trading partners, Treasury classification, and reporting support.',
+    path: ['ipac-settlement-detail', 'ipac-adjustment-detail', 'ipac-cars-classification', 'ipac-buyer-seller-gl', 'ipac-reconciliation-control', 'ipac-reporting-output'],
+    steps: [
+      'A disputed or incorrect settlement is identified from reconciliation, partner review, or reporting analysis.',
+      'Adjustment detail links the correction to the original IPAC document and records reason, amount, owner, and status.',
+      'CARS and agency GL records are corrected with valid TAS/BETC and partner attributes.',
+      'Reconciliation confirms both buyer and seller posted the correction.',
+      'Reports retain original and corrected activity for audit trail continuity.'
+    ],
+    exceptionTests: ['adjustment not linked to original', 'one-sided correction', 'aged dispute', 'invalid reclassification', 'reporting extract mismatch']
+  },
+  {
+    id: 'ipac-igt-elimination',
+    short: 'Eliminate',
+    title: 'IPAC and Trading Partner Data to IGT Elimination Support',
+    description: 'Connects settlement records to reciprocal buyer/seller balances, GTAS/DDRS attributes, and elimination packages.',
+    path: ['ipac-ginvoicing-context', 'ipac-core', 'ipac-settlement-detail', 'ipac-reconciliation-control', 'ipac-gtas-ddrs-output', 'ipac-elimination-output'],
+    steps: [
+      'G-Invoicing/IPAC data establishes partner, order, performance, and settlement support.',
+      'Settlement detail provides the transaction-level basis for reciprocal buyer/seller activity.',
+      'Trading partner reconciliation identifies differences and preserves explanations.',
+      'GTAS/DDRS reporting uses reciprocal and trading partner attributes for IGT support.',
+      'Elimination packages tie reported balances to IPAC, GL, and partner evidence.'
+    ],
+    exceptionTests: ['trading partner attribute missing', 'reciprocal amount mismatch', 'elimination unsupported', 'GTAS attribute not tied to GL', 'partner confirmation missing']
+  }
+];
+
+const ipacSupportServices = [
+  { title: 'Settlement Execution', detail: 'IPAC document creation, buyer/seller attributes, ALC, TAS, BETC, amount, status, and standardized descriptive data.' },
+  { title: 'G-Invoicing Alignment', detail: 'Agreement, order, performance, settlement validation, transition from legacy IGT processes, and partner coordination.' },
+  { title: 'CARS and Treasury Reporting', detail: 'Central accounting classification, CARS transaction support, FBWT tie-out, and timing-difference resolution.' },
+  { title: 'Buyer/Seller Accounting', detail: 'Expense, revenue, payable, receivable, collection, liquidation, USSGL, reciprocal attributes, and GL reconciliation.' },
+  { title: 'Trading Partner Reconciliation', detail: 'Buyer/seller tie-outs, disputes, reversals, adjustments, aged differences, and resolution evidence.' },
+  { title: 'IGT Elimination Support', detail: 'GTAS/DDRS trading partner attributes, reciprocal categories, elimination packages, and governmentwide/DoD reporting support.' }
+];
+
+const ipacCaveats = [
+  'IPAC is a Treasury Fiscal Service application used governmentwide, not a DoD-owned accounting system. This page models the DoD FM relationship to IPAC settlement, CARS, FBWT, GTAS/DDRS, and IGT eliminations.',
+  'Treasury describes G-Invoicing as the long-term IGT buy/sell solution and IPAC as the funds-transfer mechanism with standardized descriptive data; exact agency implementation patterns vary.',
+  'Current IPAC file formats, interface payloads, validations, and report access require current Treasury/Fiscal Service documentation and authorized system access.',
+  'Feeder counts are modeled source/partner categories represented in this blueprint, not a certified production interface inventory.'
+];
+
+const ipacSources = [
+  { name: 'Treasury Intragovernmental Transactions / IPAC', url: 'https://fiscal.treasury.gov/intragov/' },
+  { name: 'Treasury CARS', url: 'https://fiscal.treasury.gov/accounting/central-accounting-reporting-system-cars' },
+  { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+  { name: 'DoD FMR', url: 'https://comptroller.defense.gov/FMR/' }
+];
+
+const mocasLayers = [
+  { id: 'source', label: 'Contract, Funding, and Acceptance Sources', short: 'Source', description: 'Contract awards, modifications, funding lines, DCMA administration, receipt/acceptance, invoices, and ERP obligation records.' },
+  { id: 'capabilities', label: 'MOCAS and Contract Administration Capabilities', short: 'Core', description: 'MOCAS legacy contract administration/payment support, DCMA administration controls, DFAS payment, and contract financing support.' },
+  { id: 'transactions', label: 'Contract Payment Detail', short: 'Detail', description: 'PIID, CLIN, ACRN, invoice, receiving, acceptance, progress payment, liquidation, financing, and voucher detail.' },
+  { id: 'accounting', label: 'Accounting and Control Layer', short: 'Accounting', description: 'Funds control, obligation/liquidation accounting, AP, expense, outlay, payment certification, and contract reconciliation.' },
+  { id: 'reporting', label: 'Treasury, ERP, and Contract Reporting', short: 'Reporting', description: 'DFAS payment outputs, accounting feeds, Treasury/CARS, contract administration reports, and close/audit outputs.' },
+  { id: 'statements', label: 'Contract Liability, Outlay, and Audit Outputs', short: 'Statements', description: 'Obligation and ULO support, advances/contract financing, expenses, outlays, FBWT, and contract-file audit packages.' }
+];
+
+const mocasNodes = [
+  {
+    id: 'mocas-award-source',
+    layer: 'source',
+    title: 'Contract Award / Modification Source',
+    subtitle: 'PIID, CLIN, ACRN, funding, period, terms',
+    icon: 'AWD',
+    tags: ['contract', 'award', 'modification', 'funding'],
+    summary: 'Contract award and modification data establish the obligation, funding, line-item, payment, delivery, and administration context used by MOCAS and related systems.',
+    examples: ['award', 'modification', 'CLIN/SLIN', 'ACRN funding line', 'payment instructions'],
+    auditQuestions: ['Does payment trace to a valid award and funded line?', 'Are modifications reflected in the obligation and payment support?'],
+    keyFields: ['PIID', 'mod number', 'CLIN', 'ACRN', 'funding citation', 'vendor', 'amount'],
+    risks: ['award/payment mismatch', 'modification not posted', 'funding line missing']
+  },
+  {
+    id: 'mocas-erp-obligation',
+    layer: 'source',
+    title: 'ERP Obligation Record',
+    subtitle: 'funds control, obligation, ULO, accounting classification',
+    icon: 'ERP',
+    tags: ['erp', 'obligation', 'ulo', 'funds control'],
+    summary: 'The agency ERP records funds control, obligation, ULO, AP, expense, and liquidation accounting that must reconcile to MOCAS/DFAS payment activity.',
+    examples: ['obligation', 'ULO balance', 'AP record', 'expense posting', 'liquidation'],
+    auditQuestions: ['Does ERP obligation agree to contract award and modifications?', 'Do payments liquidate the correct obligation?'],
+    keyFields: ['ERP document', 'LOA', 'TAS', 'USSGL', 'PIID', 'CLIN', 'obligation amount', 'ULO'],
+    risks: ['obligation mismatch', 'payment liquidates wrong line', 'stale ULO unsupported']
+  },
+  {
+    id: 'mocas-wawf-source',
+    layer: 'source',
+    title: 'PIEE / WAWF Evidence',
+    subtitle: 'invoice, receiving report, acceptance, combo document',
+    icon: 'WAWF',
+    tags: ['wawf', 'invoice', 'receipt', 'acceptance'],
+    summary: 'PIEE/WAWF evidence provides invoice, receiving, and acceptance support for contract payment and three-way-match control where applicable.',
+    examples: ['vendor invoice', 'receiving report', 'acceptance document', 'combo document'],
+    auditQuestions: ['Does payment have receipt and acceptance support?', 'Do invoice quantities and prices agree to contract terms?'],
+    keyFields: ['invoice number', 'receiving report', 'acceptance date', 'PIID', 'CLIN', 'vendor', 'amount'],
+    risks: ['payment without acceptance', 'invoice/contract mismatch', 'duplicate invoice']
+  },
+  {
+    id: 'mocas-dcma-admin',
+    layer: 'capabilities',
+    title: 'DCMA Contract Administration',
+    subtitle: 'quality, delivery, surveillance, payment authorization insight',
+    icon: 'DCMA',
+    tags: ['dcma', 'contract administration', 'delivery', 'quality'],
+    summary: 'DCMA administers many defense contracts, monitors supplier performance, and authorizes large volumes of contractor payments through the acquisition lifecycle.',
+    examples: ['administration action', 'delivery surveillance', 'quality assurance', 'payment authorization insight'],
+    auditQuestions: ['Is administration evidence complete?', 'Did authorized delivery/performance support payment?', 'Are contract changes controlled?'],
+    keyFields: ['contract admin office', 'PIID', 'CAGE/UEI', 'delivery status', 'acceptance support', 'payment status'],
+    risks: ['administration evidence missing', 'delivery/performance not supported', 'unauthorized payment']
+  },
+  {
+    id: 'mocas-core',
+    layer: 'capabilities',
+    title: 'MOCAS',
+    subtitle: 'Mechanization of Contract Administration Services',
+    icon: 'MOCAS',
+    tags: ['mocas', 'contract administration', 'payment', 'legacy'],
+    summary: 'MOCAS is modeled as a legacy DoD contract administration and payment-support system for administered contracts, complex payment instructions, financing, and liquidation support.',
+    examples: ['contract payment record', 'progress payment support', 'financing liquidation', 'contract admin payment data'],
+    auditQuestions: ['Does MOCAS contract/payment detail reconcile to award, invoice, acceptance, DFAS, and ERP accounting?', 'Are financing liquidations correct?'],
+    keyFields: ['PIID', 'CLIN', 'ACRN', 'invoice', 'payment amount', 'financing balance', 'liquidation amount'],
+    risks: ['legacy detail not reconciled', 'financing liquidation error', 'contract/payment mismatch']
+  },
+  {
+    id: 'mocas-dfas-payment',
+    layer: 'capabilities',
+    title: 'DFAS Payment Execution',
+    subtitle: 'certified voucher, disbursement, payment status',
+    icon: 'DFAS',
+    tags: ['dfas', 'payment', 'disbursing', 'voucher'],
+    summary: 'DFAS payment execution converts certified contract payment support into disbursement, payment status, accounting feeds, and Treasury reporting.',
+    examples: ['certified contract voucher', 'EFT payment', 'payment status', 'disbursing record'],
+    auditQuestions: ['Does DFAS payment match MOCAS/invoice support?', 'Did the payment post to ERP and Treasury correctly?'],
+    keyFields: ['voucher', 'payment date', 'payee', 'amount', 'DSSN/ALC', 'PIID', 'invoice'],
+    risks: ['payment not matched to invoice', 'disbursing/accounting mismatch', 'duplicate or improper payment']
+  },
+  {
+    id: 'mocas-contract-detail',
+    layer: 'transactions',
+    title: 'Contract Line and Funding Detail',
+    subtitle: 'PIID, CLIN, SLIN, ACRN, fund cite, ceiling, terms',
+    icon: 'LINE',
+    tags: ['detail', 'contract line', 'funding', 'ACRN'],
+    summary: 'Line and funding detail preserves the relationship among contract terms, funds, obligated amounts, invoices, payments, and remaining balances.',
+    examples: ['CLIN detail', 'ACRN funding', 'delivery schedule', 'payment terms'],
+    auditQuestions: ['Can every payment line trace to contract/funding line?', 'Are ceilings and funding limitations enforced?'],
+    keyFields: ['PIID', 'CLIN', 'SLIN', 'ACRN', 'fund cite', 'ceiling', 'obligated amount'],
+    risks: ['line-level support lost', 'wrong ACRN charged', 'overpayment against ceiling']
+  },
+  {
+    id: 'mocas-invoice-payment-detail',
+    layer: 'transactions',
+    title: 'Invoice, Acceptance, and Payment Detail',
+    subtitle: 'invoice, receiving, acceptance, voucher, disbursement',
+    icon: 'INV',
+    tags: ['invoice', 'acceptance', 'payment', 'voucher'],
+    summary: 'Invoice and payment detail ties WAWF/receipt/acceptance evidence to MOCAS/DFAS payment records and voucher-level disbursement.',
+    examples: ['invoice line', 'receiving report', 'acceptance', 'voucher', 'disbursement line'],
+    auditQuestions: ['Does each paid invoice have acceptance evidence?', 'Can payment be traced from invoice to voucher and Treasury?'],
+    keyFields: ['invoice', 'receiving report', 'acceptance date', 'voucher', 'payment ID', 'amount'],
+    risks: ['payment without acceptance', 'duplicate invoice', 'payment not traceable']
+  },
+  {
+    id: 'mocas-financing-detail',
+    layer: 'transactions',
+    title: 'Contract Financing and Liquidation Detail',
+    subtitle: 'progress payment, advance, financing balance, liquidation',
+    icon: 'FIN',
+    tags: ['contract financing', 'progress payment', 'liquidation', 'advance'],
+    summary: 'Contract financing detail tracks progress payments, performance-based payments, advances, liquidation rates, financing balances, and final liquidation.',
+    examples: ['progress payment', 'advance payment', 'performance-based payment', 'liquidation schedule'],
+    auditQuestions: ['Are financing payments authorized and liquidated correctly?', 'Does financing balance reconcile to contract/payment records?'],
+    keyFields: ['financing type', 'rate', 'liquidation amount', 'balance', 'invoice', 'PIID'],
+    risks: ['financing overpayment', 'liquidation error', 'unsupported advance balance']
+  },
+  {
+    id: 'mocas-certification-control',
+    layer: 'accounting',
+    title: 'Payment Certification and Match Control',
+    subtitle: 'contract, funding, invoice, acceptance, voucher',
+    icon: 'CERT',
+    tags: ['certification', 'match', 'payment', 'control'],
+    summary: 'Payment certification validates contract terms, funding, invoice, receiving/acceptance, financing, and entitlement before disbursement.',
+    examples: ['pre-payment validation', 'three-way match', 'financing validation', 'certified voucher'],
+    auditQuestions: ['Was the payment properly certified?', 'Were contract, funding, invoice, and acceptance matched?', 'Were exceptions resolved before payment?'],
+    keyFields: ['certifier', 'voucher', 'match status', 'exception', 'approval date', 'support package'],
+    risks: ['improper certification', 'match exception ignored', 'support package incomplete']
+  },
+  {
+    id: 'mocas-accounting-feed',
+    layer: 'accounting',
+    title: 'ERP Accounting Feed',
+    subtitle: 'obligation liquidation, expense, AP clearing, outlay',
+    icon: 'GL',
+    tags: ['accounting', 'erp', 'liquidation', 'outlay'],
+    summary: 'Accounting feeds update ERP obligation liquidation, AP clearing, expense, outlay, and contract financing balances based on payment activity.',
+    examples: ['liquidation posting', 'AP clearing', 'expense posting', 'outlay record'],
+    auditQuestions: ['Did payment liquidate the correct obligation?', 'Does ERP accounting agree to MOCAS/DFAS?', 'Are rejects resolved?'],
+    keyFields: ['ERP document', 'PIID', 'CLIN', 'ACRN', 'USSGL', 'TAS', 'amount', 'batch'],
+    risks: ['interface reject', 'wrong obligation liquidated', 'AP/outlay mismatch']
+  },
+  {
+    id: 'mocas-reconciliation-control',
+    layer: 'accounting',
+    title: 'Contract-to-Payment Reconciliation',
+    subtitle: 'award, MOCAS, WAWF, DFAS, ERP, Treasury',
+    icon: 'RECON',
+    tags: ['reconciliation', 'contract', 'payment', 'audit'],
+    summary: 'Reconciliation compares award, MOCAS, WAWF, DFAS, ERP, and Treasury records to identify mismatches, unmatched payments, ULO differences, and financing-balance issues.',
+    examples: ['contract payment tie-out', 'ULO reconciliation', 'unmatched invoice', 'financing balance reconciliation'],
+    auditQuestions: ['Do all systems agree by contract line and amount?', 'Are differences aged and assigned?', 'Are corrections posted in all systems?'],
+    keyFields: ['PIID', 'CLIN', 'source amount', 'payment amount', 'ERP amount', 'difference', 'owner'],
+    risks: ['unmatched payment', 'ULO not supported', 'financing balance mismatch']
+  },
+  {
+    id: 'mocas-treasury-reporting',
+    layer: 'reporting',
+    title: 'Treasury / CARS Payment Reporting',
+    subtitle: 'ALC, TAS-BETC, CARS, FBWT',
+    icon: 'CARS',
+    tags: ['treasury', 'cars', 'fbwt', 'outlay'],
+    summary: 'Contract disbursements are classified for Treasury/CARS reporting and reconciled to FBWT and component accounting.',
+    examples: ['TAS-BETC classified payment', 'CARS record', 'FBWT tie-out', 'Treasury payment support'],
+    auditQuestions: ['Does Treasury reporting agree to DFAS and ERP?', 'Is TAS-BETC classification correct?', 'Are FBWT differences explained?'],
+    keyFields: ['ALC', 'TAS', 'BETC', 'payment ID', 'CARS reference', 'amount', 'period'],
+    risks: ['Treasury mismatch', 'invalid classification', 'FBWT difference unresolved']
+  },
+  {
+    id: 'mocas-contract-reporting',
+    layer: 'reporting',
+    title: 'Contract Administration Reports',
+    subtitle: 'payment status, delivery, financing balance, ULO support',
+    icon: 'RPT',
+    tags: ['reporting', 'contract administration', 'ulo', 'status'],
+    summary: 'Contract administration reporting provides payment status, delivery, financing, contract balance, ULO, and exception information for close and audit.',
+    examples: ['payment status report', 'contract balance report', 'ULO support', 'financing report'],
+    auditQuestions: ['Do reports tie to transaction detail?', 'Are stale balances reviewed?', 'Are financing balances supported?'],
+    keyFields: ['report ID', 'PIID', 'CLIN', 'balance', 'payment status', 'period', 'exception'],
+    risks: ['report/detail mismatch', 'stale ULO', 'unsupported financing balance']
+  },
+  {
+    id: 'mocas-outlay-statement',
+    layer: 'statements',
+    title: 'Outlay / FBWT / SBR Support',
+    subtitle: 'contract disbursement and budgetary reporting',
+    icon: 'SBR',
+    tags: ['outlay', 'fbwt', 'sbr', 'statement'],
+    summary: 'MOCAS/DFAS contract payments support outlays, FBWT, SBR, ULO, expense, and statement assertions after reconciliation to ERP and Treasury.',
+    examples: ['SBR outlay support', 'FBWT package', 'ULO rollforward', 'expense support'],
+    auditQuestions: ['Can statement amounts trace to contract payment detail?', 'Are ULOs valid?', 'Does FBWT reconcile?'],
+    keyFields: ['TAS', 'USSGL', 'PIID', 'outlay', 'ULO', 'FBWT balance', 'support package'],
+    risks: ['outlay unsupported', 'ULO invalid', 'FBWT unreconciled']
+  },
+  {
+    id: 'mocas-audit-package',
+    layer: 'statements',
+    title: 'Contract Payment Audit Package',
+    subtitle: 'award to invoice to payment evidence',
+    icon: 'AUD',
+    tags: ['audit', 'evidence', 'contract file', 'payment'],
+    summary: 'The audit package ties award, modification, funding, invoice, receipt/acceptance, MOCAS/DFAS payment, ERP accounting, Treasury reporting, and reconciliation evidence.',
+    examples: ['award support', 'invoice/acceptance support', 'payment evidence', 'reconciliation package'],
+    auditQuestions: ['Is the end-to-end support complete?', 'Can a sample trace across all systems?', 'Are exceptions documented and resolved?'],
+    keyFields: ['sample ID', 'PIID', 'invoice', 'voucher', 'payment ID', 'ERP document', 'support package'],
+    risks: ['incomplete contract file', 'sample cannot be traced', 'exception not resolved']
+  }
+];
+
+const mocasLineageScenarios = [
+  {
+    id: 'mocas-award-payment',
+    short: 'Award Pay',
+    title: 'Contract Award to Invoice, MOCAS/DFAS Payment, and Outlay',
+    description: 'Traces an administered contract payment from award/funding through WAWF evidence, MOCAS, DFAS payment, ERP accounting, Treasury reporting, and outlay support.',
+    path: ['mocas-award-source', 'mocas-erp-obligation', 'mocas-wawf-source', 'mocas-core', 'mocas-invoice-payment-detail', 'mocas-dfas-payment', 'mocas-accounting-feed', 'mocas-outlay-statement'],
+    steps: [
+      'Award, modification, funding, and ERP obligation records establish the contract payment baseline.',
+      'PIEE/WAWF evidence provides invoice, receiving, and acceptance support.',
+      'MOCAS contract/payment detail supports the payment record for administered contracts.',
+      'DFAS executes the certified payment and accounting feeds liquidate the obligation and record outlay.',
+      'Treasury/CARS and statement support tie the payment to FBWT, SBR, and audit evidence.'
+    ],
+    exceptionTests: ['payment without acceptance', 'award/mod not reflected in ERP', 'MOCAS/DFAS mismatch', 'wrong obligation liquidated', 'outlay unsupported']
+  },
+  {
+    id: 'mocas-financing-liquidation',
+    short: 'Financing',
+    title: 'Contract Financing Payment and Liquidation Control',
+    description: 'Shows how progress, advance, or performance-based financing activity is authorized, paid, liquidated, reconciled, and reported.',
+    path: ['mocas-award-source', 'mocas-core', 'mocas-financing-detail', 'mocas-certification-control', 'mocas-dfas-payment', 'mocas-accounting-feed', 'mocas-contract-reporting', 'mocas-audit-package'],
+    steps: [
+      'Contract terms authorize financing or progress-payment activity.',
+      'MOCAS financing detail tracks rate, balance, invoice, payment, and liquidation information.',
+      'Certification controls validate payment terms and entitlement before DFAS payment.',
+      'Accounting feeds record financing balances, liquidation, expense, and outlay as applicable.',
+      'Contract reports and audit packages preserve financing balance and liquidation evidence.'
+    ],
+    exceptionTests: ['unauthorized financing', 'liquidation rate error', 'financing balance unsupported', 'payment not liquidated', 'contract report mismatch']
+  },
+  {
+    id: 'mocas-contract-recon',
+    short: 'Recon',
+    title: 'MOCAS Contract-to-Payment Reconciliation and Audit Trace',
+    description: 'Compares award, WAWF, MOCAS, DFAS, ERP, Treasury, and contract reports to resolve mismatches and support audit samples.',
+    path: ['mocas-award-source', 'mocas-contract-detail', 'mocas-invoice-payment-detail', 'mocas-reconciliation-control', 'mocas-treasury-reporting', 'mocas-contract-reporting', 'mocas-audit-package'],
+    steps: [
+      'Award and line/funding detail define the expected payment and accounting population.',
+      'Invoice, acceptance, and payment detail provide the transaction population.',
+      'Reconciliation compares MOCAS, WAWF, DFAS, ERP, and Treasury records by PIID/CLIN/ACRN and amount.',
+      'Treasury and contract reports support FBWT, ULO, payment status, and close controls.',
+      'Audit packages retain source-to-payment-to-statement evidence and exception resolution.'
+    ],
+    exceptionTests: ['unmatched payment', 'missing contract line support', 'Treasury mismatch', 'stale ULO', 'sample cannot trace end to end']
+  }
+];
+
+const mocasSupportServices = [
+  { title: 'Contract Administration', detail: 'Award/modification support, DCMA administration evidence, delivery/performance surveillance, and contract payment status.' },
+  { title: 'Invoice and Acceptance Control', detail: 'PIEE/WAWF invoice, receipt, acceptance, three-way match, duplicate prevention, and payment certification support.' },
+  { title: 'MOCAS Payment Support', detail: 'Legacy contract payment detail, PIID/CLIN/ACRN, progress payment, financing, liquidation, voucher support, and balance tracking.' },
+  { title: 'DFAS Payment and Disbursing', detail: 'Certified voucher, disbursement, payment status, accounting interface, Treasury classification, and cash/outlay reporting.' },
+  { title: 'Contract Reconciliation', detail: 'Award, MOCAS, WAWF, DFAS, ERP, Treasury, ULO, contract financing, and exception/difference reconciliation.' },
+  { title: 'Audit Evidence', detail: 'Contract file, funding, modifications, invoices, acceptance, payments, accounting postings, CARS/FBWT, and statement-support packages.' }
+];
+
+const mocasCaveats = [
+  'MOCAS is modeled as a legacy DoD contract administration and payment-support environment. Public information does not expose enough current technical detail to certify platform, file formats, or interface inventory.',
+  'This page is process-accurate at the contract administration/payment-control level: award and funding, DCMA administration, invoice/acceptance, MOCAS/DFAS payment, ERP accounting, Treasury reporting, and audit support.',
+  'DCMA and DFAS roles vary by contract type, delegation, payment office, service/component, and modernization state. Authoritative contract/payment-office procedures govern production usage.',
+  'Feeder counts are modeled source/partner categories represented in this blueprint, not a certified production interface inventory.'
+];
+
+const mocasSources = [
+  { name: 'DCMA About the Agency', url: 'https://www.dcma.mil/About-Us/' },
+  { name: 'DFAS official site', url: 'https://www.dfas.mil/' },
+  { name: 'DoD FMR Volume 5, Chapter 1 - Purpose, Organization, and Duties', url: 'https://comptroller.defense.gov/Portals/45/documents/fmr/current/05/05_01.pdf' },
+  { name: 'DoD FMR', url: 'https://comptroller.defense.gov/FMR/' },
+  { name: 'Treasury CARS', url: 'https://fiscal.treasury.gov/accounting/central-accounting-reporting-system-cars' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -6302,6 +7151,105 @@ export const systems = [
     supportServices: gtasCarsSupportServices,
     caveats: gtasCarsCaveats,
     sources: gtasCarsSources
+  },
+  {
+    slug: 'disbursing-cash',
+    shortName: 'ADS/DDS/DCAS',
+    name: 'ADS / DDS / DCAS',
+    longName: 'ADS, DDS, and DCAS / Disbursing and Cash Accountability Blueprint',
+    agency: 'DFAS / DoD',
+    eyebrow: 'Disbursing, deployable disbursing, and cash accountability blueprint',
+    description: 'Explore ADS, DDS, and DCAS as a connected disbursing and cash-accountability process suite: certified entitlement, disbursing execution, deployed field activity, cash accountability, accounting interface, Treasury reporting, FBWT, and audit support.',
+    metric: '3',
+    metricLabel: 'Core disbursing lineage scenarios',
+    metricDetail: 'Entitlement -> Pay -> Cash -> Treasury',
+    referenceImage: '/disbursing-cash-blueprint-reference.svg',
+    referenceTitle: 'ADS / DDS / DCAS static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/disbursing-cash-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'ADS, DDS, and DCAS are modeled together as DoD disbursing and cash-accountability capabilities: ADS for central disbursing execution support, DDS for deployable disbursing, and DCAS for cash accountability.',
+      whoUsesIt: 'DFAS and DoD disbursing offices, disbursing officers, certifying officers, accountable officials, deployed finance teams, component accounting/reporting teams, Treasury-facing support teams, and auditors rely on these records or controls.',
+      howItIsUsed: 'The suite supports certified voucher payment, field disbursing, collections, returns, cancellations, disbursing officer accountability, accounting feeds, CARS/Treasury classification, FBWT reconciliation, and outlay support.',
+      currentStatus: 'Modeled from public DoD disbursing policy and process information; exact ADS/DDS/DCAS current operational footprint, interfaces, and release details require DFAS/DoD authoritative documentation.',
+      whyItIsUsed: 'DoD needs controlled disbursement of public funds, accountability for cash and voucher activity, reconciliation to accounting and Treasury, and audit evidence from entitlement to outlay.',
+      feederCount: 7,
+      feederSystems: ['ERP / Accounting Entitlement Sources', 'Payroll / Military / Civilian Pay Sources', 'Travel / DTS Sources', 'Vendor / Contract Payment Sources', 'Collections / Returns / Cancellations', 'CARS / Treasury Reporting', 'Component DDRS / GTAS Reporting'],
+      feederNote: 'The blueprint models 7 feeder/partner categories for disbursing and cash accountability; this is not a certified production interface inventory.'
+    },
+    layers: disbursingCashLayers,
+    nodes: disbursingCashNodes,
+    lineageScenarios: disbursingCashLineageScenarios,
+    supportServices: disbursingCashSupportServices,
+    caveats: disbursingCashCaveats,
+    sources: disbursingCashSources
+  },
+  {
+    slug: 'ipac',
+    shortName: 'IPAC',
+    name: 'IPAC',
+    longName: 'IPAC / Intragovernmental Payment and Collection Blueprint',
+    agency: 'Treasury / DoD IGT',
+    eyebrow: 'IPAC blueprint for intragovernmental settlement and reconciliation',
+    description: 'Explore IPAC as Treasury Fiscal Service intragovernmental payment and collection capability, connecting buyer and seller agencies, G-Invoicing context, standardized settlement data, CARS, agency GL, GTAS/DDRS reporting, FBWT, and IGT eliminations.',
+    metric: '3',
+    metricLabel: 'Core IPAC lineage scenarios',
+    metricDetail: 'Buyer/Seller -> IPAC -> CARS -> IGT',
+    referenceImage: '/ipac-blueprint-reference.svg',
+    referenceTitle: 'IPAC static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/ipac-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'IPAC is the Intragovernmental Payment and Collection capability used by federal entities to transfer funds between trading partners with standardized descriptive data.',
+      whoUsesIt: 'Federal buyer and seller agencies, DoD components, DFAS/accounting support, reimbursable program offices, G-Invoicing users, Treasury Fiscal Service, reporting teams, and auditors use or rely on IPAC settlement data.',
+      howItIsUsed: 'It is used to settle intragovernmental charges and collections, classify activity by ALC/TAS/BETC/trading partner, reconcile buyer/seller accounting, support CARS/FBWT, and feed GTAS/DDRS IGT reporting and eliminations.',
+      currentStatus: 'Operational Treasury Fiscal Service application in the broader IGT environment; G-Invoicing is Treasury long-term IGT buy/sell solution and validates settlement requests through IPAC.',
+      whyItIsUsed: 'IPAC gives agencies a standardized governmentwide funds-transfer mechanism for IGT settlements and provides the descriptive data needed for reconciliation, Treasury reporting, and financial statement eliminations.',
+      feederCount: 6,
+      feederSystems: ['Buyer Agency ERP', 'Seller Agency ERP', 'G-Invoicing Agreements / Orders / Performance', 'CARS / Treasury Central Accounting', 'DDRS / GTAS Reporting', 'Trading Partner Reconciliation / Audit Support'],
+      feederNote: 'The blueprint models 6 IPAC feeder/partner categories; exact agency interfaces vary by implementation.'
+    },
+    layers: ipacLayers,
+    nodes: ipacNodes,
+    lineageScenarios: ipacLineageScenarios,
+    supportServices: ipacSupportServices,
+    caveats: ipacCaveats,
+    sources: ipacSources
+  },
+  {
+    slug: 'mocas',
+    shortName: 'MOCAS',
+    name: 'MOCAS',
+    longName: 'MOCAS / Mechanization of Contract Administration Services Blueprint',
+    agency: 'DCMA / DFAS',
+    eyebrow: 'MOCAS blueprint for administered contracts and contract-payment lineage',
+    description: 'Explore MOCAS as a legacy contract administration and payment-support environment, connecting contract award, DCMA administration, WAWF invoice/acceptance, contract financing, DFAS payment, ERP accounting, Treasury reporting, FBWT, ULOs, and contract audit support.',
+    metric: '3',
+    metricLabel: 'Core MOCAS lineage scenarios',
+    metricDetail: 'Award -> Admin -> Pay -> Outlay',
+    referenceImage: '/mocas-blueprint-reference.svg',
+    referenceTitle: 'MOCAS static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/mocas-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'MOCAS is modeled as the Mechanization of Contract Administration Services, a legacy DoD contract administration and payment-support environment for administered contracts and complex payment activity.',
+      whoUsesIt: 'DCMA contract administration personnel, DFAS payment offices, contracting and acquisition stakeholders, component ERP/accounting teams, vendors, program offices, and auditors rely on MOCAS-related contract/payment records.',
+      howItIsUsed: 'It supports contract-payment administration, line/funding detail, invoice and acceptance linkage, progress or financing payments, liquidation, DFAS payment, accounting feeds, reconciliation, and contract-file audit traceability.',
+      currentStatus: 'Legacy/operationally sensitive public detail is limited; this page models the business process accurately but does not claim a certified current platform or interface inventory.',
+      whyItIsUsed: 'Administered defense contracts require a controlled trail from award and funding to delivery, invoice, acceptance, payment, obligation liquidation, Treasury outlay, and audit evidence.',
+      feederCount: 7,
+      feederSystems: ['Contract Award / Modification Sources', 'Component ERP Obligation Records', 'PIEE / WAWF Invoice and Acceptance', 'DCMA Contract Administration', 'DFAS Payment / Disbursing', 'CARS / Treasury Reporting', 'Contract Reporting / Audit Support'],
+      feederNote: 'The blueprint models 7 MOCAS feeder/partner categories; authoritative counts require DCMA/DFAS system documentation.'
+    },
+    layers: mocasLayers,
+    nodes: mocasNodes,
+    lineageScenarios: mocasLineageScenarios,
+    supportServices: mocasSupportServices,
+    caveats: mocasCaveats,
+    sources: mocasSources
   },
   {
     slug: 'navy-erp',

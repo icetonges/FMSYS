@@ -1,0 +1,43 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">IPAC intragovernmental payment and collection blueprint reference</title>
+  <desc id="desc">Static blueprint showing G-Invoicing, buyer and seller agencies, IPAC settlement, CARS, ERP posting, GTAS reporting, and reconciliation controls.</desc>
+  <rect width="1600" height="900" fill="#061826"/>
+  <g stroke="#2dd4bf" stroke-width="1" opacity=".22">
+    <path d="M100 0v900M340 0v900M580 0v900M820 0v900M1060 0v900M1300 0v900"/>
+    <path d="M0 120h1600M0 260h1600M0 400h1600M0 540h1600M0 680h1600M0 820h1600"/>
+  </g>
+  <text x="60" y="70" fill="#ecfeff" font-family="Arial, sans-serif" font-size="34" font-weight="700">IPAC Intragovernmental Payment and Collection</text>
+  <text x="60" y="108" fill="#99f6e4" font-family="Arial, sans-serif" font-size="18">Agreement and performance context - settlement - TAS/BETC classification - buyer/seller accounting - reporting and eliminations</text>
+  <g fill="#0f3b46" stroke="#5eead4" stroke-width="2" font-family="Arial, sans-serif">
+    <rect x="70" y="205" width="250" height="115" rx="18"/>
+    <rect x="70" y="410" width="250" height="115" rx="18"/>
+    <rect x="380" y="205" width="250" height="115" rx="18"/>
+    <rect x="380" y="410" width="250" height="115" rx="18"/>
+    <rect x="690" y="305" width="250" height="130" rx="22" fill="#134e4a"/>
+    <rect x="1000" y="205" width="250" height="115" rx="18"/>
+    <rect x="1000" y="410" width="250" height="115" rx="18"/>
+    <rect x="1310" y="205" width="230" height="115" rx="18"/>
+    <rect x="1310" y="410" width="230" height="115" rx="18"/>
+  </g>
+  <g font-family="Arial, sans-serif" fill="#f8fafc">
+    <text x="100" y="252" font-size="24" font-weight="700">Buyer agency ERP</text><text x="100" y="282" font-size="15" fill="#ccfbf1">obligation, expense, payable</text>
+    <text x="100" y="457" font-size="24" font-weight="700">Seller agency ERP</text><text x="100" y="487" font-size="15" fill="#ccfbf1">order, revenue, receivable</text>
+    <text x="410" y="252" font-size="24" font-weight="700">G-Invoicing context</text><text x="410" y="282" font-size="15" fill="#ccfbf1">GT&amp;C, order, performance</text>
+    <text x="410" y="457" font-size="24" font-weight="700">Settlement request</text><text x="410" y="487" font-size="15" fill="#ccfbf1">TAS, BETC, ALC, trading partner</text>
+    <text x="720" y="360" font-size="34" font-weight="700">IPAC</text><text x="720" y="395" font-size="16" fill="#ccfbf1">standardized funds transfer between federal trading partners</text>
+    <text x="1030" y="252" font-size="24" font-weight="700">CARS / Treasury</text><text x="1030" y="282" font-size="15" fill="#ccfbf1">central accounting classification</text>
+    <text x="1030" y="457" font-size="24" font-weight="700">Buyer / seller GL</text><text x="1030" y="487" font-size="15" fill="#ccfbf1">AP, AR, revenue, expense</text>
+    <text x="1340" y="252" font-size="24" font-weight="700">GTAS / DDRS</text><text x="1340" y="282" font-size="15" fill="#ccfbf1">trial balance reporting</text>
+    <text x="1340" y="457" font-size="24" font-weight="700">IGT eliminations</text><text x="1340" y="487" font-size="15" fill="#ccfbf1">trading partner tie-out</text>
+  </g>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#facc15"/></marker></defs>
+  <g stroke="#facc15" stroke-width="4" fill="none" marker-end="url(#arrow)">
+    <path d="M320 262h60"/><path d="M630 262c55 0 65 55 60 95"/>
+    <path d="M320 467h60"/><path d="M630 467c55 0 65-55 60-95"/>
+    <path d="M940 370c40-90 50-108 60-108"/><path d="M940 370c40 90 50 97 60 97"/>
+    <path d="M1250 262h60"/><path d="M1250 467h60"/>
+  </g>
+  <rect x="90" y="655" width="1420" height="130" rx="22" fill="#0f2f3f" stroke="#5eead4" stroke-width="2"/>
+  <text x="120" y="705" fill="#f8fafc" font-family="Arial, sans-serif" font-size="24" font-weight="700">Control objective</text>
+  <text x="120" y="742" fill="#ccfbf1" font-family="Arial, sans-serif" font-size="17">IPAC settlement should agree to buyer and seller accounting, include valid TAS/BETC/ALC/trading-partner attributes, reconcile in CARS/FBWT, and support GTAS and intragovernmental elimination reporting.</text>
+</svg>

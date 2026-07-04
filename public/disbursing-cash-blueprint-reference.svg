@@ -1,0 +1,61 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">ADS DDS DCAS disbursing and cash accountability blueprint reference</title>
+  <desc id="desc">Static blueprint showing source entitlement, ADS and DDS disbursing, DCAS cash accountability, accounting interfaces, Treasury reporting, and audit outputs.</desc>
+  <rect width="1600" height="900" fill="#071a33"/>
+  <g stroke="#1c4f8f" stroke-width="1" opacity=".35">
+    <path d="M80 0v900M320 0v900M560 0v900M800 0v900M1040 0v900M1280 0v900M1520 0v900"/>
+    <path d="M0 110h1600M0 250h1600M0 390h1600M0 530h1600M0 670h1600M0 810h1600"/>
+  </g>
+  <text x="60" y="70" fill="#dbeafe" font-family="Arial, sans-serif" font-size="34" font-weight="700">ADS / DDS / DCAS Disbursing and Cash Accountability</text>
+  <text x="60" y="108" fill="#93c5fd" font-family="Arial, sans-serif" font-size="18">Source entitlement - certified voucher - disbursement - cash accountability - accounting interface - Treasury reporting</text>
+  <g font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#bfdbfe">
+    <text x="85" y="175">Source and entitlement</text>
+    <text x="365" y="175">Certification and disbursing</text>
+    <text x="665" y="175">Cash accountability</text>
+    <text x="955" y="175">Accounting and Treasury</text>
+    <text x="1270" y="175">Reports and audit</text>
+  </g>
+  <g fill="#102f5c" stroke="#60a5fa" stroke-width="2" rx="18" font-family="Arial, sans-serif">
+    <rect x="60" y="215" width="230" height="100" rx="18"/>
+    <rect x="60" y="350" width="230" height="100" rx="18"/>
+    <rect x="60" y="485" width="230" height="100" rx="18"/>
+    <rect x="345" y="215" width="230" height="100" rx="18"/>
+    <rect x="345" y="350" width="230" height="100" rx="18"/>
+    <rect x="345" y="485" width="230" height="100" rx="18"/>
+    <rect x="640" y="215" width="230" height="100" rx="18"/>
+    <rect x="640" y="350" width="230" height="100" rx="18"/>
+    <rect x="640" y="485" width="230" height="100" rx="18"/>
+    <rect x="930" y="215" width="230" height="100" rx="18"/>
+    <rect x="930" y="350" width="230" height="100" rx="18"/>
+    <rect x="930" y="485" width="230" height="100" rx="18"/>
+    <rect x="1230" y="215" width="300" height="100" rx="18"/>
+    <rect x="1230" y="350" width="300" height="100" rx="18"/>
+    <rect x="1230" y="485" width="300" height="100" rx="18"/>
+  </g>
+  <g font-family="Arial, sans-serif" fill="#f8fafc">
+    <text x="86" y="258" font-size="24" font-weight="700">ERP / entitlement</text><text x="86" y="286" font-size="15" fill="#cbd5e1">invoice, payroll, travel, debt</text>
+    <text x="86" y="393" font-size="24" font-weight="700">Certified voucher</text><text x="86" y="421" font-size="15" fill="#cbd5e1">CO, DAO, DD 577, support</text>
+    <text x="86" y="528" font-size="24" font-weight="700">Collections / returns</text><text x="86" y="556" font-size="15" fill="#cbd5e1">receipts, refunds, cancellations</text>
+    <text x="371" y="258" font-size="24" font-weight="700">ADS</text><text x="371" y="286" font-size="15" fill="#cbd5e1">central disbursing execution</text>
+    <text x="371" y="393" font-size="24" font-weight="700">DDS</text><text x="371" y="421" font-size="15" fill="#cbd5e1">deployable disbursing operations</text>
+    <text x="371" y="528" font-size="24" font-weight="700">Payment file</text><text x="371" y="556" font-size="15" fill="#cbd5e1">EFT, check, cash-like activity</text>
+    <text x="666" y="258" font-size="24" font-weight="700">DCAS</text><text x="666" y="286" font-size="15" fill="#cbd5e1">cash accountability and DO control</text>
+    <text x="666" y="393" font-size="24" font-weight="700">DO accountability</text><text x="666" y="421" font-size="15" fill="#cbd5e1">funds, vouchers, losses, deposits</text>
+    <text x="666" y="528" font-size="24" font-weight="700">Reconciliation</text><text x="666" y="556" font-size="15" fill="#cbd5e1">voucher schedule to cash/reporting</text>
+    <text x="956" y="258" font-size="24" font-weight="700">Accounting feed</text><text x="956" y="286" font-size="15" fill="#cbd5e1">ERP, DDRS, GL, USSGL</text>
+    <text x="956" y="393" font-size="24" font-weight="700">Treasury</text><text x="956" y="421" font-size="15" fill="#cbd5e1">CARS, payment reporting, FBWT</text>
+    <text x="956" y="528" font-size="24" font-weight="700">IPAC / IGT</text><text x="956" y="556" font-size="15" fill="#cbd5e1">intragovernmental settlement</text>
+    <text x="1256" y="258" font-size="24" font-weight="700">Disbursing reports</text><text x="1256" y="286" font-size="15" fill="#cbd5e1">cash, vouchers, DO accountability</text>
+    <text x="1256" y="393" font-size="24" font-weight="700">FBWT support</text><text x="1256" y="421" font-size="15" fill="#cbd5e1">agency-to-Treasury tie-out</text>
+    <text x="1256" y="528" font-size="24" font-weight="700">Audit package</text><text x="1256" y="556" font-size="15" fill="#cbd5e1">voucher to outlay evidence</text>
+  </g>
+  <g stroke="#fbbf24" stroke-width="4" fill="none" marker-end="url(#arrow)">
+    <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#fbbf24"/></marker></defs>
+    <path d="M290 265h55"/><path d="M575 265h65"/><path d="M870 265h60"/><path d="M1160 265h70"/>
+    <path d="M290 400h55"/><path d="M575 400h65"/><path d="M870 400h60"/><path d="M1160 400h70"/>
+    <path d="M290 535h55"/><path d="M575 535h65"/><path d="M870 535h60"/><path d="M1160 535h70"/>
+  </g>
+  <rect x="60" y="690" width="1470" height="120" rx="22" fill="#0f274b" stroke="#3b82f6" stroke-width="2"/>
+  <text x="90" y="735" fill="#f8fafc" font-family="Arial, sans-serif" font-size="24" font-weight="700">Audit emphasis</text>
+  <text x="90" y="770" fill="#cbd5e1" font-family="Arial, sans-serif" font-size="17">A valid disbursement traces certified entitlement to payment execution, cash accountability, accounting posting, Treasury classification, FBWT reconciliation, and retained support.</text>
+</svg>
