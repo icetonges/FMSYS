@@ -1,0 +1,70 @@
+<svg width="1800" height="1020" viewBox="0 0 1800 1020" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">DoD to Treasury financial statement close blueprint reference</title>
+  <desc id="desc">Static blueprint showing DoD ERP and disbursing data, DDRS consolidation, GTAS submission, CARS Treasury central accounting, FBWT, IPAC, SBR, financial statements, and governmentwide Financial Report feedback loops.</desc>
+  <rect width="1800" height="1020" fill="#08111f"/>
+  <g stroke="#1e40af" stroke-width="1" opacity=".25">
+    <path d="M80 0v1020M330 0v1020M580 0v1020M830 0v1020M1080 0v1020M1330 0v1020M1580 0v1020"/>
+    <path d="M0 120h1800M0 250h1800M0 380h1800M0 510h1800M0 640h1800M0 770h1800M0 900h1800"/>
+  </g>
+  <text x="60" y="70" fill="#f8fafc" font-family="Arial, sans-serif" font-size="36" font-weight="700">DoD-to-Treasury Close: Disbursing, CARS, GTAS, DDRS, SBR, and Financial Statements</text>
+  <text x="60" y="110" fill="#bfdbfe" font-family="Arial, sans-serif" font-size="18">The final statement package is produced through iterative reconciliations, not a one-way handoff.</text>
+  <g font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#dbeafe">
+    <text x="85" y="172">1. Source events</text>
+    <text x="355" y="172">2. Cash/Treasury truth</text>
+    <text x="640" y="172">3. DoD close/DDRS</text>
+    <text x="925" y="172">4. GTAS/CARS edits</text>
+    <text x="1240" y="172">5. Adjust/re-submit</text>
+    <text x="1530" y="172">6. Final reports</text>
+  </g>
+  <g fill="#102a4c" stroke="#60a5fa" stroke-width="2" font-family="Arial, sans-serif">
+    <rect x="60" y="215" width="230" height="95" rx="16"/>
+    <rect x="60" y="345" width="230" height="95" rx="16"/>
+    <rect x="60" y="475" width="230" height="95" rx="16"/>
+    <rect x="340" y="215" width="230" height="95" rx="16"/>
+    <rect x="340" y="345" width="230" height="95" rx="16"/>
+    <rect x="340" y="475" width="230" height="95" rx="16"/>
+    <rect x="620" y="215" width="240" height="95" rx="16"/>
+    <rect x="620" y="345" width="240" height="95" rx="16"/>
+    <rect x="620" y="475" width="240" height="95" rx="16"/>
+    <rect x="910" y="215" width="250" height="95" rx="16"/>
+    <rect x="910" y="345" width="250" height="95" rx="16"/>
+    <rect x="910" y="475" width="250" height="95" rx="16"/>
+    <rect x="1210" y="215" width="250" height="95" rx="16"/>
+    <rect x="1210" y="345" width="250" height="95" rx="16"/>
+    <rect x="1210" y="475" width="250" height="95" rx="16"/>
+    <rect x="1510" y="215" width="230" height="95" rx="16"/>
+    <rect x="1510" y="345" width="230" height="95" rx="16"/>
+    <rect x="1510" y="475" width="230" height="95" rx="16"/>
+  </g>
+  <g font-family="Arial, sans-serif" fill="#f8fafc">
+    <text x="86" y="255" font-size="22" font-weight="700">ERP / feeder UoT</text><text x="86" y="282" font-size="14" fill="#cbd5e1">obligation, AP, AR, assets, cost</text>
+    <text x="86" y="385" font-size="22" font-weight="700">ADS/DDS/DCAS</text><text x="86" y="412" font-size="14" fill="#cbd5e1">voucher, payment, cash accountability</text>
+    <text x="86" y="515" font-size="22" font-weight="700">IPAC / IGT</text><text x="86" y="542" font-size="14" fill="#cbd5e1">buyer/seller settlement</text>
+    <text x="366" y="255" font-size="22" font-weight="700">CARS</text><text x="366" y="282" font-size="14" fill="#cbd5e1">TAS-BETC central accounting</text>
+    <text x="366" y="385" font-size="22" font-weight="700">FBWT tie-out</text><text x="366" y="412" font-size="14" fill="#cbd5e1">agency vs Treasury balance</text>
+    <text x="366" y="515" font-size="22" font-weight="700">MTS / Combined</text><text x="366" y="542" font-size="14" fill="#cbd5e1">Treasury receipts/outlays</text>
+    <text x="646" y="255" font-size="22" font-weight="700">Component close</text><text x="646" y="282" font-size="14" fill="#cbd5e1">trial balance and support</text>
+    <text x="646" y="385" font-size="22" font-weight="700">DDRS consolidation</text><text x="646" y="412" font-size="14" fill="#cbd5e1">DoD statements and eliminations</text>
+    <text x="646" y="515" font-size="22" font-weight="700">SBR / notes</text><text x="646" y="542" font-size="14" fill="#cbd5e1">budgetary resources and ULOs</text>
+    <text x="936" y="255" font-size="22" font-weight="700">GTAS ATB</text><text x="936" y="282" font-size="14" fill="#cbd5e1">USSGL/TAS/attributes</text>
+    <text x="936" y="385" font-size="22" font-weight="700">GTAS edits</text><text x="936" y="412" font-size="14" fill="#cbd5e1">fatal, warning, accounting edits</text>
+    <text x="936" y="515" font-size="22" font-weight="700">Treasury feedback</text><text x="936" y="542" font-size="14" fill="#cbd5e1">FBWT, IGT, FR crosswalk exceptions</text>
+    <text x="1236" y="255" font-size="22" font-weight="700">ERP / DDRS JVs</text><text x="1236" y="282" font-size="14" fill="#cbd5e1">supported corrections only</text>
+    <text x="1236" y="385" font-size="22" font-weight="700">Re-submit GTAS</text><text x="1236" y="412" font-size="14" fill="#cbd5e1">new version, status, certification</text>
+    <text x="1236" y="515" font-size="22" font-weight="700">Reconcile again</text><text x="1236" y="542" font-size="14" fill="#cbd5e1">CARS, FBWT, IGT, DDRS</text>
+    <text x="1536" y="255" font-size="22" font-weight="700">DoD AFR</text><text x="1536" y="282" font-size="14" fill="#cbd5e1">agency financial statements</text>
+    <text x="1536" y="385" font-size="22" font-weight="700">Financial Report</text><text x="1536" y="412" font-size="14" fill="#cbd5e1">U.S. Governmentwide report</text>
+    <text x="1536" y="515" font-size="22" font-weight="700">Audit trail</text><text x="1536" y="542" font-size="14" fill="#cbd5e1">source-to-statement support</text>
+  </g>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#fbbf24"/></marker></defs>
+  <g stroke="#fbbf24" stroke-width="4" fill="none" marker-end="url(#arrow)">
+    <path d="M290 262h50"/><path d="M570 262h50"/><path d="M860 262h50"/><path d="M1160 262h50"/><path d="M1460 262h50"/>
+    <path d="M290 392h50"/><path d="M570 392h50"/><path d="M860 392h50"/><path d="M1160 392h50"/><path d="M1460 392h50"/>
+    <path d="M290 522h50"/><path d="M570 522h50"/><path d="M860 522h50"/><path d="M1160 522h50"/><path d="M1460 522h50"/>
+    <path d="M1035 570 C1035 680 1320 680 1320 570"/>
+    <path d="M1320 215 C1320 150 1040 150 1040 215"/>
+  </g>
+  <rect x="80" y="710" width="1630" height="150" rx="24" fill="#0f2747" stroke="#3b82f6" stroke-width="2"/>
+  <text x="115" y="760" fill="#f8fafc" font-family="Arial, sans-serif" font-size="25" font-weight="700">Plain-English rule</text>
+  <text x="115" y="798" fill="#dbeafe" font-family="Arial, sans-serif" font-size="17">DoD financial statements are assembled in DoD/DDRS, but Treasury systems are not passive recipients. CARS validates cash and central accounting; GTAS validates agency trial balances and attributes; Treasury feedback can force supported DoD adjustments, re-submission, and re-certification before agency and governmentwide reporting are final.</text>
+</svg>

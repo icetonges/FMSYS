@@ -15,6 +15,7 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/systems/famis` FAMIS-GF / FAMIS-WCF accounting blueprint
   - `/systems/ddrs` Defense Departmental Reporting System financial reporting blueprint
   - `/systems/gtas-cars` Treasury GTAS and CARS reporting blueprint
+  - `/systems/dod-treasury-close` DoD-to-Treasury close loop blueprint for disbursing, CARS, GTAS, DDRS, SBR, and financial statements
   - `/systems/disbursing-cash` ADS / DDS / DCAS disbursing and cash accountability blueprint
   - `/systems/ipac` IPAC intragovernmental payment and collection blueprint
   - `/systems/mocas` MOCAS contract administration and payment-support blueprint
@@ -65,6 +66,8 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/public/ddrs-blueprint-reference.svg`
 - GTAS/CARS static reference asset:
   - `/public/gtas-cars-blueprint-reference.svg`
+- DoD-to-Treasury close static reference asset:
+  - `/public/dod-treasury-close-blueprint-reference.svg`
 - ADS / DDS / DCAS static reference asset:
   - `/public/disbursing-cash-blueprint-reference.svg`
 - IPAC static reference asset:

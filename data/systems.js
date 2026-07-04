@@ -7401,6 +7401,374 @@ const pieeSources = [
   { name: 'Treasury CARS', url: 'https://fiscal.treasury.gov/accounting/central-accounting-reporting-system-cars' }
 ];
 
+const treasuryCloseLayers = [
+  { id: 'source', label: '1. Source, Cash, and Subledger Events', short: 'Source', description: 'ERP feeder events, disbursing activity, collections, IPAC, subledgers, and audit source evidence before financial reporting begins.' },
+  { id: 'capabilities', label: '2. DoD Close and Treasury Control Systems', short: 'Core', description: 'Component ERPs, disbursing/cash systems, CARS, DDRS, GTAS, IPAC, and FBWT reconciliation control points.' },
+  { id: 'transactions', label: '3. Trial Balance and Treasury Detail', short: 'Detail', description: 'ATB lines, DDRS trial balances, CARS transactions, TAS-BETC, FBWT differences, IGT differences, and close adjustment detail.' },
+  { id: 'accounting', label: '4. Adjustment and Certification Loop', short: 'Adjust', description: 'Supported journal vouchers, GTAS edits, CARS tie-outs, FBWT/IGT corrections, DDRS consolidation updates, re-submission, and certification.' },
+  { id: 'reporting', label: '5. DoD and Treasury Reporting Outputs', short: 'Reports', description: 'DoD AFR/statements, SBR, DDRS outputs, GTAS status, MTS, Combined Statement, and Treasury Financial Report support.' },
+  { id: 'statements', label: '6. Final Statements and Audit Assertions', short: 'Final', description: 'Agency financial statements, SBR, governmentwide Financial Report, FBWT, IGT eliminations, opinion support, and source-to-statement audit trail.' }
+];
+
+const treasuryCloseNodes = [
+  {
+    id: 'close-erp-subledger-source',
+    layer: 'source',
+    title: 'ERP / Feeder / Subledger UoT',
+    subtitle: 'GFEBS, Navy ERP, DAI, DEAMS, LMP, DLA EBS, CEFMS, legacy sources',
+    icon: 'ERP',
+    tags: ['erp', 'feeder', 'subledger', 'uot', 'source'],
+    summary: 'The close begins with agency source populations: obligations, receivables, payables, accruals, expenses, assets, inventory, revenue, cost, and feeder-system detail.',
+    examples: ['obligation line', 'AP invoice', 'AR bill', 'asset record', 'inventory movement', 'expense accrual'],
+    auditQuestions: ['Is the Universe of Transactions complete?', 'Do subledgers reconcile to GL control accounts?', 'Are cutoff and accruals supported before DDRS/GTAS submission?'],
+    keyFields: ['source system', 'document ID', 'TAS', 'USSGL', 'LOA', 'period', 'amount', 'support package'],
+    risks: ['incomplete UoT', 'subledger/GL mismatch', 'unsupported accrual', 'late feeder activity']
+  },
+  {
+    id: 'close-disbursing-source',
+    layer: 'source',
+    title: 'Disbursing and Cash Activity',
+    subtitle: 'ADS, DDS, DCAS, vouchers, deposits, collections, returns',
+    icon: 'CASH',
+    tags: ['disbursing', 'cash', 'ADS', 'DCAS', 'DDS', 'outlay'],
+    summary: 'Disbursing and cash accountability records provide the payment, collection, return, cancellation, and voucher evidence that must reconcile to accounting and Treasury.',
+    examples: ['certified voucher', 'EFT payment', 'collection', 'return', 'deposit', 'cash accountability record'],
+    auditQuestions: ['Do payments and collections tie to ERP accounting?', 'Do cash accountability records tie to CARS/Treasury?', 'Are returns and cancellations corrected?'],
+    keyFields: ['voucher', 'DSSN', 'ALC', 'TAS', 'BETC', 'payment ID', 'deposit ID', 'amount'],
+    risks: ['unmatched disbursement', 'cash accountability difference', 'CARS classification mismatch']
+  },
+  {
+    id: 'close-ipac-igt-source',
+    layer: 'source',
+    title: 'IPAC / G-Invoicing / IGT Activity',
+    subtitle: 'Buyer/seller, trading partner, settlement, reciprocal balances',
+    icon: 'IGT',
+    tags: ['IPAC', 'G-Invoicing', 'IGT', 'trading partner', 'elimination'],
+    summary: 'Intragovernmental settlements and reciprocal buyer/seller balances affect CARS, GTAS attributes, DDRS eliminations, and governmentwide reporting.',
+    examples: ['IPAC settlement', 'G-Invoicing order', 'buyer payable', 'seller receivable', 'reciprocal category'],
+    auditQuestions: ['Do buyer and seller records agree?', 'Are trading partner attributes complete?', 'Are IPAC settlements posted to the correct TAS/BETC?'],
+    keyFields: ['IPAC document', 'buyer TAS', 'seller TAS', 'trading partner', 'BETC', 'reciprocal category', 'amount'],
+    risks: ['one-sided IGT', 'trading partner mismatch', 'elimination difference']
+  },
+  {
+    id: 'close-component-close-core',
+    layer: 'capabilities',
+    title: 'Component ERP Close',
+    subtitle: 'Period close, reconciliations, preliminary trial balance',
+    icon: 'CLOSE',
+    tags: ['close', 'component', 'trial balance', 'erp'],
+    summary: 'Components close local ERPs and reporting layers by reconciling subledgers, interface rejects, suspense, feeder totals, AP/AR, assets, payroll, travel, logistics, and cash activity.',
+    examples: ['period close checklist', 'subledger tie-out', 'interface reject report', 'preliminary trial balance'],
+    auditQuestions: ['Are all feeder/interface rejects resolved?', 'Do subledgers tie to GL?', 'Are unsupported suspense balances cleared or explained?'],
+    keyFields: ['component', 'close period', 'trial balance version', 'reconciliation ID', 'owner', 'status'],
+    risks: ['late feeder posting', 'unresolved suspense', 'trial balance not final']
+  },
+  {
+    id: 'close-ddrs-core',
+    layer: 'capabilities',
+    title: 'DDRS Consolidation',
+    subtitle: 'DoD/component statements, eliminations, notes, AFR support',
+    icon: 'DDRS',
+    tags: ['DDRS', 'consolidation', 'statements', 'AFR'],
+    summary: 'DDRS consolidates component trial balances and reporting packages into DoD/component financial statements, note schedules, eliminations, and audit support.',
+    examples: ['component trial balance load', 'DoD consolidation', 'statement crosswalk', 'note schedule', 'elimination entry'],
+    auditQuestions: ['Do DDRS inputs tie to component GLs?', 'Are consolidation and elimination entries supported?', 'Do DDRS outputs agree to GTAS where required?'],
+    keyFields: ['component', 'TAS', 'USSGL', 'trial balance version', 'statement line', 'adjustment ID'],
+    risks: ['DDRS/ERP mismatch', 'unsupported consolidation JV', 'DDRS/GTAS mismatch']
+  },
+  {
+    id: 'close-cars-core',
+    layer: 'capabilities',
+    title: 'CARS Treasury Central Accounting',
+    subtitle: 'TAS-BETC, ALC, FBWT, MTS, Combined Statement',
+    icon: 'CARS',
+    tags: ['CARS', 'Treasury', 'TAS-BETC', 'FBWT', 'MTS'],
+    summary: 'CARS is Treasury Fiscal Service system of record for government financial data, central accounting, payment/collection classification, FBWT support, MTS, and Combined Statement reporting.',
+    examples: ['CARS transaction', 'TAS-BETC classification', 'Treasury balance', 'MTS support', 'Combined Statement support'],
+    auditQuestions: ['Does agency accounting reconcile to CARS?', 'Are TAS-BETC classifications correct?', 'Are Treasury balances and agency FBWT differences resolved?'],
+    keyFields: ['ALC', 'TAS', 'BETC', 'transaction ID', 'effective date', 'Treasury balance', 'amount'],
+    risks: ['CARS/agency mismatch', 'invalid TAS-BETC', 'FBWT unreconciled']
+  },
+  {
+    id: 'close-gtas-core',
+    layer: 'capabilities',
+    title: 'GTAS ATB Submission',
+    subtitle: 'Agency adjusted trial balance, USSGL/TAS, budget execution',
+    icon: 'GTAS',
+    tags: ['GTAS', 'ATB', 'USSGL', 'TAS', 'budget execution'],
+    summary: 'GTAS receives agency adjusted trial balance data with proprietary financial reporting and budget execution information used by Treasury, OMB, Congress, and the Financial Report.',
+    examples: ['GTAS bulk file', 'ATB submission', 'reporting window', 'agency certification'],
+    auditQuestions: ['Does GTAS tie to DDRS and component GL?', 'Are TAS/USSGL/domain attributes complete?', 'Are re-submissions controlled?'],
+    keyFields: ['submission ID', 'TAS', 'USSGL', 'domain attribute', 'beginning balance', 'activity', 'ending balance'],
+    risks: ['fatal edit', 'attribute missing', 'GTAS/DDRS mismatch']
+  },
+  {
+    id: 'close-fbwt-detail',
+    layer: 'transactions',
+    title: 'FBWT Difference Detail',
+    subtitle: 'Agency balance vs Treasury/CARS balance',
+    icon: 'FBWT',
+    tags: ['FBWT', 'reconciliation', 'Treasury', 'difference'],
+    summary: 'Fund Balance with Treasury differences are a major feedback loop: DoD records must reconcile to Treasury/CARS balances or explain timing and correction items.',
+    examples: ['agency FBWT balance', 'Treasury balance', 'reconciling item', 'aged difference', 'correction ticket'],
+    auditQuestions: ['Are FBWT differences aged and owned?', 'Are timing differences valid?', 'Did corrections post in both agency and Treasury records?'],
+    keyFields: ['TAS', 'agency balance', 'Treasury balance', 'difference', 'owner', 'age', 'correction status'],
+    risks: ['unresolved FBWT difference', 'unsupported timing item', 'one-sided correction']
+  },
+  {
+    id: 'close-gtas-atb-detail',
+    layer: 'transactions',
+    title: 'GTAS ATB Line Detail',
+    subtitle: 'TAS, USSGL, domain attributes, balances, activity',
+    icon: 'ATB',
+    tags: ['GTAS', 'ATB', 'line detail', 'USSGL'],
+    summary: 'GTAS line detail is where Treasury edit logic checks whether reported USSGL/TAS/attribute balances are structurally valid and reconcilable for governmentwide reporting.',
+    examples: ['budgetary line', 'proprietary line', 'domain attribute line', 'abnormal balance'],
+    auditQuestions: ['Can each ATB line trace to DDRS/GL?', 'Are beginning balances and activity mathematically consistent?', 'Are abnormal balances explained?'],
+    keyFields: ['TAS', 'USSGL', 'attribute', 'beginning balance', 'debit activity', 'credit activity', 'ending balance'],
+    risks: ['line not traceable', 'roll-forward error', 'unsupported abnormal balance']
+  },
+  {
+    id: 'close-sbr-detail',
+    layer: 'transactions',
+    title: 'SBR Budgetary Detail',
+    subtitle: 'budget authority, obligations, outlays, recoveries, ULOs',
+    icon: 'SBR',
+    tags: ['SBR', 'budgetary', 'obligation', 'outlay', 'ULO'],
+    summary: 'SBR amounts are driven by budgetary USSGL activity and must reconcile obligations, expenditures, outlays, recoveries, unobligated balances, and ULOs to source and Treasury data.',
+    examples: ['budget authority', 'obligation', 'upward/downward adjustment', 'outlay', 'recovery', 'ULO aging'],
+    auditQuestions: ['Do SBR lines trace to budgetary USSGL detail?', 'Are ULOs still valid?', 'Do outlays reconcile to disbursing and CARS/Treasury?'],
+    keyFields: ['TAS', 'budgetary USSGL', 'SBR line', 'obligation', 'outlay', 'recovery', 'ULO'],
+    risks: ['SBR line unsupported', 'stale ULO', 'outlay/Treasury mismatch']
+  },
+  {
+    id: 'close-igt-detail',
+    layer: 'transactions',
+    title: 'IGT and Elimination Detail',
+    subtitle: 'buyer/seller, reciprocal category, IPAC, GTAS attributes',
+    icon: 'ELIM',
+    tags: ['IGT', 'elimination', 'IPAC', 'trading partner'],
+    summary: 'IGT detail supports reciprocal eliminations in DDRS and governmentwide reporting; mismatches can require buyer/seller correction before final reporting.',
+    examples: ['trading partner difference', 'IPAC settlement', 'reciprocal category', 'buyer/seller confirmation'],
+    auditQuestions: ['Do buyer and seller balances agree?', 'Are reciprocal categories and trading partners complete?', 'Is elimination support retained?'],
+    keyFields: ['trading partner', 'buyer amount', 'seller amount', 'reciprocal category', 'IPAC document', 'difference'],
+    risks: ['elimination mismatch', 'missing trading partner', 'unconfirmed reciprocal balance']
+  },
+  {
+    id: 'close-gtas-edit-control',
+    layer: 'accounting',
+    title: 'GTAS Edit Resolution',
+    subtitle: 'fatal edits, warning edits, validation, re-submission',
+    icon: 'EDIT',
+    tags: ['GTAS', 'edits', 'fatal edit', 'validation'],
+    summary: 'GTAS edits are not cosmetic. Fatal edits, warning edits, and accounting edits can force DoD to correct ERP/DDRS data, explain anomalies, or re-submit certified ATB versions.',
+    examples: ['fatal edit', 'warning explanation', 'attribute correction', 're-submission'],
+    auditQuestions: ['Were fatal edits cleared?', 'Were warnings reviewed and documented?', 'Do corrections trace to authorized JVs or source fixes?'],
+    keyFields: ['edit code', 'severity', 'TAS', 'USSGL', 'owner', 'resolution', 'submission version'],
+    risks: ['uncleared fatal edit', 'unsupported explanation', 'uncontrolled re-submission']
+  },
+  {
+    id: 'close-supported-adjustment-control',
+    layer: 'accounting',
+    title: 'Supported Adjustment / JV Loop',
+    subtitle: 'ERP JV, DDRS adjustment, CARS correction, GTAS re-submit',
+    icon: 'JV',
+    tags: ['adjustment', 'JV', 'DDRS', 'GTAS', 'CARS'],
+    summary: 'Adjustments may happen before GTAS, after GTAS edits, after CARS/FBWT feedback, or during DDRS consolidation; every correction needs source support, approval, version control, and downstream re-tie.',
+    examples: ['ERP correction JV', 'DDRS consolidation adjustment', 'CARS classification correction', 'GTAS re-submission'],
+    auditQuestions: ['Is the adjustment supported by source evidence?', 'Did it update every affected system?', 'Was the re-submission certified and retained?'],
+    keyFields: ['adjustment ID', 'source defect', 'affected system', 'TAS', 'USSGL', 'approval', 'version'],
+    risks: ['manual JV masks source defect', 'one-sided correction', 'version mismatch']
+  },
+  {
+    id: 'close-certification-control',
+    layer: 'accounting',
+    title: 'Certification and Version Control',
+    subtitle: 'component certification, DDRS package, GTAS status, audit trail',
+    icon: 'CERT',
+    tags: ['certification', 'version', 'close', 'audit'],
+    summary: 'Each round of changes requires controlled versions: component close package, DDRS consolidation, GTAS status, edit reports, management review, and certification evidence.',
+    examples: ['component certification', 'DDRS package version', 'GTAS status report', 'edit report', 'review sign-off'],
+    auditQuestions: ['Which version is final?', 'Who certified it?', 'Do audit packages match the certified version?'],
+    keyFields: ['version', 'certifier', 'timestamp', 'submission status', 'support package', 'review status'],
+    risks: ['audit package tied to wrong version', 'uncertified resubmission', 'late unsupported change']
+  },
+  {
+    id: 'close-dod-afr-output',
+    layer: 'reporting',
+    title: 'DoD AFR / Component Statements',
+    subtitle: 'Balance Sheet, SNC, SBR, Custodial where applicable, notes',
+    icon: 'AFR',
+    tags: ['DoD AFR', 'financial statements', 'SBR', 'notes'],
+    summary: 'DoD/component financial statements are assembled from DDRS and supporting schedules, but they must remain reconcilable to GTAS, CARS, FBWT, and Treasury reporting feedback.',
+    examples: ['Balance Sheet', 'Statement of Net Cost', 'SBR', 'notes', 'management discussion'],
+    auditQuestions: ['Do statement lines tie to DDRS/GL?', 'Do SBR outlays and FBWT reconcile to Treasury?', 'Are late GTAS/CARS-driven adjustments reflected?'],
+    keyFields: ['statement line', 'TAS', 'USSGL', 'DDRS amount', 'support schedule', 'adjustment ID'],
+    risks: ['statement/GTAS mismatch', 'statement/CARS mismatch', 'unsupported note schedule']
+  },
+  {
+    id: 'close-treasury-fr-output',
+    layer: 'reporting',
+    title: 'Treasury Financial Report Support',
+    subtitle: 'GTAS, agency submissions, eliminations, governmentwide statements',
+    icon: 'FR',
+    tags: ['Financial Report', 'Treasury', 'governmentwide', 'GTAS'],
+    summary: 'Treasury uses GTAS agency data, CARS central accounting, IGT information, and other reporting inputs to compile the Financial Report of the U.S. Government.',
+    examples: ['agency FR data', 'governmentwide elimination', 'OMB/Treasury requirement', 'FR crosswalk'],
+    auditQuestions: ['Does Treasury FR support tie to agency-certified GTAS?', 'Are governmentwide eliminations supported?', 'Are agency explanations retained?'],
+    keyFields: ['agency', 'TAS', 'USSGL', 'FR line', 'elimination', 'amount', 'support package'],
+    risks: ['governmentwide amount unsupported', 'elimination mismatch', 'agency explanation missing']
+  },
+  {
+    id: 'close-mts-combined-output',
+    layer: 'reporting',
+    title: 'MTS / Combined Statement Outputs',
+    subtitle: 'CARS receipts, outlays, balances, budgetary reports',
+    icon: 'MTS',
+    tags: ['MTS', 'Combined Statement', 'CARS', 'receipts', 'outlays'],
+    summary: 'CARS produces and distributes budgetary reports such as the Monthly Treasury Statement and Combined Statement; these are Treasury-side budgetary/cash reporting comparators for DoD outlays and FBWT.',
+    examples: ['Monthly Treasury Statement', 'Combined Statement', 'receipt/outlay report', 'TAS activity'],
+    auditQuestions: ['Do CARS-based receipts/outlays agree to DoD accounting?', 'Are TAS-BETC classifications correct?', 'Are timing differences explained?'],
+    keyFields: ['TAS', 'BETC', 'receipt/outlay', 'period', 'CARS reference', 'amount'],
+    risks: ['receipt/outlay classification error', 'agency/Treasury timing difference', 'report line unsupported']
+  },
+  {
+    id: 'close-final-sbr-statement',
+    layer: 'statements',
+    title: 'Final SBR',
+    subtitle: 'budgetary resources, obligations, outlays, ULOs, recoveries',
+    icon: 'SBR',
+    tags: ['SBR', 'final statement', 'budgetary', 'outlay'],
+    summary: 'The final SBR is a DoD statement, but its outlays and FBWT-related assertions must reconcile to disbursing and Treasury/CARS activity, while GTAS validates budgetary USSGL reporting.',
+    examples: ['final SBR line', 'outlay tie-out', 'ULO validation', 'budgetary USSGL crosswalk'],
+    auditQuestions: ['Do SBR lines trace to source and GTAS?', 'Do outlays tie to CARS/disbursing?', 'Are ULOs valid and supportable?'],
+    keyFields: ['SBR line', 'TAS', 'USSGL', 'outlay', 'ULO', 'GTAS line', 'CARS reference'],
+    risks: ['SBR not tied to GTAS', 'outlay mismatch', 'unsupported ULO']
+  },
+  {
+    id: 'close-final-financial-statements',
+    layer: 'statements',
+    title: 'Final Financial Statements',
+    subtitle: 'Balance Sheet, Net Cost, Changes in Net Position, notes',
+    icon: 'FS',
+    tags: ['financial statements', 'final', 'AFR', 'audit'],
+    summary: 'The final DoD/component statements are issued after supported adjustments, DDRS consolidation, GTAS status, CARS/FBWT tie-outs, note schedules, and audit evidence are aligned.',
+    examples: ['Balance Sheet', 'Statement of Net Cost', 'Statement of Changes in Net Position', 'note schedule'],
+    auditQuestions: ['Do final lines tie to certified DDRS/GTAS versions?', 'Are cash and FBWT assertions reconciled to Treasury?', 'Are post-GTAS adjustments documented?'],
+    keyFields: ['statement line', 'DDRS version', 'GTAS version', 'CARS tie-out', 'support package', 'audit sample'],
+    risks: ['final package not version-controlled', 'Treasury feedback not reflected', 'audit trail incomplete']
+  },
+  {
+    id: 'close-governmentwide-final',
+    layer: 'statements',
+    title: 'Governmentwide Financial Report',
+    subtitle: 'Treasury compilation, OMB requirements, eliminations',
+    icon: 'GFR',
+    tags: ['Financial Report', 'governmentwide', 'Treasury', 'OMB'],
+    summary: 'The Financial Report of the U.S. Government is Treasury’s governmentwide compilation; DoD’s data is one major agency input that must align with GTAS, CARS, IGT, and Treasury reporting requirements.',
+    examples: ['FR agency input', 'governmentwide statement', 'elimination entry', 'agency explanation'],
+    auditQuestions: ['Do DoD final submissions align to Treasury governmentwide reporting?', 'Are eliminations and reclassifications supported?', 'Are agency and Treasury versions consistent?'],
+    keyFields: ['agency', 'FR line', 'TAS', 'USSGL', 'elimination', 'reclassification', 'amount'],
+    risks: ['agency/governmentwide mismatch', 'unsupported reclassification', 'late Treasury adjustment']
+  }
+];
+
+const treasuryCloseLineageScenarios = [
+  {
+    id: 'close-monthly-to-yearend',
+    short: 'Step-by-step',
+    title: 'Step-by-step Close: Source to DoD Statements and Treasury Financial Report',
+    description: 'Shows the full loop from source events through DoD close, CARS/FBWT, DDRS, GTAS, edit feedback, supported adjustments, re-submission, DoD statements, and Treasury governmentwide reporting.',
+    path: ['close-erp-subledger-source', 'close-disbursing-source', 'close-cars-core', 'close-component-close-core', 'close-ddrs-core', 'close-gtas-core', 'close-gtas-edit-control', 'close-supported-adjustment-control', 'close-certification-control', 'close-dod-afr-output', 'close-treasury-fr-output', 'close-final-financial-statements'],
+    steps: [
+      'Components close ERP/subledger populations and reconcile feeder totals, AP, AR, assets, budgetary accounts, and source evidence.',
+      'Disbursing and cash activity from ADS/DDS/DCAS is matched to accounting and to Treasury/CARS classified activity.',
+      'CARS/Treasury provides TAS-BETC central accounting, FBWT, MTS, and Combined Statement comparators that can disagree with agency records.',
+      'Component trial balances and reporting packages are loaded or consolidated in DDRS for DoD/component statements and note schedules.',
+      'Adjusted trial balance data is submitted to GTAS with TAS, USSGL, and required attributes.',
+      'GTAS edits, CARS/FBWT tie-outs, and IGT differences create feedback. If the agency data is wrong, DoD corrects ERP/DDRS/GTAS; if Treasury classification is wrong, the CARS/TAS-BETC side is corrected.',
+      'The cycle repeats until DDRS, GTAS, CARS/FBWT, IGT, and statement support are aligned and certified.',
+      'DoD issues its AFR/component statements while Treasury uses GTAS/CARS/IGT data to compile the Financial Report of the U.S. Government.'
+    ],
+    exceptionTests: ['GTAS fatal edit', 'DDRS/GTAS mismatch', 'CARS/agency mismatch', 'FBWT difference aged', 'IGT reciprocal mismatch', 'unsupported post-close JV']
+  },
+  {
+    id: 'close-sbr-outlay-fbwt',
+    short: 'SBR/Cash',
+    title: 'SBR Outlay and FBWT Reconciliation Loop',
+    description: 'Focuses on how SBR outlays and FBWT are affected by disbursing, CARS, GTAS budgetary edits, and supported adjustments.',
+    path: ['close-erp-subledger-source', 'close-disbursing-source', 'close-sbr-detail', 'close-cars-core', 'close-fbwt-detail', 'close-gtas-core', 'close-gtas-edit-control', 'close-supported-adjustment-control', 'close-final-sbr-statement'],
+    steps: [
+      'Budgetary activity in the ERP records authority, obligations, expenditures, recoveries, outlays, and ULO balances.',
+      'Disbursing records provide payment/outlay evidence and cash-accountability support.',
+      'CARS classifies payments and collections by ALC, TAS, and BETC and provides the Treasury-side central accounting view.',
+      'FBWT reconciliation compares DoD/agency balances to Treasury/CARS balances and identifies timing, classification, or missing-posting differences.',
+      'GTAS validates budgetary USSGL/TAS/attribute reporting; SBR line issues can trigger edits or agency analysis.',
+      'Supported corrections are posted in ERP/DDRS, GTAS, CARS, or disbursing records depending on where the defect actually lives.',
+      'The final SBR must tie budgetary detail, disbursing/outlay evidence, CARS/Treasury support, and certified GTAS reporting.'
+    ],
+    exceptionTests: ['outlay not tied to payment', 'FBWT difference unresolved', 'invalid BETC', 'budgetary USSGL edit', 'stale ULO', 'one-sided correction']
+  },
+  {
+    id: 'close-igt-eliminations',
+    short: 'IGT',
+    title: 'IPAC/IGT to DDRS and Governmentwide Elimination Loop',
+    description: 'Explains why intragovernmental activity creates back-and-forth between agency accounting, IPAC/CARS, GTAS attributes, DDRS eliminations, and Treasury governmentwide reporting.',
+    path: ['close-ipac-igt-source', 'close-igt-detail', 'close-cars-core', 'close-ddrs-core', 'close-gtas-core', 'close-gtas-edit-control', 'close-supported-adjustment-control', 'close-treasury-fr-output', 'close-governmentwide-final'],
+    steps: [
+      'Buyer and seller agencies record reciprocal IGT activity from IPAC, G-Invoicing, orders, performance, bills, and collections.',
+      'CARS/IPAC settlement and TAS-BETC classification create the Treasury-side cash and central accounting view.',
+      'DDRS performs DoD-level eliminations and component reporting, but mismatches can remain if buyer/seller amounts or trading partner attributes differ.',
+      'GTAS requires trading partner and reciprocal attributes for governmentwide reporting support.',
+      'Treasury governmentwide compilation can identify reciprocal or elimination differences and send them back for agency explanation or correction.',
+      'Corrections may require ERP/DDR JVs, GTAS resubmission, CARS/IPAC correction, or documented explanation when timing differences are valid.'
+    ],
+    exceptionTests: ['buyer/seller amount mismatch', 'missing trading partner', 'IPAC posted to wrong TAS', 'GTAS reciprocal attribute missing', 'unsupported elimination']
+  },
+  {
+    id: 'close-post-gtas-adjustments',
+    short: 'Adjustments',
+    title: 'When Adjustments Happen Before and After GTAS/CARS Feedback',
+    description: 'Separates pre-GTAS close entries from post-GTAS edit corrections, CARS/FBWT corrections, DDRS consolidation entries, and final statement updates.',
+    path: ['close-component-close-core', 'close-ddrs-core', 'close-gtas-core', 'close-gtas-edit-control', 'close-fbwt-detail', 'close-supported-adjustment-control', 'close-certification-control', 'close-final-financial-statements'],
+    steps: [
+      'Before GTAS: components post normal close entries such as accruals, reclasses, feeder corrections, subledger tie-outs, and unsupported-balance cleanup.',
+      'At DDRS: DoD or component reporting teams may post supported consolidation, elimination, or reporting adjustments.',
+      'After GTAS edits: fatal or warning edits can force corrected USSGL/TAS/attribute mappings, abnormal-balance explanations, or source corrections.',
+      'After CARS/FBWT feedback: agency/Treasury differences can force TAS-BETC correction, cash classification correction, ERP posting, or documented timing explanation.',
+      'After Treasury governmentwide review: IGT, Financial Report crosswalk, or disclosure issues can force additional explanation or re-submission.',
+      'Every adjusted version must be re-tied across source, DDRS, GTAS, CARS/FBWT, statements, and audit evidence before final issuance.'
+    ],
+    exceptionTests: ['post-GTAS JV lacks support', 'GTAS version not re-certified', 'DDRS not updated after ERP correction', 'CARS correction not reflected in FBWT', 'audit package tied to stale version']
+  }
+];
+
+const treasuryCloseSupportServices = [
+  { title: 'Close Calendar and Version Control', detail: 'Monthly and year-end close windows, component certification, DDRS package versions, GTAS submissions, edit reports, re-submissions, and final audit package versions.' },
+  { title: 'Disbursing and Cash Reconciliation', detail: 'ADS/DDS/DCAS vouchers, collections, deposits, returns, cash accountability, CARS/TAS-BETC classification, FBWT, and outlay support.' },
+  { title: 'DDRS and DoD Statement Production', detail: 'Component trial balances, consolidation, eliminations, SBR, Balance Sheet, Net Cost, Changes in Net Position, notes, and AFR support.' },
+  { title: 'GTAS Submission and Edits', detail: 'Adjusted trial balance, TAS, USSGL, domain attributes, budgetary/proprietary balances, fatal edits, warning edits, status reports, and certification.' },
+  { title: 'CARS/Treasury Central Accounting', detail: 'CARS transaction detail, TAS-BETC, ALC, FBWT, MTS, Combined Statement, CARS corrections, and agency-to-Treasury reconciliation.' },
+  { title: 'Governmentwide Reporting Feedback', detail: 'Financial Report support, Treasury/OMB requirements, IGT eliminations, reciprocal differences, agency explanations, and final governmentwide compilation support.' }
+];
+
+const treasuryCloseCaveats = [
+  'This blueprint models the business close and reporting interaction. It does not claim that Treasury directly edits DoD accounting records; rather, Treasury systems and reporting feedback identify differences that DoD or Treasury must correct in the appropriate system of record.',
+  'DoD/component financial statements are produced through DoD reporting processes such as DDRS, but they must reconcile to Treasury-controlled central accounting, GTAS, CARS, FBWT, and governmentwide reporting requirements.',
+  'CARS and GTAS are related but different: CARS is central accounting and cash/TAS-BETC transaction reporting; GTAS is adjusted trial balance and budget-execution reporting. Both can create feedback that changes the final DoD reporting package.',
+  'Adjustment timing is controlled by policy, reporting windows, and audit governance. This page shows representative loops and control points, not a classified or system-specific production interface inventory.'
+];
+
+const treasuryCloseSources = [
+  { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
+  { name: 'Treasury CARS', url: 'https://fiscal.treasury.gov/accounting/central-accounting-reporting-system-cars' },
+  { name: 'Treasury Financial Report resources', url: 'https://fiscal.treasury.gov/reports-statements/financial-report' },
+  { name: 'Treasury Intragovernmental Transactions / IPAC', url: 'https://fiscal.treasury.gov/intragov/' },
+  { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
+  { name: 'DoD Financial Management Regulation', url: 'https://comptroller.defense.gov/FMR/' },
+  { name: 'DFAS official site', url: 'https://www.dfas.mil/' }
+];
+
 export const systems = [
   {
     slug: 'gfebs',
@@ -7697,6 +8065,39 @@ export const systems = [
     supportServices: gtasCarsSupportServices,
     caveats: gtasCarsCaveats,
     sources: gtasCarsSources
+  },
+  {
+    slug: 'dod-treasury-close',
+    shortName: 'Close Loop',
+    name: 'DoD to Treasury Close',
+    longName: 'DoD-to-Treasury Close / GTAS, CARS, DDRS, SBR, and Financial Statement Blueprint',
+    agency: 'DoD / Treasury',
+    eyebrow: 'Step-by-step close blueprint for disbursing, cash, GTAS, CARS, DDRS, SBR, and final statements',
+    description: 'Explore the full close loop from DoD ERP source events, disbursing and cash systems, CARS/Treasury central accounting, DDRS consolidation, GTAS adjusted trial balance edits, supported adjustments, re-submissions, SBR, DoD financial statements, and Treasury Financial Report support.',
+    metric: '4',
+    metricLabel: 'Close-loop scenarios',
+    metricDetail: 'Source -> DDRS -> GTAS/CARS -> Final',
+    referenceImage: '/dod-treasury-close-blueprint-reference.svg',
+    referenceTitle: 'DoD-to-Treasury close static blueprint reference',
+    downloadLinks: [
+      { label: 'Download SVG', href: '/dod-treasury-close-blueprint-reference.svg' }
+    ],
+    profile: {
+      whatItIs: 'This is a cross-system close blueprint explaining how DoD source systems, disbursing/cash systems, DDRS, GTAS, CARS, IPAC, FBWT, SBR, and Treasury governmentwide reporting interact before final statements are issued.',
+      whoUsesIt: 'DoD component reporting teams, DFAS/accounting support, disbursing and cash-accountability teams, Treasury-facing reporting users, FBWT teams, IGT teams, auditors, and financial-statement preparers rely on this flow.',
+      howItIsUsed: 'It is used to understand why financial statement finalization requires repeated tie-outs among ERP GL, disbursing, CARS/Treasury, DDRS, GTAS edits, FBWT, IGT eliminations, and audit support.',
+      currentStatus: 'Modeled from public Treasury/DoD reporting concepts and official Fiscal Service GTAS/CARS descriptions; exact DoD component timelines, file formats, and system interfaces require authoritative DoD/Treasury procedures.',
+      whyItIsUsed: 'The page makes clear that DoD statements are produced in DoD/DDRS, but Treasury systems are active controls for cash, central accounting, GTAS data quality, governmentwide reporting, and Financial Report compilation.',
+      feederCount: 10,
+      feederSystems: ['Component ERP / Feeder UoT', 'ADS / DDS / DCAS Disbursing', 'IPAC / G-Invoicing / IGT', 'CARS Central Accounting', 'FBWT Reconciliation', 'DDRS Consolidation', 'GTAS ATB Submission', 'Treasury MTS / Combined Statement', 'DoD AFR / Component Statements', 'Treasury Financial Report Support'],
+      feederNote: 'The blueprint models 10 major partner/source categories in the close loop; it is not a certified interface inventory.'
+    },
+    layers: treasuryCloseLayers,
+    nodes: treasuryCloseNodes,
+    lineageScenarios: treasuryCloseLineageScenarios,
+    supportServices: treasuryCloseSupportServices,
+    caveats: treasuryCloseCaveats,
+    sources: treasuryCloseSources
   },
   {
     slug: 'disbursing-cash',
