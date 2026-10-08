@@ -13,6 +13,7 @@ export default function TopNav({ activeSlug, showTabs = true }) {
   // header: brand + toggle stacked, paper link standalone, tabs optional
   const pathname = usePathname();
   const isAppendix = pathname ? pathname.startsWith('/appendix') : false;
+  const isKnowledge = pathname ? pathname.startsWith('/knowledge') : false;
 
   return (
     <nav className="system-tabs" aria-label="DoD financial management systems">
@@ -26,6 +27,14 @@ export default function TopNav({ activeSlug, showTabs = true }) {
           >
             <span aria-hidden="true">📄</span>
             Research Paper Appendix
+          </Link>
+          <Link
+            className={classNames('paper-link', isKnowledge && 'active')}
+            href="/knowledge"
+            aria-current={isKnowledge ? 'page' : undefined}
+          >
+            <span aria-hidden="true">🗂️</span>
+            Platform Knowledge Base
           </Link>
         </div>
         <ThemeToggle />

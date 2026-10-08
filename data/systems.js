@@ -5260,6 +5260,45 @@ const ddrsNodes = [
     risks: ['Schedule not tied to TB', 'Evidence unavailable', 'Unapproved variance explanation']
   },
   {
+    id: 'ddrs-b-module',
+    layer: 'base',
+    title: 'DDRS-B (Budgetary)',
+    subtitle: 'Monthly feeder import, crosswalk, SF 133',
+    icon: 'DB',
+    tags: ['ddrs-b', 'budgetary', 'sf 133', 'feeder file', 'crosswalk'],
+    summary: 'Imports Component trial balances and legacy feeder files each month, crosswalks Report Data Types and General Ledger Account Codes to USSGL accounts, runs edits, records system-generated and manual journal vouchers, and produces budget execution reports and the export file to DDRS-AFS.',
+    examples: ['SF 133 Report on Budget Execution and Budgetary Resources', 'Accounting Report (M) 1002 Appropriation Status', 'Accounting Report (M) 725 Report on Reimbursements', 'Feeder File Inventory Control Report', 'Export file to DDRS-AFS'],
+    auditQuestions: ['Were all expected feeder files received and retained?', 'Is each crosswalk rule approved and versioned?', 'Do system-generated journal vouchers have documented logic and support?', 'Does the Army or Component SF 133 agree with the OMB SF 133 and the SBR?'],
+    keyFields: ['source system', 'feeder file ID', 'RDT', 'GLAC', 'TAS', 'DoD SCOA account', 'period', 'record count', 'control total'],
+    risks: ['Feeder file not retained', 'Crosswalk derives GL balances not posted at transaction level', 'Unsupported system-generated adjustment', 'Abnormal balance not researched']
+  },
+  {
+    id: 'ddrs-afs-module',
+    layer: 'base',
+    title: 'DDRS-AFS (Audited Financial Statements)',
+    subtitle: 'Quarterly statements, notes, consolidation',
+    icon: 'AFS',
+    tags: ['ddrs-afs', 'statements', 'notes', 'consolidation', 'export file'],
+    summary: 'Receives the DDRS-B export file, applies data call and elimination entries, maps USSGL accounts and attributes to statement lines and notes, and consolidates Component statements into the DoD Agency-Wide statements.',
+    examples: ['Balance Sheet', 'Statement of Net Cost', 'Statement of Changes in Net Position', 'Statement of Budgetary Resources', 'Note schedules'],
+    auditQuestions: ['Does the DDRS-AFS beginning point equal the DDRS-B export file?', 'Are journal vouchers recorded only in DDRS-AFS explained, since they reach the SBR and not the SF 133?', 'Is the statement crosswalk version documented?'],
+    keyFields: ['entity', 'period', 'TAS', 'USSGL account', 'attributes', 'statement', 'line', 'JV number', 'crosswalk version'],
+    risks: ['SBR and SF 133 differ because of AFS-only adjustments', 'Crosswalk change not controlled', 'Consolidation entity missing']
+  },
+  {
+    id: 'ddrs-dcm-module',
+    layer: 'base',
+    title: 'DCM (Data Collection Module)',
+    subtitle: 'Data calls for amounts outside accounting systems',
+    icon: 'DCM',
+    tags: ['dcm', 'data call', 'category m', 'notes'],
+    summary: 'Collects data call amounts from Components for items that do not originate as accounting-system transactions. The amounts are recorded with journal voucher category M and support note disclosures.',
+    examples: ['Property and equipment data call', 'Operating materials and supplies', 'Environmental and contingent liabilities', 'Note disclosure data'],
+    auditQuestions: ['Who certified each data call amount?', 'Is the supporting detail retained and tied to the amount?', 'Why is the amount not recorded in the accounting system?'],
+    keyFields: ['data call ID', 'entity', 'period', 'topic', 'amount', 'submitter', 'certifier', 'JV number'],
+    risks: ['Data call amount unsupported', 'Same amount also recorded in the ledger', 'Late or uncertified submission']
+  },
+  {
     id: 'ddrs-tb-intake',
     layer: 'base',
     title: 'Trial Balance Intake',
@@ -5325,6 +5364,19 @@ const ddrsNodes = [
     risks: ['Unsupported top-side entry', 'Manual entry masks source defect', 'Missing reversal']
   },
   {
+    id: 'ddrs-feeder-record-detail',
+    layer: 'detail',
+    title: 'Feeder Record and Crosswalk Detail',
+    subtitle: 'RDT, GLAC, DoD SCOA account, attributes',
+    icon: 'RDT',
+    tags: ['rdt', 'glac', 'crosswalk', 'scoa', 'sfis'],
+    summary: 'Holds each feeder record with its Report Data Type, General Ledger Account Code, or ten-digit DoD Standard Chart of Accounts value, plus the crosswalk rule that produced the USSGL trial balance line.',
+    examples: ['RDT accounting-stage record', 'GLAC general ledger record', 'DoD SCOA account 101000.9000', 'SFIS attribute set', 'Crosswalk rule and effective period'],
+    auditQuestions: ['Can each trial balance line be rebuilt from feeder records and crosswalk rules?', 'Do attributes follow the SFIS Attribute Alignment file?', 'Are DO NOT POST accounts absent from source postings?'],
+    keyFields: ['feeder file ID', 'line', 'RDT', 'GLAC', 'DoD SCOA account', 'TAS', 'attribute values', 'crosswalk rule ID', 'amount'],
+    risks: ['Crosswalk rule undocumented', 'Attribute missing for the TAS', 'Normal balance applied at the wrong level']
+  },
+  {
     id: 'ddrs-tb-line-detail',
     layer: 'detail',
     title: 'Trial Balance Line Detail',
@@ -5375,6 +5427,19 @@ const ddrsNodes = [
     auditQuestions: ['Are note schedules tied to controlled TB populations?', 'Are variances explained and reviewed?', 'Do narratives align to reported values?'],
     keyFields: ['note ID', 'schedule line', 'entity', 'statement line', 'amount', 'variance', 'reviewer'],
     risks: ['Unsupported disclosure', 'Variance explanation not approved', 'Schedule not tied to TB']
+  },
+  {
+    id: 'ddrs-jv-category-control',
+    layer: 'accounting',
+    title: 'JV Category and Approval Control',
+    subtitle: 'Categories A to M, thresholds, root cause, logs',
+    icon: 'JVC',
+    tags: ['journal voucher', 'category', 'approval', 'root cause', 'fmr 6a'],
+    summary: 'Applies DoD FMR Volume 6A, Chapter 2 rules: each journal voucher carries a category from A to M, a root cause code for manual adjustments, an approver set by dollar threshold, and an entry in one of four adjustment logs.',
+    examples: ['Category C balancing entry for eliminations', 'Category D undistributed disbursements and collections', 'Category E trial balance to budget execution reconciliation', 'Category M Data Collection Module entry', 'Over $1 billion: Site Director approval with Component coordination'],
+    auditQuestions: ['Is the category correct for the adjustment?', 'Was the approver at the level the dollar threshold requires?', 'Are preparer and approver different people?', 'Does the root cause point to a source-system fix?'],
+    keyFields: ['JV number', 'category', 'system-generated flag', 'root cause code', 'absolute debit total', 'preparer', 'approver', 'log type', 'support reference'],
+    risks: ['Approval below required level', 'Recurring manual JV with the same root cause', 'Adjustment missing from the logs', 'Component not notified']
   },
   {
     id: 'ddrs-ussgl-tas-control',
@@ -5510,6 +5575,37 @@ const ddrsNodes = [
 
 const ddrsLineageScenarios = [
   {
+    id: 'ddrs-feeder-to-sf133',
+    short: 'DDRS-B feeder',
+    title: 'Legacy Feeder File to SF 133 through DDRS-B',
+    description: 'Traces a legacy feeder file through DDRS-B import, crosswalk, journal voucher control, and budget execution reporting.',
+    path: ['ddrs-legacy-source', 'ddrs-b-module', 'ddrs-feeder-record-detail', 'ddrs-jv-category-control', 'ddrs-component-reporting', 'ddrs-sbr'],
+    steps: [
+      'A legacy accounting system submits a feeder file with records identified by Report Data Type or General Ledger Account Code.',
+      'DDRS-B logs the file, then crosswalks each record to USSGL budgetary and proprietary accounts.',
+      'Feeder record detail keeps the source code, attributes, and crosswalk rule behind each trial balance line.',
+      'Edits and tie points raise differences. Journal vouchers are categorized, approved by threshold, and logged.',
+      'DDRS-B produces the SF 133 and related budget execution reports and the export file to DDRS-AFS.',
+      'The Statement of Budgetary Resources is reconciled to the SF 133.'
+    ],
+    exceptionTests: ['feeder file missing or not retained', 'record count differs from source', 'crosswalk rule not approved', 'JV approved below threshold', 'SF 133 to SBR difference unexplained']
+  },
+  {
+    id: 'ddrs-data-call-to-note',
+    short: 'DCM data call',
+    title: 'Data Call to Statement Note through DCM and DDRS-AFS',
+    description: 'Shows how an amount collected by data call becomes a category M journal voucher and a note disclosure.',
+    path: ['ddrs-audit-evidence-source', 'ddrs-dcm-module', 'ddrs-jv-category-control', 'ddrs-afs-module', 'ddrs-afr-par-output', 'ddrs-notes'],
+    steps: [
+      'A Component prepares and certifies a data call amount with supporting detail.',
+      'The Data Collection Module captures the amount by entity, period, and topic.',
+      'The amount is recorded as a category M journal voucher with preparer, approver, and support.',
+      'DDRS-AFS includes the entry in the adjusted balances and maps it to statement lines and notes.',
+      'The Agency Financial Report presents the amount, and the support package is retained for audit.'
+    ],
+    exceptionTests: ['data call not certified', 'support does not tie to the amount', 'amount duplicated in the ledger', 'category M entry not reversed when required', 'note not tied to adjusted balance']
+  },
+  {
     id: 'ddrs-component-tb-to-statement',
     short: 'TB to statement',
     title: 'Component Trial Balance to Statement Line',
@@ -5582,12 +5678,18 @@ const ddrsSupportServices = [
 
 const ddrsCaveats = [
   'DDRS is modeled here as the Defense Departmental Reporting System for financial reporting, not the similarly named Defense Readiness Reporting System.',
-  'Public DDRS module and interface details are limited. Exact DDRS variants, file layouts, workflow names, owners, and current modernization state require authoritative DoD reporting documentation.',
+  'DDRS has three named parts in public sources: DDRS-B (Budgetary), DDRS-AFS (Audited Financial Statements), and the Data Collection Module. DFAS does not publish the DDRS database schema or file layouts, so the data objects on this page are logical records.',
   'This blueprint focuses on the auditable reporting process: trial balance intake, USSGL/TAS validation, GTAS tie-out, eliminations, top-side adjustments, statements, notes, and audit support.',
   'Feeder counts are modeled source/partner categories represented in this blueprint, not a certified production interface inventory.'
 ];
 
 const ddrsSources = [
+  { name: 'DoD FMR Vol 6A Ch 2: Financial Reports Roles and Responsibilities', url: 'https://comptroller.war.gov/Portals/45/documents/fmr/current/06a/06a_02.pdf' },
+  { name: 'DoD FMR Vol 1 Ch 4: SFIS', url: 'https://comptroller.defense.gov/Portals/45/documents/fmr/current/01/01_04.pdf' },
+  { name: 'DoD FMR Vol 1 Ch 7: DoD Standard Chart of Accounts', url: 'https://comptroller.defense.gov/Portals/45/documents/fmr/current/01/01_07.pdf' },
+  { name: 'DODIG-2012-096 (DDRS-B, Army General Fund)', url: 'https://media.defense.gov/2012/May/31/2001712372/-1/-1/1/DODIG-2012-096.pdf' },
+  { name: 'DODIG-2026-013 (data remaining after system retirement)', url: 'https://media.defense.gov/2025/Nov/20/2003827135/-1/-1/1/DODIG-2026-013_REDACTED%20V2%20SECURE.PDF' },
+  { name: 'Treasury GTAS bulk file format FY 2026', url: 'https://fiscal.treasury.gov/system/files/2026-04/bulk-file-format-b.pdf' },
   { name: 'DoD Financial Management Regulation', url: 'https://comptroller.defense.gov/FMR/' },
   { name: 'Treasury GTAS', url: 'https://fiscal.treasury.gov/accounting/government-wide-treasury-account-symbol-gtas' },
   { name: 'Treasury USSGL', url: 'https://fiscal.treasury.gov/accounting/us-standard-general-ledger-ussgl' },
@@ -8008,19 +8110,19 @@ export const systems = [
     agency: 'DoD Reporting',
     eyebrow: 'DDRS blueprint for DoD financial statement reporting',
     description: 'Explore DDRS as the DoD financial reporting layer for component trial balance intake, USSGL/TAS validation, GTAS tie-outs, consolidation, intragovernmental eliminations, top-side adjustments, statements, notes, and audit support.',
-    metric: '4',
+    metric: '6',
     metricLabel: 'Core DDRS lineage scenarios',
-    metricDetail: 'TB -> Edits -> GTAS -> AFR/PAR',
+    metricDetail: 'Feeder -> DDRS-B -> DDRS-AFS -> GTAS',
     referenceImage: '/ddrs-blueprint-reference.svg',
     referenceTitle: 'DDRS static blueprint reference',
     downloadLinks: [
       { label: 'Download SVG', href: '/ddrs-blueprint-reference.svg' }
     ],
     profile: {
-      whatItIs: 'DDRS is modeled as the Defense Departmental Reporting System for DoD financial reporting, consolidating component trial balances into statement, note, Treasury, and audit-support outputs.',
+      whatItIs: 'DDRS is the Defense Departmental Reporting System, the DoD departmental reporting application that DFAS uses to produce Component and agency-wide reports. DDRS-B produces monthly budget execution reports, DDRS-AFS produces the financial statements and notes, and the Data Collection Module gathers data call amounts.',
       whoUsesIt: 'DoD reporting teams, component financial managers, DFAS/shared-service support, trial-balance owners, Treasury/GTAS reporting users, eliminations teams, statement preparers, and auditors rely on DDRS data or outputs.',
-      howItIsUsed: 'It ingests trial balances, applies USSGL/TAS edits and crosswalks, supports consolidation, GTAS tie-outs, eliminations, top-side adjustments, AFR/PAR statement production, note schedules, and audit reconciliations.',
-      currentStatus: 'Modeled as an active DoD financial reporting layer. Public module and interface detail is limited, so exact variants, workflow names, and modernization state require authoritative DoD reporting documentation.',
+      howItIsUsed: 'It ingests SFIS trial balances and legacy feeder files, crosswalks legacy Report Data Types and General Ledger Account Codes to USSGL, applies edits and tie points, records categorized journal vouchers, and produces the SF 133, the financial statements, note schedules, and the data reported to Treasury GTAS.',
+      currentStatus: 'Active. DoD FMR Volume 1 requires every accounting system to report to DDRS. DoD IG reported in November 2025 that DDRS still carried balances from 10 retired systems and 57 obsolete files, with an archiving change targeted for September 30, 2027.',
       whyItIsUsed: 'It gives DoD a controlled statement-production path from component accounting systems to consolidated financial reports, Treasury reporting, disclosure schedules, and audit evidence.',
       feederCount: 6,
       feederSystems: ['Component ERP Trial Balances', 'Legacy Accounting Sources', 'Working Capital Fund Sources', 'Treasury / GTAS / IPAC', 'IGT / Trading Partner Data', 'Audit / Component Support Packages'],

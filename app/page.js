@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { systems } from '../data/systems';
 import { paperSections, paperMeta } from '../data/paper';
+import { knowledgePages, knowledgeMeta, countBlocks } from '../data/knowledge';
 import TopNav from '../components/TopNav';
 
 export default function Page() {
@@ -19,6 +20,7 @@ export default function Page() {
           <div className="hero-actions">
             <a href="#directory" className="primary-action">Browse all {systems.length} systems</a>
             <Link href="/appendix" className="secondary-action">Open research paper appendix</Link>
+            <Link href="/knowledge" className="secondary-action">Open platform knowledge base</Link>
           </div>
         </div>
         <div className="hero-card">
@@ -43,6 +45,29 @@ export default function Page() {
               <h3>{system.name}</h3>
               <p>{system.description}</p>
               <strong>Open blueprint</strong>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="system-directory" id="knowledge-base">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Platform knowledge base</p>
+            <h2>{knowledgeMeta.title}</h2>
+            <p>{knowledgeMeta.subtitle}</p>
+          </div>
+        </div>
+        <div className="hero-actions" style={{ marginBottom: 16 }}>
+          <Link href="/knowledge" className="primary-action">Open the knowledge base</Link>
+        </div>
+        <div className="directory-grid">
+          {knowledgePages.map((page) => (
+            <Link className="directory-card" href={`/knowledge/${page.slug}`} key={page.slug}>
+              <span>{page.eyebrow}</span>
+              <h3>{page.shortTitle}</h3>
+              <p>{page.blurb}</p>
+              <strong>{countBlocks(page, 'table')} tables, {countBlocks(page, 'figure')} {countBlocks(page, 'figure') === 1 ? 'diagram' : 'diagrams'}</strong>
             </Link>
           ))}
         </div>

@@ -28,6 +28,15 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/systems/cefms` Corps of Engineers Financial Management System blueprint
   - `/systems/dla-ebs` Defense Logistics Agency Enterprise Business System blueprint
   - `/systems/abss` Automated Business Services System blueprint
+- Platform knowledge base:
+  - `/knowledge` index with a system-to-platform map
+  - `/knowledge/integration` how tables, data models, and systems fit together (SFIS, SLOA, USSGL lifecycle, join keys)
+  - `/knowledge/sap` SAP ECC and S/4HANA architecture, organizational model, FI / PSM-FM / MM / CO / SD / AA tables
+  - `/knowledge/oracle-ebs` Oracle E-Business Suite and Federal Financials architecture, GL, Subledger Accounting, P2P, FV tables
+  - `/knowledge/ddrs` DDRS-B, DDRS-AFS, DCM, journal voucher rules, logical data model, GTAS bulk file layout
+  - `/knowledge/other-platforms` legacy status-of-funds systems, disbursing, PIEE, Treasury systems, Advana
+  - every table and diagram is numbered per page (Table S-1, Figure O-3, and so on)
+- Data model section on every system page (`#data-model`): numbered table of tables or records, key fields, and join paths
 - Shared controls across systems:
   - system navigation tabs
   - system profile cards for what it is, who uses it, how it is used, current status, why it is used, and modeled feeder-system count
@@ -113,6 +122,9 @@ You can also import the repository directly in Vercel and use the default Next.j
 ## Suggested customization
 
 - Add future DoD FM systems in `data/systems.js`.
+- Add or edit knowledge base pages in `data/knowledge/`. Pages are arrays of blocks built with the helpers in `data/knowledge/blocks.js`.
+- Diagrams are data: a grid of nodes and edges rendered by `components/Diagram.js`. No image files to maintain.
+- Edit per-system table catalogs and join paths in `data/dataModels.js`.
 - Edit `data/architecture.js` to change the GFEBS nodes, T-code examples, SAP tables, audit questions, or scenarios.
 - Edit `app/globals.css` to change colors, layout, spacing, and print behavior.
 - Replace or add reference images under `public`.

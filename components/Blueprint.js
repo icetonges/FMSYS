@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import { systems } from '../data/systems';
 import TopNav from './TopNav';
+import DataModelSection from './DataModelSection';
 
 const defaultSystem = systems[0];
 
@@ -219,6 +220,7 @@ export default function Blueprint({ system = defaultSystem }) {
           <div className="hero-actions">
             <a href="#blueprint" className="primary-action">Explore blueprint</a>
             <a href="#lineage" className="secondary-action">Open lineage explorer</a>
+            <a href="#data-model" className="secondary-action">Data model and tables</a>
           </div>
         </div>
         <div className="hero-card">
@@ -388,6 +390,8 @@ export default function Blueprint({ system = defaultSystem }) {
       <section id="lineage">
         <ScenarioPanel scenario={selectedScenario} nodeLookup={nodeLookup} onNodeSelect={setSelectedNodeId} />
       </section>
+
+      <DataModelSection system={system} tableNumber={`${system.shortName}-1`} />
 
       {showRisks && (
         <section className="audit-lens">
