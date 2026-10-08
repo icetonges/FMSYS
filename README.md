@@ -32,6 +32,7 @@ Interactive Next.js blueprint suite for explaining DoD financial-management arch
   - `/knowledge` index with a system-to-platform map
   - `/knowledge/integration` how tables, data models, and systems fit together (SFIS, SLOA, USSGL lifecycle, join keys)
   - `/knowledge/sap` SAP ECC and S/4HANA architecture, organizational model, FI / PSM-FM / MM / CO / SD / AA tables
+  - SAP expert series: `/knowledge/sap-architecture`, `sap-modules`, `sap-federal`, `sap-tables`, `sap-tcodes`, `sap-fields`, `sap-interfaces`, `sap-dod-systems`. The three catalog pages are searchable and filterable. Catalog data lives in `data/knowledge/sapx/tables.js`, `tcodes.js`, and `fields.js`, one pipe-delimited line per entry.
   - `/knowledge/oracle-ebs` Oracle E-Business Suite and Federal Financials architecture, GL, Subledger Accounting, P2P, FV tables
   - `/knowledge/ddrs` DDRS-B, DDRS-AFS, DCM, journal voucher rules, logical data model, GTAS bulk file layout
   - `/knowledge/other-platforms` legacy status-of-funds systems, disbursing, PIEE, Treasury systems, Advana

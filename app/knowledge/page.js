@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import TopNav from '../../components/TopNav';
-import { knowledgePages, knowledgeMeta, countBlocks } from '../../data/knowledge';
+import { knowledgePages, corePages, sapSeries, knowledgeMeta, countBlocks } from '../../data/knowledge';
 import { systems } from '../../data/systems';
 import { getDataModel } from '../../data/dataModels';
 
@@ -53,7 +53,29 @@ export default function KnowledgeIndexPage() {
           </div>
         </div>
         <div className="directory-grid">
-          {knowledgePages.map((page) => (
+          {corePages.map((page) => (
+            <Link className="directory-card" href={`/knowledge/${page.slug}`} key={page.slug}>
+              <span>{page.eyebrow}</span>
+              <h3>{page.shortTitle}</h3>
+              <p>{page.blurb}</p>
+              <strong>
+                {countBlocks(page, 'table')} tables, {countBlocks(page, 'figure')} {countBlocks(page, 'figure') === 1 ? 'diagram' : 'diagrams'}
+              </strong>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="system-directory" id="sap-series">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">SAP expert series</p>
+            <h2>SAP and the DoD systems built on it, in eight parts</h2>
+            <p>Architecture, every module, federal accounting, searchable catalogs of tables, transaction codes, and fields, interfaces, and referenced profiles of GFEBS, GCSS-Army, LMP, Navy ERP, and DLA EBS.</p>
+          </div>
+        </div>
+        <div className="directory-grid">
+          {sapSeries.map((page) => (
             <Link className="directory-card" href={`/knowledge/${page.slug}`} key={page.slug}>
               <span>{page.eyebrow}</span>
               <h3>{page.shortTitle}</h3>

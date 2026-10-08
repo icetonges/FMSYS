@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Diagram from './Diagram';
+import Catalog from './Catalog';
 
 function slugify(text) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 70);
@@ -40,7 +41,7 @@ export function prepareBlocks(blocks, prefix) {
       }
       return { ...block, id };
     }
-    if (block.type === 'table') {
+    if (block.type === 'table' || block.type === 'catalog') {
       tableCount += 1;
       return { ...block, number: `${prefix}-${tableCount}` };
     }
@@ -104,6 +105,8 @@ export default function KnowledgeContent({ blocks }) {
             );
           case 'table':
             return <NumberedTable key={index} {...block} id={`table-${block.number.toLowerCase()}`} />;
+          case 'catalog':
+            return <Catalog key={index} {...block} id={`table-${block.number.toLowerCase()}`} />;
           case 'figure':
             return (
               <figure className="kb-figure" key={index} id={`figure-${block.number.toLowerCase()}`}>

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import TopNav from '../../../components/TopNav';
 import KnowledgeContent, { prepareBlocks } from '../../../components/KnowledgeContent';
-import { knowledgePages, knowledgeMeta, getKnowledgePage, getKnowledgeNav } from '../../../data/knowledge';
+import { knowledgePages, sapSeries, knowledgeMeta, getKnowledgePage, getKnowledgeNav } from '../../../data/knowledge';
 import { systems } from '../../../data/systems';
 
 export function generateStaticParams() {
@@ -24,7 +24,7 @@ export default async function KnowledgePage({ params }) {
   const { prev, next } = getKnowledgeNav(slug);
   const { prepared, toc, tableCount, figureCount } = prepareBlocks(page.blocks, page.prefix);
   const related = systems.filter((system) => page.appliesTo?.includes(system.slug));
-  const tables = prepared.filter((block) => block.type === 'table');
+  const tables = prepared.filter((block) => block.type === 'table' || block.type === 'catalog');
   const figures = prepared.filter((block) => block.type === 'figure');
 
   return (
@@ -48,7 +48,9 @@ export default async function KnowledgePage({ params }) {
         <div className="hero-card">
           <span className="hero-metric">{tableCount}</span>
           <p>Numbered tables</p>
-          <span className="hero-metric small">{figureCount} diagrams</span>
+          <span className="hero-metric small">
+            {figureCount > 0 ? `${figureCount} ${figureCount === 1 ? 'diagram' : 'diagrams'}` : 'Searchable catalog'}
+          </span>
         </div>
       </section>
 
@@ -91,6 +93,17 @@ export default async function KnowledgePage({ params }) {
         </aside>
 
         <div>
+          {(page.group === 'SAP expert series' || page.slug === 'sap') && (
+            <nav className="kb-series" aria-label="SAP expert series">
+              <Link href="/knowledge/sap" className={page.slug === 'sap' ? 'active' : undefined}>SAP overview</Link>
+              {sapSeries.map((item, index) => (
+                <Link key={item.slug} href={`/knowledge/${item.slug}`} className={item.slug === page.slug ? 'active' : undefined}>
+                  {index + 1}. {item.shortTitle}
+                </Link>
+              ))}
+            </nav>
+          )}
+
           <KnowledgeContent blocks={prepared} />
 
           {page.sources?.length > 0 && (

@@ -175,6 +175,7 @@ export const sapPage = {
       ['LMP', 'Army Materiel Command', 'MM, PP, SD, PM, FI and CO for the Army Working Capital Fund', 'National-level logistics and the AWCF general ledger.'],
       ['DLA EBS', 'Defense Logistics Agency', 'MM, SD, FI, CO, plus planning and procurement add-ons', 'DLA supply chain and working capital fund accounting.']
     ], 'Scope lines summarize public program descriptions. Each program office holds the authoritative module and release list.'),
+    callout('This page is the overview', 'The SAP expert series goes deeper in eight parts: [architecture](/knowledge/sap-architecture), [modules](/knowledge/sap-modules), [federal accounting](/knowledge/sap-federal), a searchable [table catalog](/knowledge/sap-tables), [transaction code catalog](/knowledge/sap-tcodes), and [field catalog](/knowledge/sap-fields), [interfaces](/knowledge/sap-interfaces), and [DoD system profiles](/knowledge/sap-dod-systems).'),
     callout('How to read the table names on this page', 'Every table named here is a standard SAP product table. Programs add custom tables and fields that start with Z or Y. Those are not public. Use this page to know where to look first, then confirm against the program data dictionary (transaction `SE11`).'),
 
     h2('2. Technical architecture'),
